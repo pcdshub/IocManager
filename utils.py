@@ -1,7 +1,7 @@
 import telnetlib, string, datetime, os, time
 from re import search
 
-STARTUP_DIR = "/reg/neh/home1/mcbrowne/STARTUP/"
+STARTUP_DIR = "/reg/g/pcds/controls/ioc/"
 CONFIG_DIR  = STARTUP_DIR + "CONFIG/"
 STATUS_DIR  = STARTUP_DIR + "STATUS/"
 LOGFILE     = "/reg/d/iocData/%s/iocInfo/ioc.log_" + datetime.datetime.today().strftime("%m%d%Y_%H%M%S")

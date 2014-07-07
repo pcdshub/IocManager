@@ -34,7 +34,8 @@ STATUS
 	   incarnation of this IOC that was started, but it might not be currently
 	   running!
 TESTIOC
-	-- Fake IOC directories for testing.  Simple scripts that just announce who they are.
+	-- Fake IOC directories for testing.  Simple scripts that just announce who
+	   they are.
 IocManager, IocManager.py
 	-- A simple GUI for configuration file management.
 ioc.ui, ioc_ui.py

@@ -2,7 +2,7 @@
 
 # source function library
 . /etc/rc.d/init.d/functions
-export SCRIPTROOT=~mcbrowne/STARTUP
+export SCRIPTROOT=/reg/g/pcds/controls/ioc
 export PATH=${SCRIPTROOT}:$PATH
 PORTBASE=29000
 PROCMGRDBIN=/reg/g/pcds/package/procServ-2.5.1/procmgrd
