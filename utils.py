@@ -72,7 +72,7 @@ def readLogPortBanner(tn):
 #
 def check_status(host, port):
     try:
-        tn = telnetlib.Telnet(host, port)
+        tn = telnetlib.Telnet(host, port, 1)
     except:
         return (STATUS_NOCONNECT, "-", "-", "-", False, "/tmp")
     result = readLogPortBanner(tn)
@@ -103,7 +103,7 @@ def killProc(host, port):
     while (not connected) and (telnetCount < 2):
         telnetCount += 1
         try:
-            tn = telnetlib.Telnet(host, port)
+            tn = telnetlib.Telnet(host, port, 1)
         except:
             time.sleep(0.25)
         else:
@@ -146,7 +146,7 @@ def restartProc(host, port):
     while (not connected) and (telnetCount < 2):
         telnetCount += 1
         try:
-            tn = telnetlib.Telnet(host, port)
+            tn = telnetlib.Telnet(host, port, 1)
         except:
             time.sleep(.25)
         else:
@@ -205,7 +205,7 @@ def startProc(platform, cfg, entry):
     cmd = '/reg/g/pcds/package/procServ-2.5.1/procServ --logfile %s --name %s --allow --coresize 0 %s %s' % \
           (log, name, port, cmd)
     try:
-        tn = telnetlib.Telnet(host, BASEPORT + 100 * int(platform))
+        tn = telnetlib.Telnet(host, BASEPORT + 100 * int(platform), 1)
     except:
         print "ERROR: telnet to procmgr (%s port %d) failed" % (host, ctrlport)
         print ">>> Please start the procServ process on host %s!" % host
