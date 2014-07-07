@@ -241,8 +241,7 @@ def readStatus(cfg):
         result = check_status(stat[1], int(stat[2]))    # STATUS PID SERVERPID ID
         # What if PID or ID don't match?!?
         if result[0] == STATUS_NOCONNECT or result[0] == STATUS_ERROR:
-            #os.unlink(STATUS_DIR + cfg + "/" + f)
-            pass
+            os.unlink(STATUS_DIR + cfg + "/" + f)
         else:
             d[f] = {'pid': stat[0], 'host': stat[1], 'port': stat[2],
                     'dir': stat[3], 'status': result[0],
@@ -273,12 +272,6 @@ def getAllStatus(cfg):
                             'port': config[l]['port'], 'dir': result[5],
                             'status': result[0], 'ppid': result[2],
                             'newstyle': False}
-          else:
-              try:
-                  # This is dead, so get rid of the status file!
-                  os.unlink(STATUS_DIR + cfg + "/" + l)
-              except:
-                  pass
 
   # OK.  Let's make this into a list of tuples: (id, config, current).
   slist = []
