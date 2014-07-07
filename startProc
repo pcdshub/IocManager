@@ -1,0 +1,18 @@
+#!/bin/csh
+# Usage: startProc IOCNAME PORT
+
+setenv SCRIPTROOT ~mcbrowne/STARTUP
+set ioc = $1
+set port = $2
+set cfg = $3
+set dir = `$SCRIPTROOT/getDirectory $ioc $cfg`
+cd /reg/g/pcds/package/epics/3.14
+if (-d $dir) cd $dir
+if (-d build/iocBoot/$ioc) cd build/iocBoot/$ioc
+if (-d iocBoot/$ioc) cd iocBoot/$ioc
+echo $$ `hostname -s` $port $dir >$SCRIPTROOT/STATUS/$cfg/$ioc
+if (-f ../../archive/$ioc.archive) then
+    cp -f -p ../../archive/$ioc.archive /reg/d/iocData/$ioc/archive
+endif
+chmod g+w $SCRIPTROOT/STATUS/$cfg/$ioc
+exec ./st.cmd

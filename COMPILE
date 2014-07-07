@@ -1,0 +1,1 @@
+pyuic4 -o ioc_ui.py ioc.ui

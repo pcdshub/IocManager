@@ -1,0 +1,9 @@
+#!/bin/bash
+v=`lsb_release -sr | sed -e 's/\..*$//'`
+export PATH=/reg/common/package/python/2.7.2-rhel$v/bin:/usr/local/bin:/bin:/usr/bin
+export LD_LIBRARY_PATH=/reg/common/package/python/2.7.2-rhel$v/lib
+if [ X$SCRIPTROOT == X ]; then
+    export SCRIPTROOT=/reg/neh/home1/mcbrowne/STARTUP
+fi
+export PYTHONPATH=$SCRIPTROOT
+$SCRIPTROOT/IocManager.py "$@"
