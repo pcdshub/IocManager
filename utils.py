@@ -59,6 +59,8 @@ def readLogPortBanner(tn):
     getid = search('@@@ Child \"(.*)\" start', response).group(1)
     ppid  = search('@@@ procServ server PID: ([0-9]*)', response).group(1)
     dir   = search('@@@ Server startup directory: (.*)', response).group(1)
+    if dir[-1] == '\r':
+        dir = dir[:-1]
     if search(MSG_AUTORESTART_IS_ON, response):
         arst = True
     else:
