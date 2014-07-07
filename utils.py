@@ -135,7 +135,6 @@ def killProc(host, port):
     else:
         print 'ERROR: killProc() telnet to %s port %s failed' % (host, port)
 
-
 def restartProc(host, port):
     print "Restarting IOC on host %s, port %s..." % (host, port)
     # open a connection to the procServ control port
@@ -274,6 +273,12 @@ def getAllStatus(cfg):
                             'port': config[l]['port'], 'dir': result[5],
                             'status': result[0], 'ppid': result[2],
                             'newstyle': False}
+          else:
+              try:
+                  # This is dead, so get rid of the status file!
+                  os.unlink(STATUS_DIR + cfg + "/" + l)
+              except:
+                  pass
 
   # OK.  Let's make this into a list of tuples: (id, config, current).
   slist = []
@@ -340,6 +345,12 @@ def applyConfig(cfg):
   
   for l in kill_list:
     killProc(current[l]['host'], int(current[l]['port']))
+    try:
+        # This is dead, so get rid of the status file!
+        os.unlink(STATUS_DIR + cfg + "/" + l)
+    except:
+        pass
+
 
   for l in start_list:
     startProc(platform, cfg, config[l])
