@@ -1,6 +1,7 @@
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 import utils
+import os
 
 IOCNAME = 0
 HOST    = 1
@@ -227,3 +228,13 @@ class MyModel(QAbstractTableModel):
         cur = utils.getCurrentStatus(host, port)
         self.dlist.append((id, cfg, cur))
         self.emit(SIGNAL("layoutChanged()"))
+
+    def connectIOC(self, index):
+        (id, cfg, cur) = self.dlist[index.row()]
+        if cfg != None:
+            cur = cfg
+        os.system("gnome-terminal -t %s -x telnet %s %s &" % (cfg['id'], cfg['host'], cfg['port']))
+
+    def viewlogIOC(self, index):
+        (id, cfg, cur) = self.dlist[index.row()]
+        os.system("gedit `ls -t " + (utils.LOGBASE % id) + "|head -1` &")

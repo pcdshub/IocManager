@@ -5,6 +5,7 @@ CAMRECORDER = "/reg/g/pcds/controls/camrecord"
 STARTUP_DIR = "/reg/g/pcds/controls/ioc/"
 CONFIG_DIR  = STARTUP_DIR + "CONFIG/"
 STATUS_DIR  = STARTUP_DIR + "STATUS/"
+LOGBASE     = "/reg/d/iocData/%s/iocInfo/ioc.log*"
 LOGFILE     = "/reg/d/iocData/%s/iocInfo/ioc.log_" + datetime.datetime.today().strftime("%m%d%Y_%H%M%S")
 BASEPORT    = 29000
 

@@ -32,14 +32,6 @@ class GraphicUserInterface(QtGui.QMainWindow):
                      self.showContextMenu)
 
         self.menus = []
-        return
-        menu = MyContextMenu(lambda table, index: index != None and index.row() == 0 and
-                             index.column() >= param.params.firstdetidx)
-        menu.addAction("Delete IOC", self.deleteIOC)
-        menu.addAction("Add New IOC", self.addIOC)
-        menu.addAction("Set from Running", self.setFromRunning)
-        menu.addAction("Add Running to Configuration", self.addExisting)
-        self.menus.append(menu)
 
     def doQuit(self):
         self.close()
@@ -55,25 +47,26 @@ class GraphicUserInterface(QtGui.QMainWindow):
             menu.addAction("Set from Running")
         if self.model.isChanged(index):
             menu.addAction("Revert IOC")
+        menu.addAction("Connect to IOC")
+        menu.addAction("View IOC Log")
         gpos = self.ui.tableView.viewport().mapToGlobal(pos)
         selectedItem = menu.exec_(gpos)
         if selectedItem != None:
             txt = selectedItem.text()
             if txt == "Revert IOC":
                 self.model.revertIOC(index)
-                return
-            if txt == "Delete IOC":
+            elif txt == "Delete IOC":
                 self.model.deleteIOC(index)
-                return
-            if txt == "Add New IOC":
+            elif txt == "Add New IOC":
                 self.addIOC(index)
-                return
-            if txt == "Set from Running":
+            elif txt == "Set from Running":
                 self.model.setFromRunning(index)
-                return
-            if txt == "Add Running to Config":
+            elif txt == "Add Running to Config":
                 self.model.addExisting(index)
-                return
+            elif txt == "Connect to IOC":
+                self.model.connectIOC(index)
+            elif txt == "View IOC Log":
+                self.model.viewlogIOC(index)
 
     def addIOC(self, index):
         d=QtGui.QFileDialog(self, "Add New IOC", utils.EPICS_SITE_TOP + "ioc/" + self.hutch)
@@ -113,5 +106,3 @@ class GraphicUserInterface(QtGui.QMainWindow):
                                  QMessageBox.Ok, QMessageBox.Ok)
             return
         self.model.addIOC(name, host, port, dir)
-        
-            
