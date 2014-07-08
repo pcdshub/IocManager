@@ -1,6 +1,7 @@
 import telnetlib, string, datetime, os, time
 from re import search
 
+CAMRECORDER = "/reg/g/pcds/controls/camrecord"
 STARTUP_DIR = "/reg/g/pcds/controls/ioc/"
 CONFIG_DIR  = STARTUP_DIR + "CONFIG/"
 STATUS_DIR  = STARTUP_DIR + "STATUS/"
@@ -250,7 +251,7 @@ def readStatus(cfg):
                     'ppid': result[2], 'newstyle': True}
     return d
 
-def getAllStatus(cfg):
+def getState(cfg):
   result = readConfig(cfg)
   if result == None:
       print "Cannot read configuration for %s!" % cfg
@@ -274,6 +275,19 @@ def getAllStatus(cfg):
                             'port': config[l]['port'], 'dir': result[5],
                             'status': result[0], 'ppid': result[2],
                             'newstyle': False}
+
+  # Camera recorders always seem to be in the wrong directory, so cheat!
+  for l in cfglist:
+      if l['dir'] == CAMRECORDER:
+          try:
+              current[l['id']]['dir'] = CAMRECORDER
+          except:
+              pass
+  running = current.keys()
+  return (config, current, running, wanted, hostlist, platform)
+
+def getAllStatus(cfg):
+  (config, current, running, wanted, hostlist, platform) = getState(cfg)
 
   # OK.  Let's make this into a list of tuples: (id, config, current).
   slist = []
@@ -301,30 +315,7 @@ def getAllStatus(cfg):
   return (slist, hostlist)
 
 def applyConfig(cfg):
-  result = readConfig(cfg)
-  if result == None:
-      print "Cannot read configuration for %s!" % cfg
-      return -1
-  (platform, cfglist, hostlist) = result
-
-  config = {}
-  for l in cfglist:
-    config[l['id']] = l
-
-  current = readStatus(cfg)
-  running = current.keys()
-  wanted  = config.keys()
-
-  # Double-check for old-style IOCs that don't have an indicator file!
-  for l in wanted:
-      if not l in running:
-          result = check_status(config[l]['host'], int(config[l]['port']))
-          if result[0] == STATUS_RUNNING:
-              current[l] = {'pid': result[1], 'host': config[l]['host'],
-                            'port': config[l]['port'], 'dir': result[5],
-                            'status': result[0], 'ppid': result[2],
-                            'newstyle': False}
-  running = current.keys()
+  (config, current, running, wanted, hostlist, platform) = getState(cfg)
 
   #
   # Now, we need to make three lists: kill, restart, and start.
