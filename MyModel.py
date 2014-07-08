@@ -13,7 +13,7 @@ class MyModel(QAbstractTableModel):
     def __init__(self, hutch, parent=None):
         QAbstractTableModel.__init__(self, parent)
         self.hutch = hutch
-        self.data = utils.getAllStatus(hutch)
+        (self.dlist, self.hosts) = utils.getAllStatus(hutch)
         self.headerdata = ["IOC Name", "Host", "Port", "Version", "Status", "Information"]
         self.field      = [None, 'host', 'port', 'dir', None, None]
         self.newfield   = [None, 'newhost', 'newport', 'newdir', None, None]
@@ -26,7 +26,7 @@ class MyModel(QAbstractTableModel):
             return Qt.ItemIsEnabled | Qt.ItemIsEditable
 
     def setData(self, index, value, role=Qt.EditRole):
-        (id, cfg, cur) = self.data[index.row()]
+        (id, cfg, cur) = self.dlist[index.row()]
         if cfg == None:
             return False
         c = index.column()
@@ -38,7 +38,7 @@ class MyModel(QAbstractTableModel):
         return True
  
     def rowCount(self, parent): 
-        return len(self.data)
+        return len(self.dlist)
  
     def columnCount(self, parent): 
         return len(self.headerdata)
@@ -74,10 +74,10 @@ class MyModel(QAbstractTableModel):
         if not index.isValid(): 
             return QVariant() 
         elif role == Qt.DisplayRole or role == Qt.EditRole:
-            return self.value(self.data[index.row()], index.column())
+            return self.value(self.dlist[index.row()], index.column())
         elif role == Qt.ForegroundRole:
             c = index.column()
-            (id, cfg, cur) = self.data[index.row()]
+            (id, cfg, cur) = self.dlist[index.row()]
             if cfg == None:
                 return QVariant(QBrush(Qt.red))
             try:
@@ -89,7 +89,7 @@ class MyModel(QAbstractTableModel):
             c = index.column()
             if c != STATUS:
                 return QVariant()
-            (id, cfg, cur) = self.data[index.row()]
+            (id, cfg, cur) = self.dlist[index.row()]
             if cur == None:
                 return QVariant(QBrush(Qt.red))
             if cfg == None:
@@ -109,17 +109,28 @@ class MyModel(QAbstractTableModel):
     def sort(self, Ncol, order):
         self.emit(SIGNAL("layoutAboutToBeChanged()"))
         if Ncol == PORT:
-            self.data = sorted(self.data, key=lambda rowtuple: int(self.value(rowtuple, Ncol).toString()))
+            self.dlist = sorted(self.dlist, key=lambda rowtuple: int(self.value(rowtuple, Ncol).toString()))
         else:
-            self.data = sorted(self.data, key=lambda rowtuple: self.value(rowtuple, Ncol).toString())
+            self.dlist = sorted(self.dlist, key=lambda rowtuple: self.value(rowtuple, Ncol).toString())
         if order == Qt.DescendingOrder:
-            self.data.reverse()
+            self.dlist.reverse()
         self.emit(SIGNAL("layoutChanged()"))
 
     def doApply(self):
+        self.doSave()
+        utils.applyConfig(self.hutch)
+        self.emit(SIGNAL("layoutAboutToBeChanged()"))
+        (self.dlist, self.hosts) = utils.getAllStatus(self.hutch)
+        self.emit(SIGNAL("layoutChanged()"))
+
+    def doSave(self):
         f = open(utils.CONFIG_DIR + self.hutch, "w")
+        f.write("hosts = [\n")
+        for h in self.hosts:
+            f.write("   '%s',\n" % h)
+        f.write("]\n\n");
         f.write("procmgr_config = [\n")
-        for (id, cfg, cur) in self.data:
+        for (id, cfg, cur) in self.dlist:
             if cfg == None:
                 continue
             try:
@@ -138,42 +149,41 @@ class MyModel(QAbstractTableModel):
                     (id, host, port, dir))
         f.write("]\n");
         f.close()
-        utils.applyConfig(self.hutch)
         self.emit(SIGNAL("layoutAboutToBeChanged()"))
-        self.data = utils.getAllStatus(self.hutch)
+        (self.dlist, self.hosts) = utils.getAllStatus(self.hutch)
         self.emit(SIGNAL("layoutChanged()"))
         
     def doRevert(self):
-        for (id, cfg, cur) in self.data:
+        for (id, cfg, cur) in self.dlist:
             for f in self.newfield:
                 try:
                     if f != None:
                         del cfg[f]
                 except:
                     pass
-        self.dataChanged.emit(self.index(0,0), self.index(len(self.data),len(self.headerdata)))
+        self.dataChanged.emit(self.index(0,0), self.index(len(self.dlist),len(self.headerdata)))
 
     def inConfig(self, index):
-        (id, cfg, cur) = self.data[index.row()]
+        (id, cfg, cur) = self.dlist[index.row()]
         return cfg != None
         pass
 
     def notSynched(self, index):
-        (id, cfg, cur) = self.data[index.row()]
+        (id, cfg, cur) = self.dlist[index.row()]
         if cfg == None or cur == None:
             return False
         return (cfg['dir'] != cur['dir'] or cfg['host'] != cur['host'] or
                 cfg['port'] != cur['port'])
 
     def isChanged(self, index):
-        (id, cfg, cur) = self.data[index.row()]
+        (id, cfg, cur) = self.dlist[index.row()]
         if cfg == None:
             return False
         keys = cfg.keys()
         return 'newhost' in keys or 'newport' in keys or 'newdir' in keys
 
     def revertIOC(self, index):
-        (id, cfg, cur) = self.data[index.row()]
+        (id, cfg, cur) = self.dlist[index.row()]
         for f in self.newfield:
             try:
                 if f != None:
@@ -184,18 +194,18 @@ class MyModel(QAbstractTableModel):
                               self.index(index.row(),len(self.headerdata)))
 
     def deleteIOC(self, index):
-        (id, cfg, cur) = self.data[index.row()]
+        (id, cfg, cur) = self.dlist[index.row()]
         if cur != None:
-            self.data[index.row()] = (id, None, cur)
+            self.dlist[index.row()] = (id, None, cur)
             self.dataChanged.emit(self.index(index.row(),0),
                                   self.index(index.row(),len(self.headerdata)))
         else:
             self.emit(SIGNAL("layoutAboutToBeChanged()"))
-            self.data = self.data[0:index.row()]+self.data[index.row()+1:]
+            self.dlist = self.dlist[0:index.row()]+self.dlist[index.row()+1:]
             self.emit(SIGNAL("layoutChanged()"))
 
     def setFromRunning(self, index):
-        (id, cfg, cur) = self.data[index.row()]
+        (id, cfg, cur) = self.dlist[index.row()]
         for f in ['dir', 'host', 'port']:
             if cfg[f] != cur[f]:
                 cfg['new'+f] = cur[f]
@@ -204,9 +214,9 @@ class MyModel(QAbstractTableModel):
         
 
     def addExisting(self, index):
-        (id, cfg, cur) = self.data[index.row()]
+        (id, cfg, cur) = self.dlist[index.row()]
         cfg = {'id': id, 'host': cur['host'], 'port': cur['port'], 'dir': cur['dir']}
-        self.data[index.row()] = (id, cfg, cur)
+        self.dlist[index.row()] = (id, cfg, cur)
         self.dataChanged.emit(self.index(index.row(),0),
                               self.index(index.row(),len(self.headerdata)))
         
@@ -215,5 +225,5 @@ class MyModel(QAbstractTableModel):
         self.emit(SIGNAL("layoutAboutToBeChanged()"))
         cfg = {'id': id, 'host': host, 'port': port, 'dir': dir}
         cur = utils.getCurrentStatus(host, port)
-        self.data.append((id, cfg, cur))
+        self.dlist.append((id, cfg, cur))
         self.emit(SIGNAL("layoutChanged()"))

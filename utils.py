@@ -85,13 +85,13 @@ def readConfig(cfg):
         platform = '2'
     if cfg == 'las':
         platform = '3'
-    config = {'platform': platform, 'procmgr_config': None, 'dir':'dir',
+    config = {'platform': platform, 'procmgr_config': None, 'hosts': None, 'dir':'dir',
               'id':'id', 'cmd':'cmd', 'flags':'flags', 'port':'port', 'host':'host',
               'rtprio':'rtprio', 'env':'env', 'procmgr_macro': {}}
     try:
         execfile(CONFIG_DIR + cfg, {}, config)
         # Then config['platform'] and config['procmgr_config'] are set to something reasonable!
-        return (config['platform'], config['procmgr_config'])
+        return (config['platform'], config['procmgr_config'], config['hosts'])
     except:
         return None
 
@@ -255,7 +255,7 @@ def getAllStatus(cfg):
   if result == None:
       print "Cannot read configuration for %s!" % cfg
       return -1
-  (platform, cfglist) = result
+  (platform, cfglist, hostlist) = result
 
   config = {}
   for l in cfglist:
@@ -289,14 +289,23 @@ def getAllStatus(cfg):
       except:
           curentry = None
       slist.append((key, cfgentry, curentry))
-  return slist
+  if hostlist == None:
+      hostlist = []
+      for (key, cfgentry, curentry) in slist:
+          if cfgentry != None:
+              hostlist.append(cfgentry['host'])
+          else:
+              hostlist.append(curentry['host'])
+      hostlist = list(set(hostlist))
+      hostlist.sort()
+  return (slist, hostlist)
 
 def applyConfig(cfg):
   result = readConfig(cfg)
   if result == None:
       print "Cannot read configuration for %s!" % cfg
       return -1
-  (platform, cfglist) = result
+  (platform, cfglist, hostlist) = result
 
   config = {}
   for l in cfglist:

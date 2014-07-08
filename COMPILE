@@ -1,1 +1,2 @@
 pyuic4 -o ioc_ui.py ioc.ui
+pyuic4 -o hostname_ui.py hostname.ui

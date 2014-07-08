@@ -1,5 +1,6 @@
 from PyQt4 import QtCore, QtGui, Qt
 from MyModel import MyModel
+from MyDelegate import MyDelegate
 from ioc_ui import Ui_MainWindow
 import utils
 
@@ -13,10 +14,13 @@ class GraphicUserInterface(QtGui.QMainWindow):
         self.ui.setupUi(self)
         self.hutch = hutch
         self.model = MyModel(hutch)
+        self.delegate = MyDelegate(None)
         self.connect(self.ui.applyButton,  QtCore.SIGNAL("clicked()"), self.model.doApply)
         self.connect(self.ui.revertButton, QtCore.SIGNAL("clicked()"), self.model.doRevert)
         self.connect(self.ui.quitButton,   QtCore.SIGNAL("clicked()"), self.doQuit)
+        self.connect(self.ui.saveButton,   QtCore.SIGNAL("clicked()"), self.model.doSave)
         self.ui.tableView.setModel(self.model)
+        self.ui.tableView.setItemDelegate(self.delegate)
         self.ui.tableView.verticalHeader().setVisible(False)
         self.ui.tableView.horizontalHeader().setStretchLastSection(True)
         self.ui.tableView.resizeColumnsToContents()
