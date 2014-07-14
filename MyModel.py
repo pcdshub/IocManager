@@ -237,4 +237,5 @@ class MyModel(QAbstractTableModel):
 
     def viewlogIOC(self, index):
         (id, cfg, cur) = self.dlist[index.row()]
-        os.system("gedit `ls -t " + (utils.LOGBASE % id) + "|head -1` &")
+        #os.system("gedit `ls -t " + (utils.LOGBASE % id) + "|head -1` &")
+        os.system("gnome-terminal -t " + id + " --geometry=128x30 -x tail -1000lf `ls -t " + (utils.LOGBASE % id) + "|head -1` &")
