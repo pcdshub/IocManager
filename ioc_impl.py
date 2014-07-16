@@ -2,7 +2,42 @@ from PyQt4 import QtCore, QtGui, Qt
 from MyModel import MyModel
 from MyDelegate import MyDelegate
 from ioc_ui import Ui_MainWindow
+from Pv import Pv
+import pyca
 import utils
+
+def connectPv(name, timeout=-1.0):
+    try:
+        pv = Pv(name)
+        if timeout < 0:
+            pv.connect_cb = lambda isconn: __connect_callback(pv, isconn)
+            pv.connect(timeout)
+        else:
+            pv.connect(timeout)
+            pv.get(False, timeout)
+        return pv
+    except:
+      return None
+
+def __connect_callback(pv, isconn):
+    if (isconn):
+        pv.connect_cb = pv.connection_handler
+        pv.get(False, -1.0)
+
+def __getevt_callback(pv, e=None):
+    if e is None:
+        pv.getevt_cb = None
+        pv.monitor(pyca.DBE_VALUE)
+        pyca.flush_io()
+
+def monitorPv(name,handler):
+    try:
+        pv = connectPv(name)
+        pv.getevt_cb = lambda  e=None: __getevt_callback(pv, e)
+        pv.monitor_cb = lambda e=None: handler(pv, e)
+        return pv
+    except:
+        return None
 
 ######################################################################
  
@@ -19,6 +54,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
         self.connect(self.ui.revertButton, QtCore.SIGNAL("clicked()"), self.model.doRevert)
         self.connect(self.ui.quitButton,   QtCore.SIGNAL("clicked()"), self.doQuit)
         self.connect(self.ui.saveButton,   QtCore.SIGNAL("clicked()"), self.model.doSave)
+        self.connect(self.ui.reboot,       QtCore.SIGNAL("clicked()"), self.doReboot)
         self.ui.tableView.setModel(self.model)
         self.ui.tableView.setItemDelegate(self.delegate)
         self.ui.tableView.verticalHeader().setVisible(False)
@@ -28,10 +64,58 @@ class GraphicUserInterface(QtGui.QMainWindow):
         self.ui.tableView.setSortingEnabled(True)
         self.ui.tableView.sortByColumn(0, QtCore.Qt.AscendingOrder)
         self.ui.tableView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.ui.tableView.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.connect(self.ui.tableView.selectionModel(),
+                     QtCore.SIGNAL("selectionChanged(const QItemSelection&, const QItemSelection&)"),
+                     self.getSelection)
         self.connect(self.ui.tableView, QtCore.SIGNAL("customContextMenuRequested(const QPoint&)"),
                      self.showContextMenu)
+        self.currentIOC = None
+        self.currentBase = None
+        self.pvlist = []
 
-        self.menus = []
+    def disconnectPVs(self):
+        for pv in self.pvlist:
+            pv.disconnect()
+        self.pvlist = []
+
+    def displayPV(self, pv, e=None):
+        try:
+            if e is None:
+                pv.gui.setText(pv.format % pv.value)
+        except:
+            pass
+
+    def doReboot(self):
+        if self.currentBase:
+            print "Reboot %s by writing 1 to %s:SYSRESET" % (self.currentIOC, self.currentBase)
+
+    def dopv(self, name, gui, format):
+        pv = monitorPv(name, self.displayPV)
+        if pv != None:
+            gui.setText("")
+            pv.gui = gui
+            pv.format = format
+            self.pvlist.append(pv)
+
+    def getSelection(self, selected, deselected):
+        try:
+            row = selected.indexes()[0].row()
+            ioc = self.model.data(self.model.index(row, 0)).toString()
+            if ioc == self.currentIOC:
+                return
+            self.disconnectPVs()
+            self.currentIOC = ioc
+            self.ui.IOCname.setText(ioc)
+            base = utils.getBaseName(ioc)
+            self.currentBase = base
+            self.dopv(base + ":HEARTBEAT", self.ui.heartbeat, "%d")
+            self.dopv(base + ":TOD",       self.ui.tod,       "%s")
+            self.dopv(base + ":STARTTOD",  self.ui.boottime,  "%s")
+            pyca.flush_io()
+        except:
+            pass
+                             
 
     def doQuit(self):
         self.close()

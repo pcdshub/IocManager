@@ -27,7 +27,7 @@ class MyDelegate(QStyledItemDelegate):
             editor.lastitem = editor.count()
             editor.addItem("New Host")
             if self.boxsize == None:
-                self.boxsize = QSize(200, 25)
+                self.boxsize = QSize(150, 25)
             return editor
         return QStyledItemDelegate.createEditor(self, parent, option, index)
 
@@ -71,7 +71,7 @@ class MyDelegate(QStyledItemDelegate):
         col = index.column()
         if col == MyModel.HOST:
             if self.boxsize == None:
-                result = QSize(120, 25)
+                result = QSize(150, 25)
             else:
                 result = self.boxsize
         else:

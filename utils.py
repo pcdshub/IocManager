@@ -7,6 +7,7 @@ CONFIG_DIR  = STARTUP_DIR + "CONFIG/"
 STATUS_DIR  = STARTUP_DIR + "STATUS/"
 LOGBASE     = "/reg/d/iocData/%s/iocInfo/ioc.log*"
 LOGFILE     = "/reg/d/iocData/%s/iocInfo/ioc.log_" + datetime.datetime.today().strftime("%m%d%Y_%H%M%S")
+PVFILE      = "/reg/d/iocData/%s/iocInfo/IOC.pvlist"
 BASEPORT    = 29000
 
 STATUS_NOCONNECT = "NOCONNECT"
@@ -366,3 +367,14 @@ def getCurrentStatus(host, port):
                'newstyle': False}
     else:
         return None
+
+def getBaseName(ioc):
+    try:
+        lines = open(PVFILE % ioc).readlines()
+        for l in lines:
+            pv = l.split(",")[0]
+            if pv[-10:] == ":HEARTBEAT":
+                return pv[:-10]
+    except:
+        pass
+    return None

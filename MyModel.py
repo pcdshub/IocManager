@@ -21,7 +21,9 @@ class MyModel(QAbstractTableModel):
 
     def flags(self, index):
         c = index.column()
-        if c == IOCNAME or c == STATUS or c == EXTRA:
+        if c == IOCNAME:
+            return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+        elif c == STATUS or c == EXTRA:
             return Qt.ItemIsEnabled
         else:
             return Qt.ItemIsEnabled | Qt.ItemIsEditable
@@ -71,7 +73,7 @@ class MyModel(QAbstractTableModel):
                 return QVariant(cfg[self.field[c]])
         return QVariant()
  
-    def data(self, index, role): 
+    def data(self, index, role=Qt.DisplayRole):
         if not index.isValid(): 
             return QVariant() 
         elif role == Qt.DisplayRole or role == Qt.EditRole:
