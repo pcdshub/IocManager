@@ -102,7 +102,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
 
     def doReboot(self):
         if self.currentBase:
-            print "Reboot %s by writing 1 to %s:SYSRESET" % (self.currentIOC, self.currentBase)
+            caput(self.currentBase + ":SYSRESET", 1)
 
     def doLog(self):
         if self.currentIOC:

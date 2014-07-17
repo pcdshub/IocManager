@@ -49,35 +49,35 @@ class MyModel(QAbstractTableModel):
     def value(self, rowtuple, c):
         (id, cfg, cur) = rowtuple
         if c == IOCNAME:
-            return QVariant(id)
+            return id
         elif c == STATUS:
             try:
-                return QVariant(cur['status'])
+                return cur['status']
             except:
-                return QVariant("NOCONNECT")
+                return "NOCONNECT"
         elif c == EXTRA:
             if cfg == None or cur == None:
-                return QVariant()
+                return None
             v = ""
             if cfg['dir'] != cur['dir']:
                 v = cur['dir'] + " "
             if cfg['host'] != cur['host'] or cfg['port'] != cur['port']:
                 v += "on " + cur['host'] + ":" + cur['port']
-            return QVariant(v)
+            return v
         else:
             if cfg == None:
-                return QVariant(cur[self.field[c]])
+                return cur[self.field[c]]
             try:
-                return QVariant(cfg[self.newfield[c]])
+                return cfg[self.newfield[c]]
             except:
-                return QVariant(cfg[self.field[c]])
-        return QVariant()
+                return cfg[self.field[c]]
+        return None
  
     def data(self, index, role=Qt.DisplayRole):
         if not index.isValid(): 
             return QVariant() 
         elif role == Qt.DisplayRole or role == Qt.EditRole:
-            return self.value(self.dlist[index.row()], index.column())
+            return QVariant(self.value(self.dlist[index.row()], index.column()))
         elif role == Qt.ForegroundRole:
             c = index.column()
             (id, cfg, cur) = self.dlist[index.row()]
@@ -90,17 +90,30 @@ class MyModel(QAbstractTableModel):
                 return QVariant()
         elif role == Qt.BackgroundRole:
             c = index.column()
-            if c != STATUS:
+            if c == STATUS:
+                (id, cfg, cur) = self.dlist[index.row()]
+                if cur == None:
+                    return QVariant(QBrush(Qt.red))
+                if cfg == None:
+                    return QVariant()
+                if (cfg['host'] != cur['host'] or cfg['port'] != cur['port'] or
+                    cfg['dir'] != cur['dir']):
+                    return QVariant(QBrush(Qt.yellow))
+                return QVariant(QBrush(Qt.green))
+            elif c == PORT:
+                r = index.row()
+                h = self.value(self.dlist[r], HOST)
+                p = self.value(self.dlist[r], PORT)
+                for i in range(len(self.dlist)):
+                    if i == r:
+                        continue
+                    h2 = self.value(self.dlist[i], HOST)
+                    p2 = self.value(self.dlist[i], PORT)
+                    if (h == h2 and p == p2):
+                        return QVariant(QBrush(Qt.red))
                 return QVariant()
-            (id, cfg, cur) = self.dlist[index.row()]
-            if cur == None:
-                return QVariant(QBrush(Qt.red))
-            if cfg == None:
+            else:
                 return QVariant()
-            if (cfg['host'] != cur['host'] or cfg['port'] != cur['port'] or
-                cfg['dir'] != cur['dir']):
-                return QVariant(QBrush(Qt.yellow))
-            return QVariant(QBrush(Qt.green))
         else:
             return QVariant()
 
@@ -112,9 +125,9 @@ class MyModel(QAbstractTableModel):
     def sort(self, Ncol, order):
         self.emit(SIGNAL("layoutAboutToBeChanged()"))
         if Ncol == PORT:
-            self.dlist = sorted(self.dlist, key=lambda rowtuple: int(self.value(rowtuple, Ncol).toString()))
+            self.dlist = sorted(self.dlist, key=lambda rowtuple: int(self.value(rowtuple, Ncol)))
         else:
-            self.dlist = sorted(self.dlist, key=lambda rowtuple: self.value(rowtuple, Ncol).toString())
+            self.dlist = sorted(self.dlist, key=lambda rowtuple: self.value(rowtuple, Ncol))
         if order == Qt.DescendingOrder:
             self.dlist.reverse()
         self.emit(SIGNAL("layoutChanged()"))
@@ -214,7 +227,6 @@ class MyModel(QAbstractTableModel):
                 cfg['new'+f] = cur[f]
         self.dataChanged.emit(self.index(index.row(),0),
                               self.index(index.row(),len(self.headerdata)))
-        
 
     def addExisting(self, index):
         (id, cfg, cur) = self.dlist[index.row()]
