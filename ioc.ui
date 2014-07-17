@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1266</width>
-    <height>449</height>
+    <width>1332</width>
+    <height>488</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -263,7 +263,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="reboot">
+        <widget class="QPushButton" name="rebootButton">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>90</horstretch>
@@ -277,7 +277,21 @@
           </size>
          </property>
          <property name="text">
-          <string>Reboot</string>
+          <string>Soft Reboot</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="logButton">
+         <property name="text">
+          <string>Show Log</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="consoleButton">
+         <property name="text">
+          <string>Show Console</string>
          </property>
         </widget>
        </item>
@@ -304,7 +318,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1266</width>
+     <width>1332</width>
      <height>23</height>
     </rect>
    </property>

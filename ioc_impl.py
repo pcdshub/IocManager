@@ -6,6 +6,18 @@ from Pv import Pv
 import pyca
 import utils
 
+def caput(pvname,value,timeout=1.0):
+    try:
+        pv = Pv(pvname)
+        pv.connect(timeout)
+        pv.get(ctrl=False, timeout=timeout)
+        pv.put(value, timeout)
+        pv.disconnect()
+    except pyca.pyexc, e:
+        print 'pyca exception: %s' %(e)
+    except pyca.caexc, e:
+        print 'channel access exception: %s' %(e)
+
 def connectPv(name, timeout=-1.0):
     try:
         pv = Pv(name)
@@ -50,11 +62,13 @@ class GraphicUserInterface(QtGui.QMainWindow):
         self.hutch = hutch
         self.model = MyModel(hutch)
         self.delegate = MyDelegate(None)
-        self.connect(self.ui.applyButton,  QtCore.SIGNAL("clicked()"), self.model.doApply)
-        self.connect(self.ui.revertButton, QtCore.SIGNAL("clicked()"), self.model.doRevert)
-        self.connect(self.ui.quitButton,   QtCore.SIGNAL("clicked()"), self.doQuit)
-        self.connect(self.ui.saveButton,   QtCore.SIGNAL("clicked()"), self.model.doSave)
-        self.connect(self.ui.reboot,       QtCore.SIGNAL("clicked()"), self.doReboot)
+        self.connect(self.ui.applyButton,   QtCore.SIGNAL("clicked()"), self.model.doApply)
+        self.connect(self.ui.revertButton,  QtCore.SIGNAL("clicked()"), self.model.doRevert)
+        self.connect(self.ui.quitButton,    QtCore.SIGNAL("clicked()"), self.doQuit)
+        self.connect(self.ui.saveButton,    QtCore.SIGNAL("clicked()"), self.model.doSave)
+        self.connect(self.ui.rebootButton,  QtCore.SIGNAL("clicked()"), self.doReboot)
+        self.connect(self.ui.logButton,     QtCore.SIGNAL("clicked()"), self.doLog)
+        self.connect(self.ui.consoleButton, QtCore.SIGNAL("clicked()"), self.doConsole)
         self.ui.tableView.setModel(self.model)
         self.ui.tableView.setItemDelegate(self.delegate)
         self.ui.tableView.verticalHeader().setVisible(False)
@@ -90,6 +104,14 @@ class GraphicUserInterface(QtGui.QMainWindow):
         if self.currentBase:
             print "Reboot %s by writing 1 to %s:SYSRESET" % (self.currentIOC, self.currentBase)
 
+    def doLog(self):
+        if self.currentIOC:
+            self.model.viewlogIOC(self.currentIOC)
+    
+    def doConsole(self):
+        if self.currentIOC:
+            self.model.connectIOC(self.currentIOC)
+    
     def dopv(self, name, gui, format):
         pv = monitorPv(name, self.displayPV)
         if pv != None:
@@ -116,7 +138,6 @@ class GraphicUserInterface(QtGui.QMainWindow):
         except:
             pass
                              
-
     def doQuit(self):
         self.close()
     

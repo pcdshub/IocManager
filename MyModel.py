@@ -232,12 +232,18 @@ class MyModel(QAbstractTableModel):
         self.emit(SIGNAL("layoutChanged()"))
 
     def connectIOC(self, index):
-        (id, cfg, cur) = self.dlist[index.row()]
+        if isinstance(index, QModelIndex):
+            (id, cfg, cur) = self.dlist[index.row()]
+        else:
+            x = [l for l in self.dlist if l[0] == index]
+            (id, cfg, cur) = x[0]
         if cfg != None:
             cur = cfg
         os.system("gnome-terminal -t %s -x telnet %s %s &" % (cfg['id'], cfg['host'], cfg['port']))
 
     def viewlogIOC(self, index):
-        (id, cfg, cur) = self.dlist[index.row()]
-        #os.system("gedit `ls -t " + (utils.LOGBASE % id) + "|head -1` &")
+        if isinstance(index, QModelIndex):
+            (id, cfg, cur) = self.dlist[index.row()]
+        else:
+            id = str(index)
         os.system("gnome-terminal -t " + id + " --geometry=128x30 -x tail -1000lf `ls -t " + (utils.LOGBASE % id) + "|head -1` &")

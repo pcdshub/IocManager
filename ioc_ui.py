@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ioc.ui'
 #
-# Created: Wed Jul 16 14:11:50 2014
+# Created: Wed Jul 16 16:51:03 2014
 #      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -17,7 +17,7 @@ except AttributeError:
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
-        MainWindow.resize(1266, 449)
+        MainWindow.resize(1332, 488)
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
         self.verticalLayout = QtGui.QVBoxLayout(self.centralwidget)
@@ -161,21 +161,27 @@ class Ui_MainWindow(object):
         self.boottime.setReadOnly(True)
         self.boottime.setObjectName(_fromUtf8("boottime"))
         self.horizontalLayout_2.addWidget(self.boottime)
-        self.reboot = QtGui.QPushButton(self.widget_2)
+        self.rebootButton = QtGui.QPushButton(self.widget_2)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(90)
         sizePolicy.setVerticalStretch(26)
-        sizePolicy.setHeightForWidth(self.reboot.sizePolicy().hasHeightForWidth())
-        self.reboot.setSizePolicy(sizePolicy)
-        self.reboot.setMinimumSize(QtCore.QSize(90, 0))
-        self.reboot.setObjectName(_fromUtf8("reboot"))
-        self.horizontalLayout_2.addWidget(self.reboot)
+        sizePolicy.setHeightForWidth(self.rebootButton.sizePolicy().hasHeightForWidth())
+        self.rebootButton.setSizePolicy(sizePolicy)
+        self.rebootButton.setMinimumSize(QtCore.QSize(90, 0))
+        self.rebootButton.setObjectName(_fromUtf8("rebootButton"))
+        self.horizontalLayout_2.addWidget(self.rebootButton)
+        self.logButton = QtGui.QPushButton(self.widget_2)
+        self.logButton.setObjectName(_fromUtf8("logButton"))
+        self.horizontalLayout_2.addWidget(self.logButton)
+        self.consoleButton = QtGui.QPushButton(self.widget_2)
+        self.consoleButton.setObjectName(_fromUtf8("consoleButton"))
+        self.horizontalLayout_2.addWidget(self.consoleButton)
         spacerItem1 = QtGui.QSpacerItem(20, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_2.addItem(spacerItem1)
         self.verticalLayout.addWidget(self.widget_2)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1266, 23))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1332, 23))
         self.menubar.setObjectName(_fromUtf8("menubar"))
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtGui.QStatusBar(MainWindow)
@@ -195,5 +201,7 @@ class Ui_MainWindow(object):
         self.label_3.setText(QtGui.QApplication.translate("MainWindow", "Heartbeat:", None, QtGui.QApplication.UnicodeUTF8))
         self.label_2.setText(QtGui.QApplication.translate("MainWindow", "Time of Day:", None, QtGui.QApplication.UnicodeUTF8))
         self.label_4.setText(QtGui.QApplication.translate("MainWindow", "Boot Time:", None, QtGui.QApplication.UnicodeUTF8))
-        self.reboot.setText(QtGui.QApplication.translate("MainWindow", "Reboot", None, QtGui.QApplication.UnicodeUTF8))
+        self.rebootButton.setText(QtGui.QApplication.translate("MainWindow", "Soft Reboot", None, QtGui.QApplication.UnicodeUTF8))
+        self.logButton.setText(QtGui.QApplication.translate("MainWindow", "Show Log", None, QtGui.QApplication.UnicodeUTF8))
+        self.consoleButton.setText(QtGui.QApplication.translate("MainWindow", "Show Console", None, QtGui.QApplication.UnicodeUTF8))
 
