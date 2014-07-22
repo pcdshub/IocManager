@@ -59,9 +59,10 @@ class GraphicUserInterface(QtGui.QMainWindow):
         self.__app = app
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.setWindowTitle("IocManager")
         self.hutch = hutch
         self.model = MyModel(hutch)
-        self.delegate = MyDelegate(None)
+        self.delegate = MyDelegate(self)
         self.connect(self.ui.applyButton,   QtCore.SIGNAL("clicked()"), self.model.doApply)
         self.connect(self.ui.revertButton,  QtCore.SIGNAL("clicked()"), self.model.doRevert)
         self.connect(self.ui.quitButton,    QtCore.SIGNAL("clicked()"), self.doQuit)
@@ -152,8 +153,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
             menu.addAction("Set from Running")
         if self.model.isChanged(index):
             menu.addAction("Revert IOC")
-        menu.addAction("Connect to IOC")
-        menu.addAction("View IOC Log")
+        menu.addAction("Save Version")
         gpos = self.ui.tableView.viewport().mapToGlobal(pos)
         selectedItem = menu.exec_(gpos)
         if selectedItem != None:
@@ -168,10 +168,8 @@ class GraphicUserInterface(QtGui.QMainWindow):
                 self.model.setFromRunning(index)
             elif txt == "Add Running to Config":
                 self.model.addExisting(index)
-            elif txt == "Connect to IOC":
-                self.model.connectIOC(index)
-            elif txt == "View IOC Log":
-                self.model.viewlogIOC(index)
+            elif txt == "Save Version":
+                self.model.saveVersion(index)
 
     def addIOC(self, index):
         d=QtGui.QFileDialog(self, "Add New IOC", utils.EPICS_SITE_TOP + "ioc/" + self.hutch)

@@ -2,6 +2,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 import MyModel
 import hostname_ui
+import utils
 
 class hostnamedialog(QDialog):
     def __init__(self, parent=None):
@@ -12,24 +13,32 @@ class hostnamedialog(QDialog):
 class MyDelegate(QStyledItemDelegate):
     def __init__(self, parent):
         QStyledItemDelegate.__init__(self, parent)
+        self.parent = parent
         self.boxsize = None
         self.hostdialog = hostnamedialog(parent)
 
     def createEditor(self, parent, option, index):
         col = index.column()
-        if col == MyModel.HOST:
+        if col == MyModel.HOST or col == MyModel.VERSION:
             editor = QComboBox(parent)
             editor.setAutoFillBackground(True)
             self.connect(editor, SIGNAL("currentIndexChanged(int)"), lambda n: self.do_commit(n, editor))
-            items = index.model().hosts
+            if col == MyModel.HOST:
+                items = index.model().hosts
+            else:
+                items = index.model().history(index.row())
             for item in items:
                 editor.addItem(item)
             editor.lastitem = editor.count()
-            editor.addItem("New Host")
-            if self.boxsize == None:
-                self.boxsize = QSize(150, 25)
+            if col == MyModel.HOST:
+                editor.addItem("New Host")
+                if self.boxsize == None:
+                    self.boxsize = QSize(150, 25)
+            else:
+                editor.addItem("New Version")
             return editor
-        return QStyledItemDelegate.createEditor(self, parent, option, index)
+        else:
+            return QStyledItemDelegate.createEditor(self, parent, option, index)
 
     def setEditorData(self, editor, index):
         col = index.column()
@@ -40,6 +49,10 @@ class MyDelegate(QStyledItemDelegate):
                 editor.setCurrentIndex(idx)
             except:
                 editor.setCurrentIndex(editor.lastitem)
+        elif col == MyModel.VERSION:
+            # We don't have anything to do here.  It is created pointing to 0 (the newest setting)
+            # And after setModelData, it is pointing to what we just added.
+            pass
         else:
             QStyledItemDelegate.setEditorData(self, editor, index)
 
@@ -63,7 +76,37 @@ class MyDelegate(QStyledItemDelegate):
                 else:
                     self.setEditorData(editor, index)  # Restore the original value!
             else:
-                model.setData(index, QVariant(index.model().hosts[idx]), Qt.EditRole)
+                model.setData(index, QVariant(str(editor.currentText())), Qt.EditRole)
+        elif col == MyModel.VERSION:
+            idx = editor.currentIndex()
+            if idx == editor.lastitem:
+                # Pick a new directory!
+                r=str(editor.itemText(0))
+                if r[0] != '/' and r[0:3] != '../':
+                    try:
+                        r=utils.EPICS_SITE_TOP + r[:r.rindex('/')]
+                    except:
+                        pass
+                row = index.row()
+                id = model.getID(row)
+                d=QFileDialog(self.parent, "New Version for %s" % id, r)
+                d.setFileMode(QFileDialog.Directory)
+                d.setOptions(QFileDialog.ShowDirsOnly|QFileDialog.DontUseNativeDialog)
+                d.setSidebarUrls([QUrl("file://" + utils.EPICS_SITE_TOP + "ioc/" + self.parent.hutch),
+                                  QUrl("file://" + utils.EPICS_TOP + "3.14-dev")])
+                if d.exec_() == QDialog.Rejected:
+                    return
+                try:
+                    dir = str(d.selectedFiles()[0])
+                    dir = utils.fixdir(dir, id)
+                except:
+                    return
+                editor.setItemText(editor.lastitem, dir)
+                editor.addItem("New Version")
+                editor.lastitem += 1
+                model.setData(index, QVariant(dir), Qt.EditRole)
+            else:
+                model.setData(index, QVariant(str(editor.currentText())), Qt.EditRole)
         else:
             QStyledItemDelegate.setModelData(self, editor, model, index)
 

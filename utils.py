@@ -90,7 +90,8 @@ def readConfig(cfg):
         platform = '3'
     config = {'platform': platform, 'procmgr_config': None, 'hosts': None, 'dir':'dir',
               'id':'id', 'cmd':'cmd', 'flags':'flags', 'port':'port', 'host':'host',
-              'rtprio':'rtprio', 'env':'env', 'procmgr_macro': {}}
+              'rtprio':'rtprio', 'env':'env', 'procmgr_macro': {}, 'disable':'disable',
+              'history':'history' }
     try:
         execfile(CONFIG_DIR + cfg, {}, config)
         # Then config['platform'] and config['procmgr_config'] are set to something reasonable!
@@ -262,6 +263,11 @@ def getState(cfg):
 
   config = {}
   for l in cfglist:
+    # Make sure that disable is defined!
+    try:
+        v = l['disable']
+    except:
+        l['disable'] = False
     config[l['id']] = l
 
   current = readStatus(cfg)
@@ -286,6 +292,10 @@ def getState(cfg):
           except:
               pass
   running = current.keys()
+
+  # If an IOC is disabled, we don't really want it!
+  wanted = [l for l in wanted if not config[l]['disable']]
+  
   return (config, current, running, wanted, hostlist, platform)
 
 def getAllStatus(cfg):

@@ -4,25 +4,29 @@ import utils
 import os
 
 IOCNAME = 0
-HOST    = 1
-PORT    = 2
-VERSION = 3
-STATUS  = 4
-EXTRA   = 5
+ENABLE  = 1
+HOST    = 2
+PORT    = 3
+VERSION = 4
+STATUS  = 5
+EXTRA   = 6
 
 class MyModel(QAbstractTableModel): 
     def __init__(self, hutch, parent=None):
         QAbstractTableModel.__init__(self, parent)
         self.hutch = hutch
         (self.dlist, self.hosts) = utils.getAllStatus(hutch)
-        self.headerdata = ["IOC Name", "Host", "Port", "Version", "Status", "Information"]
-        self.field      = [None, 'host', 'port', 'dir', None, None]
-        self.newfield   = [None, 'newhost', 'newport', 'newdir', None, None]
+        self.headerdata = ["IOC Name", "En", "Host", "Port", "Version", "Status", "Information"]
+        self.field      = [None, None, 'host', 'port', 'dir', None, None]
+        self.newfield   = [None, None, 'newhost', 'newport', 'newdir', None, None]
+        self.lastsort   = (0, Qt.DescendingOrder)
 
     def flags(self, index):
         c = index.column()
         if c == IOCNAME:
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+        elif c == ENABLE:
+            return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsUserCheckable
         elif c == STATUS or c == EXTRA:
             return Qt.ItemIsEnabled
         else:
@@ -33,12 +37,20 @@ class MyModel(QAbstractTableModel):
         if cfg == None:
             return False
         c = index.column()
-        val = value.toString()
-        cfg[self.newfield[c]] = val
-        if cfg[self.newfield[c]] == cfg[self.field[c]]:
-            del cfg[self.newfield[c]]
-        self.dataChanged.emit(index, index)
-        return True
+        if c == ENABLE:
+            (val, ok) = value.toInt()
+            if not ok:
+                return False
+            cfg['disable'] = (val == Qt.Unchecked)
+            self.dataChanged.emit(index, index)
+            return True
+        else:
+            val = value.toString()
+            cfg[self.newfield[c]] = val
+            if cfg[self.newfield[c]] == cfg[self.field[c]]:
+                del cfg[self.newfield[c]]
+            self.dataChanged.emit(index, index)
+            return True
  
     def rowCount(self, parent): 
         return len(self.dlist)
@@ -64,6 +76,8 @@ class MyModel(QAbstractTableModel):
             if cfg['host'] != cur['host'] or cfg['port'] != cur['port']:
                 v += "on " + cur['host'] + ":" + cur['port']
             return v
+        elif c == ENABLE:
+            return ""
         else:
             if cfg == None:
                 return cur[self.field[c]]
@@ -114,6 +128,14 @@ class MyModel(QAbstractTableModel):
                 return QVariant()
             else:
                 return QVariant()
+        elif role == Qt.CheckStateRole:
+            if index.column() == ENABLE:
+                (id, cfg, cur) = self.dlist[index.row()]
+                if cfg['disable']:
+                    return QVariant(Qt.Unchecked)
+                return QVariant(Qt.Checked)
+            else:
+                return QVariant()
         else:
             return QVariant()
 
@@ -123,6 +145,7 @@ class MyModel(QAbstractTableModel):
         return QVariant()
 
     def sort(self, Ncol, order):
+        self.lastsort = (Ncol, order)
         self.emit(SIGNAL("layoutAboutToBeChanged()"))
         if Ncol == PORT:
             self.dlist = sorted(self.dlist, key=lambda rowtuple: int(self.value(rowtuple, Ncol)))
@@ -135,9 +158,8 @@ class MyModel(QAbstractTableModel):
     def doApply(self):
         self.doSave()
         utils.applyConfig(self.hutch)
-        self.emit(SIGNAL("layoutAboutToBeChanged()"))
         (self.dlist, self.hosts) = utils.getAllStatus(self.hutch)
-        self.emit(SIGNAL("layoutChanged()"))
+        self.sort(self.lastsort[0], self.lastsort[1])
 
     def doSave(self):
         f = open(utils.CONFIG_DIR + self.hutch, "w")
@@ -161,13 +183,21 @@ class MyModel(QAbstractTableModel):
                 dir = cfg['newdir']
             except:
                 dir = cfg['dir']
-            f.write(" {id:'%s', host: '%s', port: '%s', dir: '%s'},\n" %
-                    (id, host, port, dir))
+            if cfg['disable']:
+                dis = ", disable : True"
+            else:
+                dis = ""
+            try:
+                h = cfg['history']
+                his = ",\n  history : [" + ", ".join(["'"+l+"'" for l in h]) + "]"
+            except:
+                his = ""
+            f.write(" {id:'%s', host: '%s', port: %s, dir: '%s'%s%s},\n" %
+                    (id, host, port, dir, dis, his))
         f.write("]\n");
         f.close()
-        self.emit(SIGNAL("layoutAboutToBeChanged()"))
         (self.dlist, self.hosts) = utils.getAllStatus(self.hutch)
-        self.emit(SIGNAL("layoutChanged()"))
+        self.sort(self.lastsort[0], self.lastsort[1])
         
     def doRevert(self):
         for (id, cfg, cur) in self.dlist:
@@ -216,9 +246,8 @@ class MyModel(QAbstractTableModel):
             self.dataChanged.emit(self.index(index.row(),0),
                                   self.index(index.row(),len(self.headerdata)))
         else:
-            self.emit(SIGNAL("layoutAboutToBeChanged()"))
             self.dlist = self.dlist[0:index.row()]+self.dlist[index.row()+1:]
-            self.emit(SIGNAL("layoutChanged()"))
+            self.sort(self.lastsort[0], self.lastsort[1])
 
     def setFromRunning(self, index):
         (id, cfg, cur) = self.dlist[index.row()]
@@ -237,11 +266,10 @@ class MyModel(QAbstractTableModel):
         
 
     def addIOC(self, id, host, port, dir):
-        self.emit(SIGNAL("layoutAboutToBeChanged()"))
         cfg = {'id': id, 'host': host, 'port': port, 'dir': dir}
         cur = utils.getCurrentStatus(host, port)
         self.dlist.append((id, cfg, cur))
-        self.emit(SIGNAL("layoutChanged()"))
+        self.sort(self.lastsort[0], self.lastsort[1])
 
     def connectIOC(self, index):
         if isinstance(index, QModelIndex):
@@ -259,3 +287,54 @@ class MyModel(QAbstractTableModel):
         else:
             id = str(index)
         os.system("gnome-terminal -t " + id + " --geometry=128x30 -x tail -1000lf `ls -t " + (utils.LOGBASE % id) + "|head -1` &")
+
+    def saveVersion(self, index):
+        (id, cfg, cur) = self.dlist[index.row()]
+        if cfg == None:
+            return
+        try:
+            dir = cfg[self.newfield[VERSION]]
+        except:
+            dir = cfg[self.field[VERSION]]
+        try:
+            h = cfg['history']
+            if not dir in h:
+                h[:0] = [dir]
+            if len(h) > 5:
+                h = h[0:5]
+        except:
+            h = [dir]
+        cfg['history'] = h
+
+    #
+    # Generate a history list.  In order:
+    #    New configuration setting
+    #    Current configuration setting
+    #    Current running setting
+    #    Others in the history list.
+    # 
+    def history(self, row):
+        (id, cfg, cur) = self.dlist[row]
+        x = [cfg['dir']]
+        try:
+            x[:0] = [cfg['newdir']]
+        except:
+            pass
+        try:
+            i = cur['dir']
+            if not i in x:
+                x[len(x):] = [i]
+        except:
+            pass
+        try:
+            h = cfg['history']
+            for i in h:
+                if not i in x:
+                    x[len(x):] = [i]
+        except:
+            pass
+        return x
+
+    def getID(self, row):
+        (id, cfg, cur) = self.dlist[row]
+        return id
