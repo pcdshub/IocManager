@@ -1,5 +1,6 @@
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
+import os
 import MyModel
 import hostname_ui
 import utils
@@ -92,9 +93,11 @@ class MyDelegate(QStyledItemDelegate):
                 d=QFileDialog(self.parent, "New Version for %s" % id, r)
                 d.setFileMode(QFileDialog.Directory)
                 d.setOptions(QFileDialog.ShowDirsOnly|QFileDialog.DontUseNativeDialog)
-                d.setSidebarUrls([QUrl("file://" + utils.EPICS_SITE_TOP + "ioc/" + self.parent.hutch),
+                d.setSidebarUrls([QUrl("file://" + os.getenv("HOME")),
+                                  QUrl("file://" + utils.EPICS_SITE_TOP + "ioc/" + self.parent.hutch),
                                   QUrl("file://" + utils.EPICS_TOP + "3.14-dev")])
                 if d.exec_() == QDialog.Rejected:
+                    editor.setCurrentIndex(0)
                     return
                 try:
                     dir = str(d.selectedFiles()[0])
