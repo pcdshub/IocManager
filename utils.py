@@ -1,4 +1,4 @@
-import telnetlib, string, datetime, os, time
+import telnetlib, string, datetime, os, time, fcntl
 from re import search
 
 CAMRECORDER = "/reg/g/pcds/controls/camrecord"
@@ -92,12 +92,17 @@ def readConfig(cfg):
               'id':'id', 'cmd':'cmd', 'flags':'flags', 'port':'port', 'host':'host',
               'rtprio':'rtprio', 'env':'env', 'procmgr_macro': {}, 'disable':'disable',
               'history':'history' }
+    f = open(CONFIG_DIR + cfg, "r")
+    fcntl.lockf(f, fcntl.LOCK_SH)    # Wait for the lock!!!!
     try:
         execfile(CONFIG_DIR + cfg, {}, config)
         # Then config['platform'] and config['procmgr_config'] are set to something reasonable!
-        return (config['platform'], config['procmgr_config'], config['hosts'])
+        res = (config['platform'], config['procmgr_config'], config['hosts'])
     except:
-        return None
+        res = None
+    fcntl.lockf(f, fcntl.LOCK_UN)
+    f.close()
+    return res
 
 def killProc(host, port):
     print "Killing IOC on host %s, port %s..." % (host, port)

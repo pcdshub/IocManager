@@ -12,9 +12,10 @@ class hostnamedialog(QDialog):
       self.ui.setupUi(self)
 
 class MyDelegate(QStyledItemDelegate):
-    def __init__(self, parent):
+    def __init__(self, parent, hutch):
         QStyledItemDelegate.__init__(self, parent)
-        self.parent = parent
+        self.parent  = parent
+        self.hutch   = hutch
         self.boxsize = None
         self.hostdialog = hostnamedialog(parent)
 
@@ -94,7 +95,7 @@ class MyDelegate(QStyledItemDelegate):
                 d.setFileMode(QFileDialog.Directory)
                 d.setOptions(QFileDialog.ShowDirsOnly|QFileDialog.DontUseNativeDialog)
                 d.setSidebarUrls([QUrl("file://" + os.getenv("HOME")),
-                                  QUrl("file://" + utils.EPICS_SITE_TOP + "ioc/" + self.parent.hutch),
+                                  QUrl("file://" + utils.EPICS_SITE_TOP + "ioc/" + self.hutch),
                                   QUrl("file://" + utils.EPICS_TOP + "3.14-dev")])
                 if d.exec_() == QDialog.Rejected:
                     editor.setCurrentIndex(0)

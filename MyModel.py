@@ -2,6 +2,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 import utils
 import os
+import fcntl
 
 IOCNAME = 0
 ENABLE  = 1
@@ -162,7 +163,15 @@ class MyModel(QAbstractTableModel):
         self.sort(self.lastsort[0], self.lastsort[1])
 
     def doSave(self):
-        f = open(utils.CONFIG_DIR + self.hutch, "w")
+        f = open(utils.CONFIG_DIR + self.hutch, "r+")
+        try:
+            fcntl.lockf(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except:
+            QMessageBox.critical(None,
+                                 "Error", "Failed to lock configuration for %s" % self.hutch,
+                                 QMessageBox.Ok, QMessageBox.Ok)
+            return
+        f.truncate()
         f.write("hosts = [\n")
         for h in self.hosts:
             f.write("   '%s',\n" % h)
@@ -195,6 +204,7 @@ class MyModel(QAbstractTableModel):
             f.write(" {id:'%s', host: '%s', port: %s, dir: '%s'%s%s},\n" %
                     (id, host, port, dir, dis, his))
         f.write("]\n");
+        fcntl.lockf(f, fcntl.LOCK_UN)
         f.close()
         (self.dlist, self.hosts) = utils.getAllStatus(self.hutch)
         self.sort(self.lastsort[0], self.lastsort[1])

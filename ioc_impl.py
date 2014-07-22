@@ -62,7 +62,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
         self.setWindowTitle("IocManager")
         self.hutch = hutch
         self.model = MyModel(hutch)
-        self.delegate = MyDelegate(self)
+        self.delegate = MyDelegate(None, self)
         self.connect(self.ui.applyButton,    QtCore.SIGNAL("clicked()"), self.model.doApply)
         self.connect(self.ui.revertButton,   QtCore.SIGNAL("clicked()"), self.model.doRevert)
         self.connect(self.ui.quitButton,     QtCore.SIGNAL("clicked()"), self.doQuit)
@@ -89,6 +89,10 @@ class GraphicUserInterface(QtGui.QMainWindow):
         self.currentIOC = None
         self.currentBase = None
         self.pvlist = []
+
+    def closeEvent(self, event):
+        self.disconnectPVs()
+        QMainWindow.closeEvent(self, event)
 
     def disconnectPVs(self):
         for pv in self.pvlist:
