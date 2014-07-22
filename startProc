@@ -1,5 +1,5 @@
 #!/bin/csh
-# Usage: startProc IOCNAME PORT
+# Usage: startProc IOCNAME PORT HUTCH
 
 if ($?SCRIPTROOT == 0) setenv SCRIPTROOT /reg/g/pcds/controls/ioc
 set ioc = $1
