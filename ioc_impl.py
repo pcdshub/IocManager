@@ -63,13 +63,14 @@ class GraphicUserInterface(QtGui.QMainWindow):
         self.hutch = hutch
         self.model = MyModel(hutch)
         self.delegate = MyDelegate(self)
-        self.connect(self.ui.applyButton,   QtCore.SIGNAL("clicked()"), self.model.doApply)
-        self.connect(self.ui.revertButton,  QtCore.SIGNAL("clicked()"), self.model.doRevert)
-        self.connect(self.ui.quitButton,    QtCore.SIGNAL("clicked()"), self.doQuit)
-        self.connect(self.ui.saveButton,    QtCore.SIGNAL("clicked()"), self.model.doSave)
-        self.connect(self.ui.rebootButton,  QtCore.SIGNAL("clicked()"), self.doReboot)
-        self.connect(self.ui.logButton,     QtCore.SIGNAL("clicked()"), self.doLog)
-        self.connect(self.ui.consoleButton, QtCore.SIGNAL("clicked()"), self.doConsole)
+        self.connect(self.ui.applyButton,    QtCore.SIGNAL("clicked()"), self.model.doApply)
+        self.connect(self.ui.revertButton,   QtCore.SIGNAL("clicked()"), self.model.doRevert)
+        self.connect(self.ui.quitButton,     QtCore.SIGNAL("clicked()"), self.doQuit)
+        self.connect(self.ui.saveButton,     QtCore.SIGNAL("clicked()"), self.model.doSave)
+        self.connect(self.ui.rebootButton,   QtCore.SIGNAL("clicked()"), self.doReboot)
+        self.connect(self.ui.logButton,      QtCore.SIGNAL("clicked()"), self.doLog)
+        self.connect(self.ui.consoleButton,  QtCore.SIGNAL("clicked()"), self.doConsole)
+        self.connect(self.ui.rememberButton, QtCore.SIGNAL("clicked()"), self.model.doSaveVersions)
         self.ui.tableView.setModel(self.model)
         self.ui.tableView.setItemDelegate(self.delegate)
         self.ui.tableView.verticalHeader().setVisible(False)
@@ -153,7 +154,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
             menu.addAction("Set from Running")
         if self.model.isChanged(index):
             menu.addAction("Revert IOC")
-        menu.addAction("Save Version")
+        menu.addAction("Remember Version")
         gpos = self.ui.tableView.viewport().mapToGlobal(pos)
         selectedItem = menu.exec_(gpos)
         if selectedItem != None:
@@ -168,7 +169,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
                 self.model.setFromRunning(index)
             elif txt == "Add Running to Config":
                 self.model.addExisting(index)
-            elif txt == "Save Version":
+            elif txt == "Remember Version":
                 self.model.saveVersion(index)
 
     def addIOC(self, index):

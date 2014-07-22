@@ -288,8 +288,15 @@ class MyModel(QAbstractTableModel):
             id = str(index)
         os.system("gnome-terminal -t " + id + " --geometry=128x30 -x tail -1000lf `ls -t " + (utils.LOGBASE % id) + "|head -1` &")
 
+    def doSaveVersions(self):
+        for i in range(len(self.dlist)):
+            self.saveVersion(i)
+
     def saveVersion(self, index):
-        (id, cfg, cur) = self.dlist[index.row()]
+        if isinstance(index, QModelIndex):
+            (id, cfg, cur) = self.dlist[index.row()]
+        else:
+            (id, cfg, cur) = self.dlist[index]
         if cfg == None:
             return
         try:

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ioc.ui'
 #
-# Created: Wed Jul 16 16:51:03 2014
+# Created: Tue Jul 22 14:08:42 2014
 #      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -56,6 +56,9 @@ class Ui_MainWindow(object):
         self.revertButton.setSizePolicy(sizePolicy)
         self.revertButton.setObjectName(_fromUtf8("revertButton"))
         self.horizontalLayout.addWidget(self.revertButton)
+        self.rememberButton = QtGui.QPushButton(self.widget)
+        self.rememberButton.setObjectName(_fromUtf8("rememberButton"))
+        self.horizontalLayout.addWidget(self.rememberButton)
         self.quitButton = QtGui.QPushButton(self.widget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(90)
@@ -193,9 +196,10 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "MainWindow", None, QtGui.QApplication.UnicodeUTF8))
-        self.applyButton.setText(QtGui.QApplication.translate("MainWindow", "Apply", None, QtGui.QApplication.UnicodeUTF8))
-        self.saveButton.setText(QtGui.QApplication.translate("MainWindow", "Save", None, QtGui.QApplication.UnicodeUTF8))
-        self.revertButton.setText(QtGui.QApplication.translate("MainWindow", "Revert", None, QtGui.QApplication.UnicodeUTF8))
+        self.applyButton.setText(QtGui.QApplication.translate("MainWindow", "Apply Configuration", None, QtGui.QApplication.UnicodeUTF8))
+        self.saveButton.setText(QtGui.QApplication.translate("MainWindow", "Save Configuration", None, QtGui.QApplication.UnicodeUTF8))
+        self.revertButton.setText(QtGui.QApplication.translate("MainWindow", "Revert to Saved Configuration", None, QtGui.QApplication.UnicodeUTF8))
+        self.rememberButton.setText(QtGui.QApplication.translate("MainWindow", "Remember Versions", None, QtGui.QApplication.UnicodeUTF8))
         self.quitButton.setText(QtGui.QApplication.translate("MainWindow", "Quit", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("MainWindow", "Current IOC:", None, QtGui.QApplication.UnicodeUTF8))
         self.label_3.setText(QtGui.QApplication.translate("MainWindow", "Heartbeat:", None, QtGui.QApplication.UnicodeUTF8))
