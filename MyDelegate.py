@@ -94,7 +94,8 @@ class MyDelegate(QStyledItemDelegate):
                 d=QFileDialog(self.parent, "New Version for %s" % id, r)
                 d.setFileMode(QFileDialog.Directory)
                 d.setOptions(QFileDialog.ShowDirsOnly|QFileDialog.DontUseNativeDialog)
-                d.setSidebarUrls([QUrl("file://" + os.getenv("HOME")),
+                d.setSidebarUrls([QUrl("file://" + r),
+                                  QUrl("file://" + os.getenv("HOME")),
                                   QUrl("file://" + utils.EPICS_SITE_TOP + "ioc/" + self.hutch),
                                   QUrl("file://" + utils.EPICS_TOP + "3.14-dev")])
                 if d.exec_() == QDialog.Rejected:

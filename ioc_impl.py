@@ -62,7 +62,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
         self.setWindowTitle("IocManager")
         self.hutch = hutch
         self.model = MyModel(hutch)
-        self.delegate = MyDelegate(None, self)
+        self.delegate = MyDelegate(None, hutch)
         self.connect(self.ui.applyButton,    QtCore.SIGNAL("clicked()"), self.model.doApply)
         self.connect(self.ui.revertButton,   QtCore.SIGNAL("clicked()"), self.model.doRevert)
         self.connect(self.ui.quitButton,     QtCore.SIGNAL("clicked()"), self.doQuit)
