@@ -92,7 +92,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
 
     def closeEvent(self, event):
         self.disconnectPVs()
-        QMainWindow.closeEvent(self, event)
+        QtGui.QMainWindow.closeEvent(self, event)
 
     def disconnectPVs(self):
         for pv in self.pvlist:
