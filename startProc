@@ -1,7 +1,7 @@
 #!/bin/csh
 # Usage: startProc IOCNAME PORT HUTCH
 
-if ($?SCRIPTROOT == 0) setenv SCRIPTROOT /reg/g/pcds/controls/ioc
+if ($?SCRIPTROOT == 0) setenv SCRIPTROOT /reg/g/pcds/pyps/apps/ioc/latest
 set ioc = $1
 set port = $2
 set cfg = $3
@@ -10,8 +10,8 @@ cd /reg/g/pcds/package/epics/3.14
 if (-d $dir) cd $dir
 if (-d build/iocBoot/$ioc) cd build/iocBoot/$ioc
 if (-d iocBoot/$ioc) cd iocBoot/$ioc
-echo $$ `hostname -s` $port $dir >$SCRIPTROOT/STATUS/$cfg/$ioc
-chmod g+w $SCRIPTROOT/STATUS/$cfg/$ioc
+echo $$ `hostname -s` $port $dir >/reg/g/pcds/pyps/config/.status/$cfg/$ioc
+chmod g+w /reg/g/pcds/pyps/config/.status/$cfg/$ioc
 if (-f ../../archive/$ioc.archive) then
     cp -f -p ../../archive/$ioc.archive /reg/d/iocData/$ioc/archive
 endif

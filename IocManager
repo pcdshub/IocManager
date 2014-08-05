@@ -3,7 +3,7 @@ v=`lsb_release -sr | sed -e 's/\..*$//'`
 export PATH=/reg/common/package/python/2.7.2-rhel$v/bin:/usr/local/bin:/bin:/usr/bin
 export LD_LIBRARY_PATH=/reg/common/package/python/2.7.2-rhel$v/lib:/reg/g/pcds/package/epics/3.14/base/current/lib/linux-x86_64:/reg/g/pcds/package/epics/3.14/extensions/current/lib/linux-x86_64
 if [ X$SCRIPTROOT == X ]; then
-    export SCRIPTROOT=/reg/g/pcds/controls/ioc
+    export SCRIPTROOT=/reg/g/pcds/pyps/apps/ioc/latest
 fi
 export PYTHONPATH=$SCRIPTROOT
 $SCRIPTROOT/IocManager.py "$@"

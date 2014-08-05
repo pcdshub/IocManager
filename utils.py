@@ -2,9 +2,9 @@ import telnetlib, string, datetime, os, time, fcntl
 from re import search
 
 CAMRECORDER = "/reg/g/pcds/controls/camrecord"
-STARTUP_DIR = "/reg/g/pcds/controls/ioc/"
-CONFIG_DIR  = STARTUP_DIR + "CONFIG/"
-STATUS_DIR  = STARTUP_DIR + "STATUS/"
+STARTUP_DIR = "/reg/g/pcds/pyps/apps/ioc/latest"
+CONFIG_FILE = "/reg/g/pcds/pyps/config/%s/iocmanager.cfg"
+STATUS_DIR  = "/reg/g/pcds/pyps/config/.status/%s"
 LOGBASE     = "/reg/d/iocData/%s/iocInfo/ioc.log*"
 LOGFILE     = "/reg/d/iocData/%s/iocInfo/ioc.log_" + datetime.datetime.today().strftime("%m%d%Y_%H%M%S")
 PVFILE      = "/reg/d/iocData/%s/iocInfo/IOC.pvlist"
@@ -92,10 +92,10 @@ def readConfig(cfg):
               'id':'id', 'cmd':'cmd', 'flags':'flags', 'port':'port', 'host':'host',
               'rtprio':'rtprio', 'env':'env', 'procmgr_macro': {}, 'disable':'disable',
               'history':'history' }
-    f = open(CONFIG_DIR + cfg, "r")
+    f = open(CONFIG_DIR % cfg, "r")
     fcntl.lockf(f, fcntl.LOCK_SH)    # Wait for the lock!!!!
     try:
-        execfile(CONFIG_DIR + cfg, {}, config)
+        execfile(CONFIG_DIR % cfg, {}, config)
         # Then config['platform'] and config['procmgr_config'] are set to something reasonable!
         res = (config['platform'], config['procmgr_config'], config['hosts'])
     except:
@@ -241,18 +241,18 @@ def startProc(platform, cfg, entry):
         tn.close()
 
 def readStatus(cfg):
-    files = os.listdir(STATUS_DIR + cfg)
+    files = os.listdir(STATUS_DIR % cfg)
     d = {}
     for f in files:
         try:
-            l = open(STATUS_DIR + cfg + "/" + f).readlines()
+            l = open((STATUS_DIR % cfg) + "/" + f).readlines()
         except:
             continue
         stat = l[0].strip().split()                     # PID HOST PORT DIRECTORY
         result = check_status(stat[1], int(stat[2]))    # STATUS PID SERVERPID ID
         # What if PID or ID don't match?!?
         if result[0] == STATUS_NOCONNECT or result[0] == STATUS_ERROR:
-            os.unlink(STATUS_DIR + cfg + "/" + f)
+            os.unlink((STATUS_DIR % cfg) + "/" + f)
         else:
             d[f] = {'pid': stat[0], 'host': stat[1], 'port': stat[2],
                     'dir': stat[3], 'status': result[0],
@@ -359,7 +359,7 @@ def applyConfig(cfg):
     killProc(current[l]['host'], int(current[l]['port']))
     try:
         # This is dead, so get rid of the status file!
-        os.unlink(STATUS_DIR + cfg + "/" + l)
+        os.unlink((STATUS_DIR % cfg) + "/" + l)
     except:
         pass
 
