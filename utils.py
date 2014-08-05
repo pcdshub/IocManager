@@ -92,10 +92,10 @@ def readConfig(cfg):
               'id':'id', 'cmd':'cmd', 'flags':'flags', 'port':'port', 'host':'host',
               'rtprio':'rtprio', 'env':'env', 'procmgr_macro': {}, 'disable':'disable',
               'history':'history' }
-    f = open(CONFIG_DIR % cfg, "r")
+    f = open(CONFIG_FILE % cfg, "r")
     fcntl.lockf(f, fcntl.LOCK_SH)    # Wait for the lock!!!!
     try:
-        execfile(CONFIG_DIR % cfg, {}, config)
+        execfile(CONFIG_FILE % cfg, {}, config)
         # Then config['platform'] and config['procmgr_config'] are set to something reasonable!
         res = (config['platform'], config['procmgr_config'], config['hosts'])
     except:
