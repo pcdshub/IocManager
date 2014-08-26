@@ -1,6 +1,8 @@
 #!/bin/bash
-v=`lsb_release -sr | sed -e 's/\..*$//'`
-export PATH=/reg/common/package/python/2.7.2-rhel$v/bin:/usr/local/bin:/bin:/usr/bin
-export LD_LIBRARY_PATH=/reg/common/package/python/2.7.2-rhel$v/lib
-unset PYTHONPATH
+export PSPKG_ROOT=/reg/common/package
+export PSPKG_RELEASE=controls-0.0.1
+source $PSPKG_ROOT/etc/set_env.sh
+if [ X$SCRIPTROOT == X ]; then
+    export SCRIPTROOT=/reg/g/pcds/pyps/apps/ioc/latest
+fi
 $SCRIPTROOT/applyConfig.py "$@"
