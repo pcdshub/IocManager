@@ -89,6 +89,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
         self.currentIOC = None
         self.currentBase = None
         self.pvlist = []
+        self.model.startPoll()
 
     def closeEvent(self, event):
         self.disconnectPVs()

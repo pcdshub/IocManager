@@ -9,7 +9,7 @@ if __name__ == '__main__':
   if result == None:
       print "NO_DIRECTORY"
       sys.exit(-1)
-  (platform, config) = result
+  (mtime, config, hosts) = result
   for l in config:
       if l['id'] == ioc:
           print l['dir']
