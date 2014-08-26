@@ -430,7 +430,12 @@ class MyModel(QAbstractTableModel):
                     break
             if entry == None:
                 return
-        os.system("gnome-terminal -t %s -x telnet %s %s &" %
+        #
+        # Sigh.  Because we want to do authentication, we have a version of kerberos on our path,
+        # but unfortunately it doesn't play nice with the library that telnet uses!  Therefore,
+        # we have to get rid of LD_LIBRARY_PATH here.
+        #
+        os.system("gnome-terminal -t %s -x /bin/csh -c 'unsetenv LD_LIBRARY_PATH ; telnet %s %s' &" %
                   (entry['id'], entry['host'], entry['port']))
 
     def viewlogIOC(self, index):
