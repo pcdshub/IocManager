@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ioc.ui'
 #
-# Created: Tue Jul 22 14:08:42 2014
+# Created: Tue Aug 26 16:13:46 2014
 #      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -67,6 +67,12 @@ class Ui_MainWindow(object):
         self.quitButton.setSizePolicy(sizePolicy)
         self.quitButton.setObjectName(_fromUtf8("quitButton"))
         self.horizontalLayout.addWidget(self.quitButton)
+        self.authButton = QtGui.QPushButton(self.widget)
+        self.authButton.setObjectName(_fromUtf8("authButton"))
+        self.horizontalLayout.addWidget(self.authButton)
+        self.userLabel = QtGui.QLabel(self.widget)
+        self.userLabel.setObjectName(_fromUtf8("userLabel"))
+        self.horizontalLayout.addWidget(self.userLabel)
         spacerItem = QtGui.QSpacerItem(521, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
         self.verticalLayout.addWidget(self.widget)
@@ -201,6 +207,8 @@ class Ui_MainWindow(object):
         self.revertButton.setText(QtGui.QApplication.translate("MainWindow", "Revert to Saved Configuration", None, QtGui.QApplication.UnicodeUTF8))
         self.rememberButton.setText(QtGui.QApplication.translate("MainWindow", "Remember Versions", None, QtGui.QApplication.UnicodeUTF8))
         self.quitButton.setText(QtGui.QApplication.translate("MainWindow", "Quit", None, QtGui.QApplication.UnicodeUTF8))
+        self.authButton.setText(QtGui.QApplication.translate("MainWindow", "Authenticate", None, QtGui.QApplication.UnicodeUTF8))
+        self.userLabel.setText(QtGui.QApplication.translate("MainWindow", "User: Guest", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("MainWindow", "Current IOC:", None, QtGui.QApplication.UnicodeUTF8))
         self.label_3.setText(QtGui.QApplication.translate("MainWindow", "Heartbeat:", None, QtGui.QApplication.UnicodeUTF8))
         self.label_2.setText(QtGui.QApplication.translate("MainWindow", "Time of Day:", None, QtGui.QApplication.UnicodeUTF8))

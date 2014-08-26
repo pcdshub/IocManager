@@ -84,6 +84,20 @@
         </widget>
        </item>
        <item>
+        <widget class="QPushButton" name="authButton">
+         <property name="text">
+          <string>Authenticate</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="userLabel">
+         <property name="text">
+          <string>User: Guest</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="horizontalSpacer">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>

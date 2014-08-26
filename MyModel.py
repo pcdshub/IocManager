@@ -85,6 +85,7 @@ class MyModel(QAbstractTableModel):
     def __init__(self, hutch, parent=None):
         QAbstractTableModel.__init__(self, parent)
         self.hutch = hutch
+        self.user = "Guest"
         self.poll = StatusPoll(self, 5)
         (self.poll.mtime, self.cfglist, self.hosts) = utils.readConfig(hutch)
         for l in self.cfglist:

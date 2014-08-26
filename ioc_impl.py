@@ -2,9 +2,17 @@ from PyQt4 import QtCore, QtGui, Qt
 from MyModel import MyModel
 from MyDelegate import MyDelegate
 from ioc_ui import Ui_MainWindow
+import kerberos
+import auth_ui
 from Pv import Pv
 import pyca
 import utils
+
+class authdialog(QtGui.QDialog):
+    def __init__(self, parent=None):
+      QtGui.QWidget.__init__(self, parent)
+      self.ui = auth_ui.Ui_Dialog()
+      self.ui.setupUi(self)
 
 def caput(pvname,value,timeout=1.0):
     try:
@@ -61,7 +69,9 @@ class GraphicUserInterface(QtGui.QMainWindow):
         self.ui.setupUi(self)
         self.setWindowTitle("IocManager")
         self.hutch = hutch
+        self.authdialog = authdialog(self)
         self.model = MyModel(hutch)
+        self.utimer = QtCore.QTimer()
         self.delegate = MyDelegate(None, hutch)
         self.connect(self.ui.applyButton,    QtCore.SIGNAL("clicked()"), self.model.doApply)
         self.connect(self.ui.revertButton,   QtCore.SIGNAL("clicked()"), self.model.doRevert)
@@ -71,6 +81,8 @@ class GraphicUserInterface(QtGui.QMainWindow):
         self.connect(self.ui.logButton,      QtCore.SIGNAL("clicked()"), self.doLog)
         self.connect(self.ui.consoleButton,  QtCore.SIGNAL("clicked()"), self.doConsole)
         self.connect(self.ui.rememberButton, QtCore.SIGNAL("clicked()"), self.model.doSaveVersions)
+        self.connect(self.ui.authButton,     QtCore.SIGNAL("clicked()"), self.doAuthenticate)
+        self.connect(self.utimer, QtCore.SIGNAL("timeout()"), self.unauthenticate)
         self.ui.tableView.setModel(self.model)
         self.ui.tableView.setItemDelegate(self.delegate)
         self.ui.tableView.verticalHeader().setVisible(False)
@@ -215,3 +227,25 @@ class GraphicUserInterface(QtGui.QMainWindow):
                                  QMessageBox.Ok, QMessageBox.Ok)
             return
         self.model.addIOC(name, host, port, dir)
+
+    def doAuthenticate(self):
+        if self.authdialog.exec_() == QtGui.QDialog.Accepted:
+            try:
+                if kerberos.checkPassword(str(self.authdialog.ui.nameEdit.text()),
+                                          str(self.authdialog.ui.passEdit.text()),
+                                          "afs/slac.stanford.edu",
+                                          "SLAC.STANFORD.EDU"):
+                    self.model.user = self.authdialog.ui.nameEdit.text()
+                    self.ui.userLabel.setText("User: " + self.model.user)
+                    self.utimer.start(10 * 60000)  # Let's go for 10 minutes.
+                    return
+            except:
+                pass
+        self.model.user = "Guest"
+        self.ui.userLabel.setText("User: Guest")
+
+    def unauthenticate(self):
+        self.utimer.stop()
+        self.model.user = "Guest"
+        self.ui.userLabel.setText("User: Guest")
+        
