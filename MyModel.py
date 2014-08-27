@@ -5,6 +5,7 @@ import os
 import time
 import fcntl
 import threading
+import subprocess
 
 #
 # Column definitions.
@@ -67,6 +68,10 @@ class StatusPoll(threading.Thread):
                         s['newstyle'] = False  # We've switched from new to old?!?
                 self.model.running(s)
 
+            for p in self.model.children:
+                if p.poll() != None:
+                    self.model.children.remove(p)
+
     def readStatusFile(self, fn, ioc):
         try:
             # NFS weirdness.  If we don't open it, file status doesn't update!
@@ -88,6 +93,7 @@ class MyModel(QAbstractTableModel):
         self.hutch = hutch
         self.user = "Guest"
         self.poll = StatusPoll(self, 5)
+        self.children = []
         (self.poll.mtime, self.cfglist, self.hosts) = utils.readConfig(hutch)
         self.addUsedHosts()
         
@@ -463,15 +469,30 @@ class MyModel(QAbstractTableModel):
         # but unfortunately it doesn't play nice with the library that telnet uses!  Therefore,
         # we have to get rid of LD_LIBRARY_PATH here.
         #
-        os.system("gnome-terminal -t %s -x /bin/csh -c 'unsetenv LD_LIBRARY_PATH ; telnet %s %s' &" %
-                  (entry['id'], entry['host'], entry['port']))
+        try:
+            x = subprocess.Popen(["gnome-terminal", "--disable-factory", "-t", entry['id'], "-x",
+                                 "/bin/csh", "-c",
+                                 "unsetenv LD_LIBRARY_PATH ; telnet %s %s" % (entry['host'], entry['port'])])
+            self.children.append(x)
+        except:
+            pass
 
     def viewlogIOC(self, index):
         if isinstance(index, QModelIndex):
             id = self.cfglist[index.row()]['id']
         else:
             id = str(index)
-        os.system("gnome-terminal -t " + id + " --geometry=128x30 -x tail -1000lf `ls -t " + (utils.LOGBASE % id) + "|head -1` &")
+        try:
+            x = subprocess.Popen(["gnome-terminal", "--disable-factory", "-t", id,
+                                  "--geometry=128x30", "-x", "/bin/csh", "-c",
+                                  "tail -1000lf `ls -t " + (utils.LOGBASE % id) + "|head -1`"])
+            self.children.append(x)
+        except:
+            pass
+
+    def cleanupChildren(self):
+        for p in self.children:
+            p.kill()
 
     def doSaveVersions(self):
         for i in range(len(self.cfglist)):
