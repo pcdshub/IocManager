@@ -125,6 +125,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
         self.model.doApply()
                              
     def doQuit(self):
+        self.model.cleanupChildren()
         self.close()
         
     def doSave(self):

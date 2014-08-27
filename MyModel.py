@@ -5,6 +5,7 @@ import os
 import time
 import fcntl
 import threading
+import subprocess
 
 #
 # Column definitions.
@@ -14,8 +15,9 @@ ENABLE  = 1
 HOST    = 2
 PORT    = 3
 VERSION = 4
-STATUS  = 5
-EXTRA   = 6
+PARENT  = 5
+STATUS  = 6
+EXTRA   = 7
 
 class StatusPoll(threading.Thread):
     def __init__(self, model, interval):
@@ -66,6 +68,10 @@ class StatusPoll(threading.Thread):
                         s['newstyle'] = False  # We've switched from new to old?!?
                 self.model.running(s)
 
+            for p in self.model.children:
+                if p.poll() != None:
+                    self.model.children.remove(p)
+
     def readStatusFile(self, fn, ioc):
         try:
             # NFS weirdness.  If we don't open it, file status doesn't update!
@@ -87,15 +93,16 @@ class MyModel(QAbstractTableModel):
         self.hutch = hutch
         self.user = "Guest"
         self.poll = StatusPoll(self, 5)
+        self.children = []
         (self.poll.mtime, self.cfglist, self.hosts) = utils.readConfig(hutch)
         self.addUsedHosts()
         
         for l in self.cfglist:
             l['status'] = utils.STATUS_INIT
             l['stattime'] = 0
-        self.headerdata = ["IOC Name", "En", "Host", "Port", "Version", "Status", "Information"]
-        self.field      = [None, None, 'host', 'port', 'dir', None, None]
-        self.newfield   = [None, None, 'newhost', 'newport', 'newdir', None, None]
+        self.headerdata = ["IOC Name", "En", "Host", "Port", "Version", "Parent",  "Status", "Information"]
+        self.field      = [None, None, 'host', 'port', 'dir', 'pdir', None, None]
+        self.newfield   = [None, None, 'newhost', 'newport', 'newdir', None, None, None]
         self.lastsort   = (0, Qt.DescendingOrder)
 
     def addUsedHosts(self):
@@ -228,7 +235,7 @@ class MyModel(QAbstractTableModel):
             return entry['status']
         elif c == EXTRA:
             v = ""
-            if entry['dir'] != entry['rdir']:
+            if entry['dir'] != entry['rdir'] and entry['rdir'] != "/tmp":
                 v = entry['rdir'] + " "
             if entry['host'] != entry['rhost'] or entry['port'] != entry['rport']:
                 v += "on " + entry['rhost'] + ":" + entry['rport']
@@ -462,15 +469,30 @@ class MyModel(QAbstractTableModel):
         # but unfortunately it doesn't play nice with the library that telnet uses!  Therefore,
         # we have to get rid of LD_LIBRARY_PATH here.
         #
-        os.system("gnome-terminal -t %s -x /bin/csh -c 'unsetenv LD_LIBRARY_PATH ; telnet %s %s' &" %
-                  (entry['id'], entry['host'], entry['port']))
+        try:
+            x = subprocess.Popen(["gnome-terminal", "--disable-factory", "-t", entry['id'], "-x",
+                                 "/bin/csh", "-c",
+                                 "unsetenv LD_LIBRARY_PATH ; telnet %s %s" % (entry['host'], entry['port'])])
+            self.children.append(x)
+        except:
+            pass
 
     def viewlogIOC(self, index):
         if isinstance(index, QModelIndex):
             id = self.cfglist[index.row()]['id']
         else:
             id = str(index)
-        os.system("gnome-terminal -t " + id + " --geometry=128x30 -x tail -1000lf `ls -t " + (utils.LOGBASE % id) + "|head -1` &")
+        try:
+            x = subprocess.Popen(["gnome-terminal", "--disable-factory", "-t", id,
+                                  "--geometry=128x30", "-x", "/bin/csh", "-c",
+                                  "tail -1000lf `ls -t " + (utils.LOGBASE % id) + "|head -1`"])
+            self.children.append(x)
+        except:
+            pass
+
+    def cleanupChildren(self):
+        for p in self.children:
+            p.kill()
 
     def doSaveVersions(self):
         for i in range(len(self.cfglist)):
