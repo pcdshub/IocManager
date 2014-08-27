@@ -88,6 +88,8 @@ class MyModel(QAbstractTableModel):
         self.user = "Guest"
         self.poll = StatusPoll(self, 5)
         (self.poll.mtime, self.cfglist, self.hosts) = utils.readConfig(hutch)
+        self.addUsedHosts()
+        
         for l in self.cfglist:
             l['status'] = utils.STATUS_INIT
             l['stattime'] = 0
@@ -95,6 +97,13 @@ class MyModel(QAbstractTableModel):
         self.field      = [None, None, 'host', 'port', 'dir', None, None]
         self.newfield   = [None, None, 'newhost', 'newport', 'newdir', None, None]
         self.lastsort   = (0, Qt.DescendingOrder)
+
+    def addUsedHosts(self):
+        hosts = [l['host'] for l in self.cfglist]
+        hosts[-1:] = self.hosts
+        hosts = list(set(hosts))
+        hosts.sort()
+        self.hosts = hosts
 
     def startPoll(self):
         self.poll.start()
@@ -107,7 +116,6 @@ class MyModel(QAbstractTableModel):
 
     def configuration(self, cfglist, hostlist):
         # Process a new configuration file!
-        self.hosts = hostlist
         cfgonly = []
         ouronly = []
         both    = []
@@ -137,6 +145,10 @@ class MyModel(QAbstractTableModel):
                 self.cfglist = self.cfglist[0:i]+self.cfglist[i+1:]
         
         self.sort(self.lastsort[0], self.lastsort[1])
+
+        # Just append the new hostlist, duplicates and all, then go fix it up!
+        self.hosts[-1:] = hostlist
+        self.addUsedHosts()
 
     def running(self, d):
         # Process a new status dictionary!
@@ -303,10 +315,20 @@ class MyModel(QAbstractTableModel):
         self.emit(SIGNAL("layoutChanged()"))
 
     def doApply(self):
+        if not self.validateConfig():
+            QMessageBox.critical(None,
+                                 "Error", "Configuration has errors, not applied!",
+                                 QMessageBox.Ok, QMessageBox.Ok)
+            return
         self.doSave()
         utils.applyConfig(self.hutch)
 
     def doSave(self):
+        if not self.validateConfig():
+            QMessageBox.critical(None,
+                                 "Error", "Configuration has errors, not saved!",
+                                 QMessageBox.Ok, QMessageBox.Ok)
+            return
         f = open(utils.CONFIG_FILE % self.hutch, "r+")
         try:
             fcntl.lockf(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -417,6 +439,9 @@ class MyModel(QAbstractTableModel):
     def addIOC(self, id, host, port, dir):
         cfg = {'id': id, 'host': host, 'port': port, 'dir': dir, 'status' : utils.STATUS_INIT,
                'stattime': 0, 'cfgstat' : utils.CONFIG_ADDED}
+        if not host in self.hosts:
+            self.hosts.append(host)
+            self.hosts.sort()
         self.cfglist.append(cfg)
         self.sort(self.lastsort[0], self.lastsort[1])
 
@@ -503,3 +528,17 @@ class MyModel(QAbstractTableModel):
 
     def getID(self, row):
         return self.cfglist[row]['id']
+
+    def validateConfig(self):
+        for i in range(len(self.cfglist)):
+            h = self.value(self.cfglist[i], HOST)
+            p = self.value(self.cfglist[i], PORT)
+            for j in range(i+1, len(self.cfglist)):
+                h2 = self.value(self.cfglist[j], HOST)
+                p2 = self.value(self.cfglist[j], PORT)
+                if (h == h2 and p == p2):
+                    return False
+        #
+        # Anything else we want to check here?!?
+        #
+        return True
