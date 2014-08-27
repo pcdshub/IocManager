@@ -239,7 +239,6 @@ class GraphicUserInterface(QtGui.QMainWindow):
         parentgui.setReadOnly(True)
         l.addWidget(parentgui, 7, 1)
 
-        print hostgui.text
         fn = lambda dir : self.setParent(parentgui, namegui.text, dir)
         self.connect(d, QtCore.SIGNAL("directoryEntered(const QString &)"), fn)
         self.connect(d, QtCore.SIGNAL("currentChanged(const QString &)"), fn)
