@@ -14,8 +14,9 @@ ENABLE  = 1
 HOST    = 2
 PORT    = 3
 VERSION = 4
-STATUS  = 5
-EXTRA   = 6
+PARENT  = 5
+STATUS  = 6
+EXTRA   = 7
 
 class StatusPoll(threading.Thread):
     def __init__(self, model, interval):
@@ -93,9 +94,9 @@ class MyModel(QAbstractTableModel):
         for l in self.cfglist:
             l['status'] = utils.STATUS_INIT
             l['stattime'] = 0
-        self.headerdata = ["IOC Name", "En", "Host", "Port", "Version", "Status", "Information"]
-        self.field      = [None, None, 'host', 'port', 'dir', None, None]
-        self.newfield   = [None, None, 'newhost', 'newport', 'newdir', None, None]
+        self.headerdata = ["IOC Name", "En", "Host", "Port", "Version", "Parent",  "Status", "Information"]
+        self.field      = [None, None, 'host', 'port', 'dir', 'pdir', None, None]
+        self.newfield   = [None, None, 'newhost', 'newport', 'newdir', None, None, None]
         self.lastsort   = (0, Qt.DescendingOrder)
 
     def addUsedHosts(self):
@@ -228,7 +229,7 @@ class MyModel(QAbstractTableModel):
             return entry['status']
         elif c == EXTRA:
             v = ""
-            if entry['dir'] != entry['rdir']:
+            if entry['dir'] != entry['rdir'] and entry['rdir'] != "/tmp":
                 v = entry['rdir'] + " "
             if entry['host'] != entry['rhost'] or entry['port'] != entry['rport']:
                 v += "on " + entry['rhost'] + ":" + entry['rport']

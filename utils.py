@@ -45,8 +45,7 @@
 ######################################################################
 
 
-import telnetlib, string, datetime, os, time, fcntl
-from re import search
+import telnetlib, string, datetime, os, time, fcntl, re
 
 #
 # Defines
@@ -148,17 +147,17 @@ def readLogPortBanner(tn):
                 'id'          : "-",
                 'autorestart' : False,
                 'rdir'        : "/tmp"}
-    if search('SHUT DOWN', response):
+    if re.search('SHUT DOWN', response):
         tmpstatus = STATUS_SHUTDOWN
         pid = "-"
     else:
         tmpstatus = STATUS_RUNNING
-        pid = search('@@@ Child \"(.*)\" PID: ([0-9]*)', response).group(2)
-    getid = search('@@@ Child \"(.*)\" start', response).group(1)
-    dir   = search('@@@ Server startup directory: (.*)', response).group(1)
+        pid = re.search('@@@ Child \"(.*)\" PID: ([0-9]*)', response).group(2)
+    getid = re.search('@@@ Child \"(.*)\" start', response).group(1)
+    dir   = re.search('@@@ Server startup directory: (.*)', response).group(1)
     if dir[-1] == '\r':
         dir = dir[:-1]
-    if search(MSG_AUTORESTART_IS_ON, response):
+    if re.search(MSG_AUTORESTART_IS_ON, response):
         arst = True
     else:
         arst = False
@@ -369,6 +368,7 @@ def readConfig(cfg, time = None):
         l['rhost'] = l['host']
         l['rport'] = l['port']
         l['newstyle'] = False
+        l['pdir'] = findParent(l['id'], l['dir'])
     return res
 
 #
@@ -483,7 +483,7 @@ def applyConfig(cfg):
 
 ######################################################################
 #
-# Authorization utilities
+# Miscellaneous utilities
 #
 
 authinfo = {}
@@ -497,3 +497,38 @@ def check_auth(user, hutch):
         if l == user:
             return True
     return False
+
+eq      = re.compile("^[ \t]*([A-Za-z_][A-Za-z0-9_]*)[ \t]*=[ \t]*(.*?)[ \t]*$")
+eqq     = re.compile('^[ \t]*([A-Za-z_][A-Za-z0-9_]*)[ \t]*=[ \t]*"([^"]*)"[ \t]*$')
+eqqq    = re.compile("^[ \t]*([A-Za-z_][A-Za-z0-9_]*)[ \t]*=[ \t]*'([^']*)'[ \t]*$")
+sp      = re.compile("^[ \t]*([A-Za-z_][A-Za-z0-9_]*)[ \t]+(.+?)[ \t]*$")
+spq     = re.compile('^[ \t]*([A-Za-z_][A-Za-z0-9_]*)[ \t]+"([^"]*)"[ \t]*$')
+spqq    = re.compile("^[ \t]*([A-Za-z_][A-Za-z0-9_]*)[ \t]+'([^']*)'[ \t]*$")
+
+def findParent(ioc, dir):
+    fn = dir + "/" + ioc + ".cfg"
+    if fn[0] != '/':
+        fn = EPICS_SITE_TOP + fn
+    try:
+        lines = open(fn).readlines()
+    except:
+        return ""
+    lines.reverse()
+    for l in lines:
+        m = eqqq.search(l)
+        if m == None:
+            m = eqq.search(l)
+            if m == None:
+                m = eq.search(l)
+                if m == None:
+                    m = spqq.search(l)
+                    if m == None:
+                        m = spq.search(l)
+                        if m == None:
+                            m = sp.search(l)
+        if m != None:
+            var = m.group(1)
+            val = m.group(2)
+            if var == "RELEASE":
+                return fixdir(val, ioc)
+    return ""
