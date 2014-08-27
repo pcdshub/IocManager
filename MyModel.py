@@ -47,11 +47,11 @@ class StatusPoll(threading.Thread):
             for l in result:
                 rdir = l['rdir']
                 l.update(utils.check_status(l['rhost'], l['rport'], l['id']))
+                l['stattime'] = time.time()
                 if l['rdir'] == '/tmp':
                     l['rdir'] = rdir
                 else:
                     l['newstyle'] = False
-                l['stattime'] = time.time()
                 self.model.running(l)
 
             for l in self.model.cfglist:
@@ -150,9 +150,10 @@ class MyModel(QAbstractTableModel):
                 self.sort(self.lastsort[0], self.lastsort[1])
             return
         else:
-            d['host'] = d['rhost']
-            d['port'] = d['rport']
-            d['dir']  = d['rdir']
+            d['host']    = d['rhost']
+            d['port']    = d['rport']
+            d['dir']     = d['rdir']
+            d['disable'] = False
             d['cfgstat'] = utils.CONFIG_DELETED
             self.cfglist.append(d)
             self.sort(self.lastsort[0], self.lastsort[1])

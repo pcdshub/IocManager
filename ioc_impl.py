@@ -73,10 +73,10 @@ class GraphicUserInterface(QtGui.QMainWindow):
         self.model = MyModel(hutch)
         self.utimer = QtCore.QTimer()
         self.delegate = MyDelegate(None, hutch)
-        self.connect(self.ui.applyButton,    QtCore.SIGNAL("clicked()"), self.model.doApply)
+        self.connect(self.ui.applyButton,    QtCore.SIGNAL("clicked()"), self.doApply)
         self.connect(self.ui.revertButton,   QtCore.SIGNAL("clicked()"), self.model.doRevert)
         self.connect(self.ui.quitButton,     QtCore.SIGNAL("clicked()"), self.doQuit)
-        self.connect(self.ui.saveButton,     QtCore.SIGNAL("clicked()"), self.model.doSave)
+        self.connect(self.ui.saveButton,     QtCore.SIGNAL("clicked()"), self.doSave)
         self.connect(self.ui.rebootButton,   QtCore.SIGNAL("clicked()"), self.doReboot)
         self.connect(self.ui.logButton,      QtCore.SIGNAL("clicked()"), self.doLog)
         self.connect(self.ui.consoleButton,  QtCore.SIGNAL("clicked()"), self.doConsole)
@@ -119,6 +119,19 @@ class GraphicUserInterface(QtGui.QMainWindow):
         except:
             pass
 
+    def doApply(self):
+        if not self.authorize_action():
+            return
+        self.model.doApply()
+                             
+    def doQuit(self):
+        self.close()
+        
+    def doSave(self):
+        if not self.authorize_action():
+            return
+        self.model.doSave()
+
     def doReboot(self):
         if self.currentBase:
             caput(self.currentBase + ":SYSRESET", 1)
@@ -128,7 +141,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
             self.model.viewlogIOC(self.currentIOC)
     
     def doConsole(self):
-        if self.currentIOC:
+        if self.currentIOC and self.authorize_action():
             self.model.connectIOC(self.currentIOC)
     
     def dopv(self, name, gui, format):
@@ -156,9 +169,6 @@ class GraphicUserInterface(QtGui.QMainWindow):
             pyca.flush_io()
         except:
             pass
-                             
-    def doQuit(self):
-        self.close()
     
     def showContextMenu(self, pos):
         index = self.ui.tableView.indexAt(pos)
@@ -229,10 +239,13 @@ class GraphicUserInterface(QtGui.QMainWindow):
         self.model.addIOC(name, host, port, dir)
 
     def doAuthenticate(self):
-        if self.authdialog.exec_() == QtGui.QDialog.Accepted:
+        result = self.authdialog.exec_()
+        password = str(self.authdialog.ui.passEdit.text())
+        self.authdialog.ui.passEdit.setText("")
+        if result == QtGui.QDialog.Accepted:
             try:
                 if kerberos.checkPassword(str(self.authdialog.ui.nameEdit.text()),
-                                          str(self.authdialog.ui.passEdit.text()),
+                                          password,
                                           "afs/slac.stanford.edu",
                                           "SLAC.STANFORD.EDU"):
                     self.model.user = self.authdialog.ui.nameEdit.text()
@@ -241,11 +254,19 @@ class GraphicUserInterface(QtGui.QMainWindow):
                     return
             except:
                 pass
-        self.model.user = "Guest"
-        self.ui.userLabel.setText("User: Guest")
+        self.unauthenticate()
 
     def unauthenticate(self):
         self.utimer.stop()
         self.model.user = "Guest"
         self.ui.userLabel.setText("User: Guest")
         
+    def authorize_action(self):
+        if self.model.user == "Guest":
+            self.doAuthenticate()
+        if utils.check_auth(self.model.user, self.hutch):
+            return True
+        QtGui.QMessageBox.critical(None,
+                                   "Error", "Action not authorized for user %s" % self.model.user,
+                                   QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
+        return False

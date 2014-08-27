@@ -55,6 +55,7 @@ CAMRECORDER = "/reg/g/pcds/controls/camrecord"
 PROCSERV    = "/reg/g/pcds/package/procServ-2.5.1/procServ"
 STARTUP_DIR = "/reg/g/pcds/pyps/apps/ioc/latest/"
 CONFIG_FILE = "/reg/g/pcds/pyps/config/%s/iocmanager.cfg"
+AUTH_FILE   = "/reg/g/pcds/pyps/config/%s/iocmanager.auth"
 STATUS_DIR  = "/reg/g/pcds/pyps/config/.status/%s"
 LOGBASE     = "/reg/d/iocData/%s/iocInfo/ioc.log*"
 LOGFILE     = "/reg/d/iocData/%s/iocInfo/ioc.log_" + datetime.datetime.today().strftime("%m%d%Y_%H%M%S")
@@ -141,7 +142,12 @@ def fixdir(dir, id):
 def readLogPortBanner(tn):
     response = tn.read_until(MSG_BANNER_END, 1)
     if not string.count(response, MSG_BANNER_END):
-        return (STATUS_ERROR, "-", "-", "-", False)
+        print response
+        return {'status'      : STATUS_ERROR,
+                'pid'         : "-",
+                'id'          : "-",
+                'autorestart' : False,
+                'rdir'        : "/tmp"}
     if search('SHUT DOWN', response):
         tmpstatus = STATUS_SHUTDOWN
         pid = "-"
@@ -173,7 +179,7 @@ def check_status(host, port, id):
                 'id'          : id,
                 'pid'         : "-",
                 'autorestart' : False,
-                'rdir'        : ""}
+                'rdir'        : "/tmp"}
     result = readLogPortBanner(tn)
     tn.close()
     return result
@@ -474,3 +480,20 @@ def applyConfig(cfg):
 
   time.sleep(1)
   return 0
+
+######################################################################
+#
+# Authorization utilities
+#
+
+authinfo = {}
+
+def check_auth(user, hutch):
+    if not hutch in authinfo.keys():
+        lines = open(AUTH_FILE % hutch).readlines()
+        lines = [l.strip() for l in lines]
+        authinfo[hutch] = lines
+    for l in authinfo[hutch]:
+        if l == user:
+            return True
+    return False
