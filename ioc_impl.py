@@ -7,6 +7,7 @@ import auth_ui
 from Pv import Pv
 import pyca
 import utils
+import os
 
 class authdialog(QtGui.QDialog):
     def __init__(self, parent=None):
@@ -200,10 +201,17 @@ class GraphicUserInterface(QtGui.QMainWindow):
             elif txt == "Remember Version":
                 self.model.saveVersion(index)
 
+    def setParent(self, gui, iocfn, dir):
+        if dir != "":
+            gui.setText(utils.findParent(iocfn(), dir))
+
     def addIOC(self, index):
         d=QtGui.QFileDialog(self, "Add New IOC", utils.EPICS_SITE_TOP + "ioc/" + self.hutch)
         d.setFileMode(Qt.QFileDialog.Directory)
         d.setOptions(Qt.QFileDialog.ShowDirsOnly|Qt.QFileDialog.DontUseNativeDialog)
+        d.setSidebarUrls([QtCore.QUrl("file://" + os.getenv("HOME")),
+                          QtCore.QUrl("file://" + utils.EPICS_SITE_TOP + "ioc/" + self.hutch),
+                          QtCore.QUrl("file://" + utils.EPICS_TOP + "3.14-dev")])
         l=d.layout()
 
         tmp=QtGui.QLabel()
@@ -223,6 +231,19 @@ class GraphicUserInterface(QtGui.QMainWindow):
         l.addWidget(tmp, 6, 0)
         portgui=QtGui.QLineEdit()
         l.addWidget(portgui, 6, 1)
+
+        tmp=QtGui.QLabel()
+        tmp.setText("Parent")
+        l.addWidget(tmp, 7, 0)
+        parentgui=QtGui.QLineEdit()
+        parentgui.setReadOnly(True)
+        l.addWidget(parentgui, 7, 1)
+
+        print hostgui.text
+        fn = lambda dir : self.setParent(parentgui, namegui.text, dir)
+        self.connect(d, QtCore.SIGNAL("directoryEntered(const QString &)"), fn)
+        self.connect(d, QtCore.SIGNAL("currentChanged(const QString &)"), fn)
+        
         if d.exec_() == Qt.QDialog.Rejected:
             return
         name = namegui.text()
@@ -233,9 +254,9 @@ class GraphicUserInterface(QtGui.QMainWindow):
         except:
             dir = ""
         if name == "" or host == "" or port == "" or dir == "":
-            QMessageBox.critical(None,
-                                 "Error", "Failed to set all parameters for new IOC!",
-                                 QMessageBox.Ok, QMessageBox.Ok)
+            QtGui.QMessageBox.critical(None,
+                                       "Error", "Failed to set all parameters for new IOC!",
+                                       QMessageBox.Ok, QMessageBox.Ok)
             return
         self.model.addIOC(name, host, port, dir)
 

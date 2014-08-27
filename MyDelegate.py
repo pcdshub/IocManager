@@ -58,6 +58,10 @@ class MyDelegate(QStyledItemDelegate):
         else:
             QStyledItemDelegate.setEditorData(self, editor, index)
 
+    def setParent(self, gui, ioc, dir):
+        if dir != "":
+            gui.setText(utils.findParent(ioc, dir))
+
     def setModelData(self, editor, model, index):
         col = index.column()
         if col == MyModel.HOST:
@@ -98,6 +102,18 @@ class MyDelegate(QStyledItemDelegate):
                                   QUrl("file://" + os.getenv("HOME")),
                                   QUrl("file://" + utils.EPICS_SITE_TOP + "ioc/" + self.hutch),
                                   QUrl("file://" + utils.EPICS_TOP + "3.14-dev")])
+                l=d.layout()
+                tmp=QLabel()
+                tmp.setText("Parent")
+                l.addWidget(tmp, 4, 0)
+                parentgui=QLineEdit()
+                parentgui.setReadOnly(True)
+                l.addWidget(parentgui, 4, 1)
+
+                fn = lambda dir : self.setParent(parentgui, id, dir)
+                self.connect(d, SIGNAL("directoryEntered(const QString &)"), fn)
+                self.connect(d, SIGNAL("currentChanged(const QString &)"), fn)
+                
                 if d.exec_() == QDialog.Rejected:
                     editor.setCurrentIndex(0)
                     return
