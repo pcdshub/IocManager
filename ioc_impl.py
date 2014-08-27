@@ -105,6 +105,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
 
     def closeEvent(self, event):
         self.disconnectPVs()
+        self.model.cleanupChildren()
         QtGui.QMainWindow.closeEvent(self, event)
 
     def disconnectPVs(self):
@@ -125,7 +126,6 @@ class GraphicUserInterface(QtGui.QMainWindow):
         self.model.doApply()
                              
     def doQuit(self):
-        self.model.cleanupChildren()
         self.close()
         
     def doSave(self):
