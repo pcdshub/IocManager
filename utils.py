@@ -144,7 +144,7 @@ def readLogPortBanner(tn):
         print response
         return {'status'      : STATUS_ERROR,
                 'pid'         : "-",
-                'id'          : "-",
+                'rid'          : "-",
                 'autorestart' : False,
                 'rdir'        : "/tmp"}
     if re.search('SHUT DOWN', response):
@@ -163,7 +163,7 @@ def readLogPortBanner(tn):
         arst = False
     return {'status'      : tmpstatus,
             'pid'         : pid,
-            'id'          : getid,
+            'rid'         : getid,
             'autorestart' : arst,
             'rdir'        : fixdir(dir, getid)}
 
@@ -175,7 +175,7 @@ def check_status(host, port, id):
         tn = telnetlib.Telnet(host, port, 1)
     except:
         return {'status'      : STATUS_NOCONNECT,
-                'id'          : id,
+                'rid'         : id,
                 'pid'         : "-",
                 'autorestart' : False,
                 'rdir'        : "/tmp"}
@@ -364,6 +364,7 @@ def readConfig(cfg, time = None):
         if not 'history' in l.keys():
             l['history'] = []
         l['cfgstat'] = CONFIG_NORMAL
+        l['rid'] = l['id']
         l['rdir'] = l['dir']
         l['rhost'] = l['host']
         l['rport'] = l['port']
@@ -387,7 +388,7 @@ def readStatusDir(cfg, readfile=lambda fn, f: open(fn).readlines()):
         l = readfile(fn, f)
         if l != []:
             stat = l[0].strip().split()                     # PID HOST PORT DIRECTORY
-            d.append({'id' : f, 'pid': stat[0], 'rhost': stat[1], 'rport': int(stat[2]),
+            d.append({'rid' : f, 'pid': stat[0], 'rhost': stat[1], 'rport': int(stat[2]),
                       'rdir': stat[3], 'newstyle' : True})
     return d
 
@@ -409,7 +410,7 @@ def applyConfig(cfg):
 
   current = {}
   for l in runninglist:
-      result = check_status(l['rhost'], l['rport'], l['id'])
+      result = check_status(l['rhost'], l['rport'], l['rid'])
       if result['status'] == STATUS_RUNNING:
           rdir = l['rdir']
           l.update(result);
@@ -417,7 +418,7 @@ def applyConfig(cfg):
               l['rdir'] = rdir
           else:
               l['newstyle'] = False
-          current[l['id']] = l
+          current[l['rid']] = l
 
   running = current.keys()
   wanted  = config.keys()

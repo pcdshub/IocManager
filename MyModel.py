@@ -48,7 +48,7 @@ class StatusPoll(threading.Thread):
             result = utils.readStatusDir(self.hutch, self.readStatusFile)
             for l in result:
                 rdir = l['rdir']
-                l.update(utils.check_status(l['rhost'], l['rport'], l['id']))
+                l.update(utils.check_status(l['rhost'], l['rport'], l['rid']))
                 l['stattime'] = time.time()
                 if l['rdir'] == '/tmp':
                     l['rdir'] = rdir
@@ -61,6 +61,8 @@ class StatusPoll(threading.Thread):
                     continue;
                 s = utils.check_status(l['host'], l['port'], l['id'])
                 s['stattime'] = time.time()
+                s['rhost'] = l['host']
+                s['rport'] = l['port']
                 if l['newstyle']:
                     if s['rdir'] == '/tmp':
                         del s['rdir']
@@ -101,8 +103,8 @@ class MyModel(QAbstractTableModel):
             l['status'] = utils.STATUS_INIT
             l['stattime'] = 0
         self.headerdata = ["IOC Name", "En", "Host", "Port", "Version", "Parent",  "Status", "Information"]
-        self.field      = [None, None, 'host', 'port', 'dir', 'pdir', None, None]
-        self.newfield   = [None, None, 'newhost', 'newport', 'newdir', None, None, None]
+        self.field      = ['id', None, 'host', 'port', 'dir', 'pdir', None, None]
+        self.newfield   = ['newid', None, 'newhost', 'newport', 'newdir', None, None, None]
         self.lastsort   = (0, Qt.DescendingOrder)
 
     def addUsedHosts(self):
@@ -118,6 +120,12 @@ class MyModel(QAbstractTableModel):
     def findid(self, id, l):
         for i in range(len(l)):
             if id == l[i]['id']:
+                return i
+        return None
+
+    def findhostport(self, h, p, l):
+        for i in range(len(l)):
+            if h == l[i]['host'] and p == l[i]['port']:
                 return i
         return None
 
@@ -159,8 +167,12 @@ class MyModel(QAbstractTableModel):
 
     def running(self, d):
         # Process a new status dictionary!
-        i = self.findid(d['id'], self.cfglist)
+        i = self.findid(d['rid'], self.cfglist)
+        if i == None:
+            i = self.findhostport(d['rhost'], d['rport'], self.cfglist)
         if i != None:
+            if self.cfglist[i]['dir'] == utils.CAMRECORDER:
+                d['rdir'] = utils.CAMRECORDER
             if d['status'] == utils.STATUS_RUNNING or self.cfglist[i]['cfgstat'] != utils.CONFIG_DELETED:
                 self.cfglist[i].update(d);
                 self.dataChanged.emit(self.index(i,0), self.index(i,len(self.headerdata)))
@@ -169,6 +181,7 @@ class MyModel(QAbstractTableModel):
                 self.sort(self.lastsort[0], self.lastsort[1])
             return
         else:
+            d['id']      = d['rid']
             d['host']    = d['rhost']
             d['port']    = d['rport']
             d['dir']     = d['rdir']
@@ -229,9 +242,7 @@ class MyModel(QAbstractTableModel):
         return len(self.headerdata)
 
     def value(self, entry, c):
-        if c == IOCNAME:
-            return entry['id']
-        elif c == STATUS:
+        if c == STATUS:
             return entry['status']
         elif c == EXTRA:
             v = ""
@@ -239,6 +250,8 @@ class MyModel(QAbstractTableModel):
                 v = entry['rdir'] + " "
             if entry['host'] != entry['rhost'] or entry['port'] != entry['rport']:
                 v += "on " + entry['rhost'] + ":" + entry['rport']
+            if entry['id'] != entry['rid']:
+                v += "as " + entry['rid']
             return v
         elif c == ENABLE:
             return ""
@@ -275,7 +288,8 @@ class MyModel(QAbstractTableModel):
                     return QVariant(QBrush(Qt.red))
                 if (entry['host'] != entry['rhost'] or
                     entry['port'] != entry['rport'] or
-                    entry['dir'] != entry['rdir']):
+                    entry['dir'] != entry['rdir'] or
+                    entry['id'] != entry['rid']):
                     return QVariant(QBrush(Qt.yellow))
                 else:
                     return QVariant(QBrush(Qt.green))
@@ -352,6 +366,10 @@ class MyModel(QAbstractTableModel):
         f.write("procmgr_config = [\n")
         for entry in self.cfglist:
             try:
+                id = entry['newid']
+            except:
+                id = entry['id']
+            try:
                 host = entry['newhost']
             except:
                 host = entry['host']
@@ -376,7 +394,16 @@ class MyModel(QAbstractTableModel):
             except:
                 his = ""
             f.write(" {id:'%s', host: '%s', port: %s, dir: '%s'%s%s},\n" %
-                    (entry['id'], host, port, dir, dis, his))
+                    (id, host, port, dir, dis, his))
+            #
+            # IOC names are special.  If we just reprocess the file, we will have both the
+            # old *and* the new names!  So we have to change the names here.
+            #
+            try:
+                entry['id'] = entry['newid']
+                del entry['newid']
+            except:
+                pass
         f.write("]\n");
         fcntl.lockf(f, fcntl.LOCK_UN)
         f.close()
@@ -399,12 +426,12 @@ class MyModel(QAbstractTableModel):
     def notSynched(self, index):
         entry = self.cfglist[index.row()]
         return (entry['dir'] != entry['rdir'] or entry['host'] != entry['rhost'] or
-                entry['port'] != entry['rport'])
+                entry['port'] != entry['rport'] or entry['id'] != entry['rid'])
 
     def isChanged(self, index):
         entry = self.cfglist[index.row()]
         keys = entry.keys()
-        return 'newhost' in keys or 'newport' in keys or 'newdir' in keys
+        return 'newhost' in keys or 'newport' in keys or 'newdir' in keys or 'newid' in keys
 
     def revertIOC(self, index):
         entry = self.cfglist[index.row()]
@@ -429,7 +456,7 @@ class MyModel(QAbstractTableModel):
 
     def setFromRunning(self, index):
         entry = self.cfglist[index.row()]
-        for f in ['dir', 'host', 'port']:
+        for f in ['id', 'dir', 'host', 'port']:
             if entry[f] != entry['r'+f]:
                 entry['new'+f] = entry['r'+f]
         entry['cfgstat'] = utils.CONFIG_ADDED
