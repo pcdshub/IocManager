@@ -249,7 +249,7 @@ class MyModel(QAbstractTableModel):
             if entry['dir'] != entry['rdir'] and entry['rdir'] != "/tmp":
                 v = entry['rdir'] + " "
             if entry['host'] != entry['rhost'] or entry['port'] != entry['rport']:
-                v += "on " + entry['rhost'] + ":" + entry['rport']
+                v += "on " + entry['rhost'] + ":" + str(entry['rport'])
             if entry['id'] != entry['rid']:
                 v += "as " + entry['rid']
             return v
