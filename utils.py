@@ -115,6 +115,12 @@ def fixdir(dir, id):
     if dir[0:len(EPICS_TOP)] == EPICS_TOP:
         dir = "../" + dir[len(EPICS_TOP):]
     try:
+        ext = "/children/build/iocBoot/" + id
+        if dir[len(dir)-len(ext):len(dir)] == ext:
+            dir = dir[0:len(dir)-len(ext)]
+    except:
+        pass
+    try:
         ext = "/build/iocBoot/" + id
         if dir[len(dir)-len(ext):len(dir)] == ext:
             dir = dir[0:len(dir)-len(ext)]
