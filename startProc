@@ -8,9 +8,11 @@ set cfg = $3
 set dir = `$SCRIPTROOT/getDirectory $ioc $cfg`
 cd /reg/g/pcds/package/epics/3.14
 if (-d $dir) cd $dir
-if (-d children/build/iocBoot/$ioc) cd build/iocBoot/$ioc
+if (-f env.csh) source env.csh
+if (-d children/build/iocBoot/$ioc) cd children/build/iocBoot/$ioc
 if (-d build/iocBoot/$ioc) cd build/iocBoot/$ioc
 if (-d iocBoot/$ioc) cd iocBoot/$ioc
+if (-f env.csh) source env.csh
 echo $$ `hostname -s` $port $dir >/reg/g/pcds/pyps/config/.status/$cfg/$ioc
 chmod g+w /reg/g/pcds/pyps/config/.status/$cfg/$ioc
 if (-f ../../archive/$ioc.archive) then
