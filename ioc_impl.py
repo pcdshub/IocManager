@@ -184,6 +184,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
         if self.model.isChanged(index):
             menu.addAction("Revert IOC")
         menu.addAction("Remember Version")
+        menu.addAction("Edit Details")
         gpos = self.ui.tableView.viewport().mapToGlobal(pos)
         selectedItem = menu.exec_(gpos)
         if selectedItem != None:
@@ -200,6 +201,8 @@ class GraphicUserInterface(QtGui.QMainWindow):
                 self.model.addExisting(index)
             elif txt == "Remember Version":
                 self.model.saveVersion(index)
+            elif txt == "Edit Details":
+                self.model.editDetails(index)
 
     def setParent(self, gui, iocfn, dir):
         if dir != "":

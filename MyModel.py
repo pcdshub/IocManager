@@ -1,6 +1,7 @@
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 import utils
+import details_ui
 import os
 import time
 import fcntl
@@ -89,9 +90,16 @@ class StatusPoll(threading.Thread):
         except:
             return []
 
+class detailsdialog(QDialog):
+    def __init__(self, parent=None):
+      QWidget.__init__(self, parent)
+      self.ui = details_ui.Ui_Dialog()
+      self.ui.setupUi(self)
+
 class MyModel(QAbstractTableModel): 
     def __init__(self, hutch, parent=None):
         QAbstractTableModel.__init__(self, parent)
+        self.detailsdialog = detailsdialog(parent)
         self.hutch = hutch
         self.user = "Guest"
         self.poll = StatusPoll(self, 5)
@@ -366,7 +374,7 @@ class MyModel(QAbstractTableModel):
         f.write("procmgr_config = [\n")
         for entry in self.cfglist:
             try:
-                id = entry['newid']
+                id = entry['newid'].strip()
             except:
                 id = entry['id']
             try:
@@ -381,27 +389,40 @@ class MyModel(QAbstractTableModel):
                 dir = entry['newdir']
             except:
                 dir = entry['dir']
+            extra = ""
             if entry['disable']:
-                dis = ", disable : True"
-            else:
-                dis = ""
+                extra += ", disable : True"
             try:
                 h = entry['history']
                 if h != []:
-                    his = ",\n  history : [" + ", ".join(["'"+l+"'" for l in h]) + "]"
-                else:
-                    his = ""
+                    extra += ",\n  history : [" + ", ".join(["'"+l+"'" for l in h]) + "]"
             except:
-                his = ""
-            f.write(" {id:'%s', host: '%s', port: %s, dir: '%s'%s%s},\n" %
-                    (id, host, port, dir, dis, his))
+                pass
+            try:
+                extra += ", delay : %d" % entry['delay']
+            except:
+                pass
+            try:
+                extra += ", cmd : '%s'" % entry['cmd']
+            except:
+                pass
+            try:
+                extra += ", flags : '%s'" % entry['flags']
+            except:
+                pass
+            f.write(" {id:'%s', host: '%s', port: %s, dir: '%s'%s},\n" %
+                    (id, host, port, dir, extra))
             #
             # IOC names are special.  If we just reprocess the file, we will have both the
             # old *and* the new names!  So we have to change the names here.
             #
             try:
-                entry['id'] = entry['newid']
+                entry['id'] = entry['newid'].strip()
                 del entry['newid']
+            except:
+                pass
+            try:
+                del entry['details']
             except:
                 pass
         f.write("]\n");
@@ -469,10 +490,93 @@ class MyModel(QAbstractTableModel):
         self.dataChanged.emit(self.index(index.row(),0),
                               self.index(index.row(),len(self.headerdata)))
         
+    def editDetails(self, index):
+        entry = self.cfglist[index.row()]
+        try:
+            details = entry['details']
+        except:
+            # Remember what was in the configuration file!
+            details = ["", 0, ""]
+            try:
+                details[0] = entry['cmd']
+            except:
+                pass
+            try:
+                details[1] = entry['delay']
+            except:
+                pass
+            try:
+                details[2] = entry['flags']
+            except:
+                pass
+            entry['details'] = details
+        self.detailsdialog.setWindowTitle("Edit Details - %s" % entry['id'])
+        try:
+            self.detailsdialog.ui.cmdEdit.setText(entry['cmd'])
+        except:
+            self.detailsdialog.ui.cmdEdit.setText("")
+        try:
+            self.detailsdialog.ui.delayEdit.setText(str(entry['delay']))
+        except:
+            self.detailsdialog.ui.delayEdit.setText("")
+        try:
+            self.detailsdialog.ui.flagCheckBox.setChecked('u' in entry['flags'])
+        except:
+            self.detailsdialog.ui.flagCheckBox.setChecked(False)
+        if self.detailsdialog.exec_() == QDialog.Accepted:
+            newcmd = str(self.detailsdialog.ui.cmdEdit.text())
+            if newcmd == "":
+                try:
+                    del entry['cmd']
+                except:
+                    pass
+            else:
+                entry['cmd'] = newcmd
+                
+            if 'cmd' in entry.keys() and self.detailsdialog.ui.flagCheckBox.isChecked():
+                newflags = 'u'
+                entry['flags'] = 'u'
+            else:
+                newflags = ""
+                try:
+                    del entry['flags']
+                except:
+                    pass
+                
+            try:
+                newdelay = int(self.detailsdialog.ui.delayEdit.text())
+            except:
+                newdelay = 0
+            if newdelay == 0:
+                try:
+                    del entry['delay']
+                except:
+                    pass
+            else:
+                entry['delay'] = newdelay
+
+            print details
+            print [newcmd, newdelay, newflags]
+
+            if details != [newcmd, newdelay, newflags]:
+                print "Change!"
+                # We're changed, so flag this with a fake ID change!
+                if not 'newid' in entry.keys():
+                    print "Set newid"
+                    entry['newid'] = entry['id'] + ' '
+            else:
+                print "No Change!"
+                # We're not changed, so remove any fake ID change!
+                if 'newid' in entry.keys() and entry['newid'] == entry['id'] + ' ':
+                    print "Delete newid"
+                    del entry['newid']
 
     def addIOC(self, id, host, port, dir):
+        dir = utils.fixdir(dir, id)
         cfg = {'id': id, 'host': host, 'port': port, 'dir': dir, 'status' : utils.STATUS_INIT,
-               'stattime': 0, 'cfgstat' : utils.CONFIG_ADDED}
+               'stattime': 0, 'cfgstat' : utils.CONFIG_ADDED, 'disable' : False,
+               'history' : [], 'rid': id, 'rhost': host, 'rport': port, 'rdir': dir,
+               'pdir' : utils.findParent(id, dir), 'newstyle' : True }
         if not host in self.hosts:
             self.hosts.append(host)
             self.hosts.sort()

@@ -305,8 +305,6 @@ def startProc(cfg, entry):
     print "Starting %s on port %s of host %s, platform %s..." % (name, port, host, platform)
     cmd = '%s --logfile %s --name %s --allow --coresize 0 %s %s' % \
           (PROCSERV, log, name, port, cmd)
-    if int(entry['delay']) != 0:
-        cmd += "; sleep %s" % str(entry['delay'])
     try:
         tn = telnetlib.Telnet(host, BASEPORT + 100 * int(platform), 1)
     except:
@@ -365,8 +363,6 @@ def readConfig(cfg, time = None):
         # Add defaults!
         if not 'disable' in l.keys():
             l['disable'] = False
-        if not 'delay' in l.keys():
-            l['delay'] = 0
         if not 'history' in l.keys():
             l['history'] = []
         l['cfgstat'] = CONFIG_NORMAL
@@ -512,13 +508,21 @@ sp      = re.compile("^[ \t]*([A-Za-z_][A-Za-z0-9_]*)[ \t]+(.+?)[ \t]*$")
 spq     = re.compile('^[ \t]*([A-Za-z_][A-Za-z0-9_]*)[ \t]+"([^"]*)"[ \t]*$')
 spqq    = re.compile("^[ \t]*([A-Za-z_][A-Za-z0-9_]*)[ \t]+'([^']*)'[ \t]*$")
 
-def findParent(ioc, dir):
-    fn = dir + "/" + ioc + ".cfg"
+def readAll(fn):
     if fn[0] != '/':
         fn = EPICS_SITE_TOP + fn
     try:
-        lines = open(fn).readlines()
+        return open(fn).readlines()
     except:
+        return []
+
+def findParent(ioc, dir):
+    fn = dir + "/" + ioc + ".cfg"
+    lines = readAll(fn)
+    if lines == []:
+        fn = dir + "/children/" + ioc + ".cfg"
+        lines = readAll(fn)
+    if lines == []:
         return ""
     lines.reverse()
     for l in lines:
@@ -537,5 +541,8 @@ def findParent(ioc, dir):
             var = m.group(1)
             val = m.group(2)
             if var == "RELEASE":
-                return fixdir(val, ioc)
+                if val == '$$PATH/..':
+                    return fixdir(dir, ioc)
+                else:
+                    return fixdir(val, ioc)
     return ""
