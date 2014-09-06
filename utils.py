@@ -56,8 +56,7 @@ STARTUP_DIR = "/reg/g/pcds/pyps/apps/ioc/latest/"
 CONFIG_FILE = "/reg/g/pcds/pyps/config/%s/iocmanager.cfg"
 AUTH_FILE   = "/reg/g/pcds/pyps/config/%s/iocmanager.auth"
 STATUS_DIR  = "/reg/g/pcds/pyps/config/.status/%s"
-LOGBASE     = "/reg/d/iocData/%s/iocInfo/ioc.log*"
-LOGFILE     = "/reg/d/iocData/%s/iocInfo/ioc.log_" + datetime.datetime.today().strftime("%m%d%Y_%H%M%S")
+LOGBASE     = "/reg/d/iocData/%s/iocInfo/ioc.log"
 PVFILE      = "/reg/d/iocData/%s/iocInfo/IOC.pvlist"
 BASEPORT    = 29000
 
@@ -300,7 +299,7 @@ def startProc(cfg, entry):
             cmd += ' -u ' + name
     except:
         pass
-    log = LOGFILE % name
+    log = (LOGBASE % name) + "_" + datetime.datetime.today().strftime("%m%d%Y_%H%M%S")
     ctrlport = BASEPORT + 100 * int(platform)
     print "Starting %s on port %s of host %s, platform %s..." % (name, port, host, platform)
     cmd = '%s --logfile %s --name %s --allow --coresize 0 %s %s' % \

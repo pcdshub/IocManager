@@ -616,7 +616,7 @@ class MyModel(QAbstractTableModel):
         try:
             x = subprocess.Popen(["gnome-terminal", "--disable-factory", "-t", id,
                                   "--geometry=128x30", "-x", "/bin/csh", "-c",
-                                  "tail -1000lf `ls -t " + (utils.LOGBASE % id) + "|head -1`"])
+                                  "tail -1000lf `ls -t " + (utils.LOGBASE % id) + "* |head -1`"])
             self.children.append(x)
         except:
             pass
