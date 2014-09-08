@@ -285,24 +285,24 @@ def startProc(cfg, entry):
     try:
         cmd = entry['cmd']
     except:
-        # The New Regime: no cmd --> invoke startProc.
-        sr = os.getenv("SCRIPTROOT")
-        if sr == None:
-            sr = STARTUP_DIR
-        elif sr[-1] != '/':
-            sr += '/'
-        cmd = sr + "startProc " + name + " " + str(port) + " " + cfg
+        cmd = "./st.cmd"
     try:
         if 'u' in entry['flags']:
-            # The Old Regime: supply a command, and possibly flag it with 'u'
-            # to append the ID to the command.
+            # The Old Regime: add u to flags to append the ID to the command.
             cmd += ' -u ' + name
     except:
         pass
+        
+    sr = os.getenv("SCRIPTROOT")
+    if sr == None:
+        sr = STARTUP_DIR
+    elif sr[-1] != '/':
+        sr += '/'
+    cmd = "%sstartProc %s %d %s %s" % (sr, name, port, cfg, cmd)
     log = (LOGBASE % name) + "_" + datetime.datetime.today().strftime("%m%d%Y_%H%M%S")
     ctrlport = BASEPORT + 100 * int(platform)
     print "Starting %s on port %s of host %s, platform %s..." % (name, port, host, platform)
-    cmd = '%s --logfile %s --name %s --allow --coresize 0 %s %s' % \
+    cmd = '%s --logfile %s --name %s --allow --coresize 0 %d %s' % \
           (PROCSERV, log, name, port, cmd)
     try:
         tn = telnetlib.Telnet(host, BASEPORT + 100 * int(platform), 1)
