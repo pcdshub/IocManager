@@ -34,6 +34,9 @@ logport=$(( ctrlport + 1 ))
 daemon --user=lasioc ${PROCMGRDBIN}3 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/tcsh -f
 
 # Driver stuff.
+
+/sbin/service hyperthreading-disable start
+
 if [ ! -e /dev/era0 -a $UID -eq 0 ]
 then
         # Load EVR module on startup
