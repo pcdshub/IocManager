@@ -32,6 +32,10 @@
 #     an IOC configuration, and hostlist is a (hint) list of hosts in
 #     this hutch.
 #
+# writeConfig(hutch, hostlist, configlist)
+#     Write the configuration file for a given hutch.  Deals with the
+#     existence of uncommitted changes ("new*" fields).
+#
 # readStatusDir(hutch, readfile)
 #     Read the status directory for a particular hutch, returning a list
 #     of dictionaries containing updated information.  The readfile parameter
@@ -372,6 +376,62 @@ def readConfig(cfg, time = None):
         l['newstyle'] = False
         l['pdir'] = findParent(l['id'], l['dir'])
     return res
+
+#
+# Writes a hutch configuration file, dealing with possible changes ("new*" fields).
+#
+def writeConfig(hutch, hostlist, cfglist):
+    f = open(CONFIG_FILE % hutch, "r+")
+    fcntl.lockf(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    f.truncate()
+    f.write("hosts = [\n")
+    for h in hostlist:
+        f.write("   '%s',\n" % h)
+    f.write("]\n\n");
+    f.write("procmgr_config = [\n")
+    for entry in cfglist:
+        try:
+            id = entry['newid'].strip()  # Bah.  Sometimes we add a space so this becomes blue!
+        except:
+            id = entry['id']
+        try:
+            host = entry['newhost']
+        except:
+            host = entry['host']
+        try:
+            port = entry['newport']
+        except:
+            port = entry['port']
+        try:
+            dir = entry['newdir']
+        except:
+            dir = entry['dir']
+        extra = ""
+        if entry['disable']:
+            extra += ", disable : True"
+        try:
+            h = entry['history']
+            if h != []:
+                extra += ",\n  history : [" + ", ".join(["'"+l+"'" for l in h]) + "]"
+        except:
+            pass
+        try:
+            extra += ", delay : %d" % entry['delay']
+        except:
+            pass
+        try:
+            extra += ", cmd : '%s'" % entry['cmd']
+        except:
+            pass
+        try:
+            extra += ", flags : '%s'" % entry['flags']
+        except:
+            pass
+        f.write(" {id:'%s', host: '%s', port: %s, dir: '%s'%s},\n" %
+                (id, host, port, dir, extra))
+    f.write("]\n");
+    fcntl.lockf(f, fcntl.LOCK_UN)
+    f.close()
 
 #
 # Reads the status directory for a hutch, looking for changes.  The newer

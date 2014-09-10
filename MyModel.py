@@ -358,60 +358,14 @@ class MyModel(QAbstractTableModel):
                                  "Error", "Configuration has errors, not saved!",
                                  QMessageBox.Ok, QMessageBox.Ok)
             return
-        f = open(utils.CONFIG_FILE % self.hutch, "r+")
         try:
-            fcntl.lockf(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            utils.writeConfig(self.hutch, self.hosts, self.cfglist)
         except:
             QMessageBox.critical(None,
                                  "Error", "Failed to lock configuration for %s" % self.hutch,
                                  QMessageBox.Ok, QMessageBox.Ok)
             return
-        f.truncate()
-        f.write("hosts = [\n")
-        for h in self.hosts:
-            f.write("   '%s',\n" % h)
-        f.write("]\n\n");
-        f.write("procmgr_config = [\n")
         for entry in self.cfglist:
-            try:
-                id = entry['newid'].strip()
-            except:
-                id = entry['id']
-            try:
-                host = entry['newhost']
-            except:
-                host = entry['host']
-            try:
-                port = entry['newport']
-            except:
-                port = entry['port']
-            try:
-                dir = entry['newdir']
-            except:
-                dir = entry['dir']
-            extra = ""
-            if entry['disable']:
-                extra += ", disable : True"
-            try:
-                h = entry['history']
-                if h != []:
-                    extra += ",\n  history : [" + ", ".join(["'"+l+"'" for l in h]) + "]"
-            except:
-                pass
-            try:
-                extra += ", delay : %d" % entry['delay']
-            except:
-                pass
-            try:
-                extra += ", cmd : '%s'" % entry['cmd']
-            except:
-                pass
-            try:
-                extra += ", flags : '%s'" % entry['flags']
-            except:
-                pass
-            f.write(" {id:'%s', host: '%s', port: %s, dir: '%s'%s},\n" %
-                    (id, host, port, dir, extra))
             #
             # IOC names are special.  If we just reprocess the file, we will have both the
             # old *and* the new names!  So we have to change the names here.
@@ -425,10 +379,7 @@ class MyModel(QAbstractTableModel):
                 del entry['details']
             except:
                 pass
-        f.write("]\n");
-        fcntl.lockf(f, fcntl.LOCK_UN)
-        f.close()
-        
+
     def doRevert(self):
         for entry in self.cfglist:
             for f in self.newfield:
