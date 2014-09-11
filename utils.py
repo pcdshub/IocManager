@@ -605,3 +605,44 @@ def findParent(ioc, dir):
                 else:
                     return fixdir(val, ioc)
     return ""
+
+def read_until(fd, expr):
+    exp = re.compile(expr)
+    data = ""
+    while True:
+        data += os.read(fd, 1024)
+        m = exp.search(data)
+        if m != None:
+            return m
+
+def flush_input(fd):
+    fcntl.fcntl(fd, fcntl.F_SETFL, os.O_NONBLOCK) 
+    while True:
+        try:
+            data = os.read(fd, 1024)
+        except:
+            fcntl.fcntl(fd, fcntl.F_SETFL, 0) 
+            return
+
+def do_write(fd, msg):
+    os.write(fd, msg)
+
+def commit_config(hutch, comment, fd):
+    config = CONFIG_FILE % hutch
+    flush_input(fd)
+    do_write(fd, "ssh psdev /bin/tcsh -if\n");
+    read_until(fd, "> ")
+    do_write(fd, "cat >" + config + ".comment <<EOFEOFEOF\n");
+    do_write(fd, comment)
+    do_write(fd, "\nEOFEOFEOF\n");
+    read_until(fd, "> ")
+    # Sigh.  This does nothing but read the file, which makes NFS get the latest.
+    do_write(fd, "cp " + config + " /tmp/foo\n")
+    read_until(fd, "> ")
+    do_write(fd, "svn commit -F " + config + ".comment " + config + "\n")
+    read_until(fd, "> ")
+    do_write(fd, "rm -f " + config + ".comment\n")
+    read_until(fd, "> ")
+    do_write(fd, "exit\n")
+    read_until(fd, "> ")
+    read_until(fd, "> ")

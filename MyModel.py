@@ -2,6 +2,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 import utils
 import details_ui
+import commit_ui
 import os
 import time
 import fcntl
@@ -96,12 +97,20 @@ class detailsdialog(QDialog):
       self.ui = details_ui.Ui_Dialog()
       self.ui.setupUi(self)
 
+class commitdialog(QDialog):
+    def __init__(self, parent=None):
+      QWidget.__init__(self, parent)
+      self.ui = commit_ui.Ui_Dialog()
+      self.ui.setupUi(self)
+
 class MyModel(QAbstractTableModel): 
     def __init__(self, hutch, parent=None):
         QAbstractTableModel.__init__(self, parent)
         self.detailsdialog = detailsdialog(parent)
+        self.commitdialog = commitdialog(parent)
         self.hutch = hutch
-        self.user = "Guest"
+        self.user = ""
+        self.userIO = None
         self.poll = StatusPoll(self, 5)
         self.children = []
         (self.poll.mtime, self.cfglist, self.hosts) = utils.readConfig(hutch)
@@ -379,6 +388,22 @@ class MyModel(QAbstractTableModel):
                 del entry['details']
             except:
                 pass
+        # SVN it?!?
+        self.commitdialog.setWindowTitle("SVN Commit %s" % self.hutch)
+        self.commitdialog.ui.commentEdit.setPlainText("")
+        while True:
+            if self.commitdialog.exec_() != QDialog.Accepted:
+                print "No comment!"
+                return
+            comment = str(self.commitdialog.ui.commentEdit.toPlainText())
+            if comment != "":
+                utils.commit_config(self.hutch, comment, self.userIO)
+                return
+            QMessageBox.critical(None,
+                                 "Error", "Must have a comment for SVN commit for %s" % self.hutch,
+                                 QMessageBox.Ok, QMessageBox.Ok)
+            
+
 
     def doRevert(self):
         for entry in self.cfglist:

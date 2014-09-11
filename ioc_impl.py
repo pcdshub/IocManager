@@ -2,12 +2,14 @@ from PyQt4 import QtCore, QtGui, Qt
 from MyModel import MyModel
 from MyDelegate import MyDelegate
 from ioc_ui import Ui_MainWindow
-import kerberos
 import auth_ui
 from Pv import Pv
 import pyca
 import utils
 import os
+import pty
+import time
+import pwd
 
 class authdialog(QtGui.QDialog):
     def __init__(self, parent=None):
@@ -66,6 +68,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
     def __init__(self, app, hutch):
         QtGui.QMainWindow.__init__(self)
         self.__app = app
+        self.myuid = pwd.getpwuid(os.getuid())[0]
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.setWindowTitle("IocManager")
@@ -103,6 +106,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
         self.currentBase = None
         self.pvlist = []
         self.model.startPoll()
+        self.unauthenticate()
 
     def closeEvent(self, event):
         self.disconnectPVs()
@@ -262,31 +266,65 @@ class GraphicUserInterface(QtGui.QMainWindow):
             return
         self.model.addIOC(name, host, port, dir)
 
+    def authenticate_user(self, user, password):
+        if user == "":
+            self.unauthenticate()
+            return
+        need_su = self.myuid != user
+        print need_su
+        print self.myuid
+        print user
+        #
+        # Try to use su to become the user.  If this fails, one of the
+        # I/O operations below will raise an exception, because the su
+        # will exit.
+        #
+        (pid, fd) = pty.fork()
+        if pid == 0:
+            if need_su:
+                os.execv("/bin/su", ["/bin/su", "-lfs", "/bin/tcsh", user])
+            else:
+                os.execv("/bin/tcsh", ["/bin/tcsh", "-f"])
+            print "Say what?  execv failed?"
+            sys.exit(0)
+        print "Forked pid %d to su %s" % (pid, user)
+        l = utils.read_until(fd, "(Password:|> )").group(1)
+        if l != "> ":
+            os.write(fd, password + "\n")
+            l = utils.read_until(fd, "> ")
+        self.model.user = user
+        self.model.userIO = fd
+        if need_su:
+            self.utimer.start(10 * 60000)  # Let's go for 10 minutes.
+        self.ui.userLabel.setText("User: " + user)
+
     def doAuthenticate(self):
         result = self.authdialog.exec_()
+        user = self.authdialog.ui.nameEdit.text()
         password = str(self.authdialog.ui.passEdit.text())
         self.authdialog.ui.passEdit.setText("")
         if result == QtGui.QDialog.Accepted:
             try:
-                if kerberos.checkPassword(str(self.authdialog.ui.nameEdit.text()),
-                                          password,
-                                          "afs/slac.stanford.edu",
-                                          "SLAC.STANFORD.EDU"):
-                    self.model.user = self.authdialog.ui.nameEdit.text()
-                    self.ui.userLabel.setText("User: " + self.model.user)
-                    self.utimer.start(10 * 60000)  # Let's go for 10 minutes.
-                    return
+                self.authenticate_user(user, password)
             except:
-                pass
+                print "Authentication as %s failed!" % user
         self.unauthenticate()
 
     def unauthenticate(self):
         self.utimer.stop()
-        self.model.user = "Guest"
-        self.ui.userLabel.setText("User: Guest")
+        self.authenticate_user(self.myuid, "")
+        return
+        try:
+            self.authenticate_user(self.myuid, "")
+        except:
+            print "Unauthenticate failed?!?"
         
     def authorize_action(self):
-        if self.model.user == "Guest":
+        # The user might be OK.
+        if utils.check_auth(self.model.user, self.hutch):
+            return True
+        # If the user isn't OK, give him or her a chance to authenticate.
+        if self.model.user == self.myuid:
             self.doAuthenticate()
         if utils.check_auth(self.model.user, self.hutch):
             return True
