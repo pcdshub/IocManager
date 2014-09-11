@@ -271,9 +271,6 @@ class GraphicUserInterface(QtGui.QMainWindow):
             self.unauthenticate()
             return
         need_su = self.myuid != user
-        print need_su
-        print self.myuid
-        print user
         #
         # Try to use su to become the user.  If this fails, one of the
         # I/O operations below will raise an exception, because the su
@@ -287,7 +284,6 @@ class GraphicUserInterface(QtGui.QMainWindow):
                 os.execv("/bin/tcsh", ["/bin/tcsh", "-f"])
             print "Say what?  execv failed?"
             sys.exit(0)
-        print "Forked pid %d to su %s" % (pid, user)
         l = utils.read_until(fd, "(Password:|> )").group(1)
         if l != "> ":
             os.write(fd, password + "\n")

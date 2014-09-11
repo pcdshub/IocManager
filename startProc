@@ -1,11 +1,11 @@
 #!/bin/bash
 # Usage: startProc IOCNAME PORT HUTCH
 
-if test X$SCRIPTROOT == X; then export SCRIPTROOT=/reg/g/pcds/pyps/apps/ioc/latest; fi
 ioc=$1
 port=$2
 cfg=$3
 shift;shift;shift
+if test X$SCRIPTROOT == X; then export SCRIPTROOT=/reg/g/pcds/pyps/apps/ioc/$cfg; fi
 
 # Setup the IOC user environment.
 export IOC=$ioc
