@@ -4,7 +4,7 @@ from options import Options
 from ioc_impl import GraphicUserInterface
 import sys
         
-if __name__ == "__main__": 
+if __name__ == "__main__":
     options = Options(['hutch'], [], [])
     try:
         options.parse()
