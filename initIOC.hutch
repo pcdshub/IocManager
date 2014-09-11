@@ -1,0 +1,63 @@
+# source function library
+. /etc/rc.d/init.d/functions
+
+PORTBASE=29000
+PROCMGRDBIN=/reg/g/pcds/package/procServ-2.5.1/procmgrd
+
+# Start up the procmgrd processes.
+if [ "$cfg" != "fee" -a "$cfg" != "las" ]; then
+    ctrlport=$(( PORTBASE + 100 ))
+    logport=$(( ctrlport + 1 ))
+    daemon --user=${cfg}ioc ${PROCMGRDBIN}1 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/tcsh -f
+fi
+
+ctrlport=$(( PORTBASE + 200 ))
+logport=$(( ctrlport + 1 ))
+daemon --user=feeioc ${PROCMGRDBIN}2 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/tcsh -f
+
+ctrlport=$(( PORTBASE + 300 ))
+logport=$(( ctrlport + 1 ))
+daemon --user=lasioc ${PROCMGRDBIN}3 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/tcsh -f
+
+# Driver stuff.
+
+/sbin/service hyperthreading-disable start
+
+if [ ! -e /dev/era0 -a $UID -eq 0 ]
+then
+        # Load EVR module on startup
+        # Must be run as root
+        /reg/g/pcds/package/epics/3.14/modules/event2/latest/driver/evr_load_module
+	if [ ! -e /dev/era0 ]
+        then
+	    /sbin/rmmod evr_device
+        fi
+	if [ ! -e /dev/ega0 ]
+        then
+	    /sbin/rmmod pci_mrfevg
+        fi
+fi
+
+if [ ! -e /dev/edt0 -a $UID -eq 0 -a -e /opt/EDTpdv/edtinit ]
+then
+        # Install EDT driver on startup
+        # Must be run as root
+        /opt/EDTpdv/edtinit start
+fi
+
+# Add any extra driver initialization before this comment.
+
+# Setup the IOC user environment.
+export IOC=$host
+source /reg/d/iocCommon/All/${cfg}_env.sh
+
+# Start caRepeater.
+$RUNUSER "$PROCSERV --logfile $IOC_DATA/$IOC_HOST/iocInfo/caRepeater.log --name caRepeater 30000 $CA_BIN/caRepeater"
+sleep 5
+
+# Start all of our processes.
+if [ "$cfg" != "fee" -a "$cfg" != "las" ]; then
+    startAll $cfg $host
+fi
+startAll fee $host
+startAll las $host
