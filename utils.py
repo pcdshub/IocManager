@@ -49,7 +49,7 @@
 ######################################################################
 
 
-import telnetlib, string, datetime, os, time, fcntl, re
+import telnetlib, string, datetime, os, time, fcntl, re, glob
 
 #
 # Defines
@@ -344,17 +344,23 @@ def startProc(cfg, entry):
 # Reads a hutch configuration file and returns a tuple:
 #     (filetime, configlist, hostlist).
 #
+# cfg can be a path to config file or name of a hutch
+#
 def readConfig(cfg, time = None):
     config = {'procmgr_config': None, 'hosts': None, 'dir':'dir',
               'id':'id', 'cmd':'cmd', 'flags':'flags', 'port':'port', 'host':'host',
               'disable':'disable', 'history':'history', 'delay' : 'delay' }
-    f = open(CONFIG_FILE % cfg, "r")
+    if len(cfg.split('/')) > 1: # cfg is file path
+        cfgfn = cfg
+    else: # cfg is name of hutch
+        cfgfn = CONFIG_FILE % cfg
+    f = open(cfgfn, "r")
     fcntl.lockf(f, fcntl.LOCK_SH)    # Wait for the lock!!!!
     try:
-        mtime = os.stat(CONFIG_FILE % cfg).st_mtime
+        mtime = os.stat(cfgfn).st_mtime
         if time != None and time == mtime:
             raise Exception
-        execfile(CONFIG_FILE % cfg, {}, config)
+        execfile(cfgfn, {}, config)
         res = (mtime, config['procmgr_config'], config['hosts'])
     except:
         res = None
@@ -646,3 +652,23 @@ def commit_config(hutch, comment, fd):
     do_write(fd, "exit\n")
     read_until(fd, "> ")
     read_until(fd, "> ")
+
+
+# Find siocs matching input arguments
+# May want to extend this to regular expressions at some point
+# eg: find_iocs(host='ioc-xcs-mot1') or find_iocs(id='ioc-xcs-imb3')
+# Returns list of tuples of form:
+#  ['config-file', {ioc config dict}]
+def find_iocs(**kwargs):
+    cfgs = glob.glob(CONFIG_FILE % '*')
+    configs = list()
+    for cfg in cfgs:
+        config = readConfig(cfg)[1]
+        for ioc in config:
+            for k in kwargs.items():
+                if ioc.get(k[0])!=k[1]:
+                    break
+            else:
+                configs.append([cfg,ioc])
+                pass
+    return configs
