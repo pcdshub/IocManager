@@ -8,6 +8,8 @@ import time
 import fcntl
 import threading
 import subprocess
+import tempfile
+import stat
 
 #
 # Column definitions.
@@ -368,7 +370,15 @@ class MyModel(QAbstractTableModel):
                                  QMessageBox.Ok, QMessageBox.Ok)
             return
         try:
-            utils.writeConfig(self.hutch, self.hosts, self.cfglist)
+            file = tempfile.NamedTemporaryFile(delete=False)
+            utils.writeConfig(self.hutch, self.hosts, self.cfglist, file)
+            file.close()
+            os.chmod(file.name, stat.S_IRUSR | stat.S_IRGRP |stat.S_IROTH)
+            utils.installConfig(self.hutch, file.name, self.userIO)
+            try:
+                os.remove(file.name)
+            except:
+                pass
         except:
             QMessageBox.critical(None,
                                  "Error", "Failed to lock configuration for %s" % self.hutch,
@@ -393,7 +403,6 @@ class MyModel(QAbstractTableModel):
         self.commitdialog.ui.commentEdit.setPlainText("")
         while True:
             if self.commitdialog.exec_() != QDialog.Accepted:
-                print "No comment!"
                 return
             comment = str(self.commitdialog.ui.commentEdit.toPlainText())
             if comment != "":

@@ -268,8 +268,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
 
     def authenticate_user(self, user, password):
         if user == "":
-            self.unauthenticate()
-            return
+            user = self.myuid
         need_su = self.myuid != user
         #
         # Try to use su to become the user.  If this fails, one of the
@@ -289,6 +288,12 @@ class GraphicUserInterface(QtGui.QMainWindow):
             os.write(fd, password + "\n")
             l = utils.read_until(fd, "> ")
         self.model.user = user
+        if self.model.userIO != None:
+            try:
+                os.write(self.model.userIO, "exit\n")
+                os.close(self.model.userIO)
+            except:
+                pass
         self.model.userIO = fd
         if need_su:
             self.utimer.start(10 * 60000)  # Let's go for 10 minutes.
@@ -304,17 +309,12 @@ class GraphicUserInterface(QtGui.QMainWindow):
                 self.authenticate_user(user, password)
             except:
                 print "Authentication as %s failed!" % user
-        self.unauthenticate()
+                self.unauthenticate()
 
     def unauthenticate(self):
         self.utimer.stop()
         self.authenticate_user(self.myuid, "")
-        return
-        try:
-            self.authenticate_user(self.myuid, "")
-        except:
-            print "Unauthenticate failed?!?"
-        
+
     def authorize_action(self):
         # The user might be OK.
         if utils.check_auth(self.model.user, self.hutch):

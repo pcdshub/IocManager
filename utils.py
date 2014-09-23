@@ -32,9 +32,15 @@
 #     an IOC configuration, and hostlist is a (hint) list of hosts in
 #     this hutch.
 #
-# writeConfig(hutch, hostlist, configlist)
+# writeConfig(hutch, hostlist, configlist, f=None)
 #     Write the configuration file for a given hutch.  Deals with the
-#     existence of uncommitted changes ("new*" fields).
+#     existence of uncommitted changes ("new*" fields).  If f is given,
+#     write to this open file instead of the real configuration file.
+#
+# installConfig(hutch, filename, fd=None)
+#     Install the given filename as the configuration file for the
+#     specified hutch.  If fd is None, do it directly, otherwise send
+#     a request to run the installConfig utility through the given pipe.
 #
 # readStatusDir(hutch, readfile)
 #     Read the status directory for a particular hutch, returning a list
@@ -62,6 +68,7 @@ AUTH_FILE   = "/reg/g/pcds/pyps/config/%s/iocmanager.auth"
 STATUS_DIR  = "/reg/g/pcds/pyps/config/.status/%s"
 LOGBASE     = "/reg/d/iocData/%s/iocInfo/ioc.log"
 PVFILE      = "/reg/d/iocData/%s/iocInfo/IOC.pvlist"
+INSTALL     = __file__[:-8] + "installConfig"
 BASEPORT    = 29000
 
 STATUS_INIT      = "INITIALIZE WAIT"
@@ -386,8 +393,9 @@ def readConfig(cfg, time = None):
 #
 # Writes a hutch configuration file, dealing with possible changes ("new*" fields).
 #
-def writeConfig(hutch, hostlist, cfglist):
-    f = open(CONFIG_FILE % hutch, "r+")
+def writeConfig(hutch, hostlist, cfglist, f=None):
+    if f == None:
+        f = open(CONFIG_FILE % hutch, "r+")
     fcntl.lockf(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
     f.truncate()
     f.write("hosts = [\n")
@@ -438,6 +446,23 @@ def writeConfig(hutch, hostlist, cfglist):
     f.write("]\n");
     fcntl.lockf(f, fcntl.LOCK_UN)
     f.close()
+
+#
+# Install an existing file as the hutch configuration file.
+#
+def installConfig(hutch, file, fd=None):
+    if fd != None:
+        flush_input(fd)
+        do_write(fd, "%s %s %s\n" % (INSTALL, hutch, file))
+        read_until(fd, "> ")
+    else:
+        l = open(file).readlines()
+        f = open(CONFIG_FILE % hutch, "r+")
+        fcntl.lockf(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        f.truncate()
+        f.writelines(l)
+        fcntl.lockf(f, fcntl.LOCK_UN)
+        f.close()
 
 #
 # Reads the status directory for a hutch, looking for changes.  The newer
