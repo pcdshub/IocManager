@@ -1,7 +1,7 @@
 # source function library
 . /etc/rc.d/init.d/functions
 
-PORTBASE=29000
+PORTBASE=39000
 PROCMGRDBIN=/reg/g/pcds/package/procServ-2.5.1/procmgrd
 
 # Start up the procmgrd processes.
