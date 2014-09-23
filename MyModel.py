@@ -16,11 +16,11 @@ import stat
 #
 IOCNAME = 0
 ENABLE  = 1
-HOST    = 2
-PORT    = 3
-VERSION = 4
-PARENT  = 5
-STATUS  = 6
+STATUS  = 2
+HOST    = 3
+PORT    = 4
+VERSION = 5
+PARENT  = 6
 EXTRA   = 7
 
 class StatusPoll(threading.Thread):
@@ -121,9 +121,9 @@ class MyModel(QAbstractTableModel):
         for l in self.cfglist:
             l['status'] = utils.STATUS_INIT
             l['stattime'] = 0
-        self.headerdata = ["IOC Name", "En", "Host", "Port", "Version", "Parent",  "Status", "Information"]
-        self.field      = ['id', None, 'host', 'port', 'dir', 'pdir', None, None]
-        self.newfield   = ['newid', None, 'newhost', 'newport', 'newdir', None, None, None]
+        self.headerdata = ["IOC Name", "En", "Status", "Host", "Port", "Version", "Parent", "Information"]
+        self.field      = ['id', None, None, 'host', 'port', 'dir', 'pdir', None]
+        self.newfield   = ['newid', None, None, 'newhost', 'newport', 'newdir', None, None]
         self.lastsort   = (0, Qt.DescendingOrder)
 
     def addUsedHosts(self):

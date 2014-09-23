@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1332</width>
-    <height>488</height>
+    <width>697</width>
+    <height>497</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,104 +15,6 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
-    <item>
-     <widget class="QWidget" name="widget" native="true">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <layout class="QHBoxLayout" name="horizontalLayout">
-       <item>
-        <widget class="QPushButton" name="applyButton">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>90</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Apply Configuration</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="saveButton">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>90</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Save Configuration</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="revertButton">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>90</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Revert to Saved Configuration</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="rememberButton">
-         <property name="text">
-          <string>Remember Versions</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="quitButton">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>90</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Quit</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="authButton">
-         <property name="text">
-          <string>Authenticate</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="userLabel">
-         <property name="text">
-          <string>User: Guest</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="horizontalSpacer">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>521</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </widget>
-    </item>
     <item>
      <widget class="QTableView" name="tableView"/>
     </item>
@@ -124,8 +26,8 @@
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
-      <layout class="QHBoxLayout" name="horizontalLayout_2">
-       <item>
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="0" column="0">
         <widget class="QLabel" name="label">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -150,7 +52,7 @@
          </property>
         </widget>
        </item>
-       <item>
+       <item row="0" column="1">
         <widget class="QLineEdit" name="IOCname">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -169,7 +71,7 @@
          </property>
         </widget>
        </item>
-       <item>
+       <item row="0" column="2">
         <widget class="QLabel" name="label_3">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -188,7 +90,7 @@
          </property>
         </widget>
        </item>
-       <item>
+       <item row="0" column="3">
         <widget class="QLineEdit" name="heartbeat">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -207,7 +109,20 @@
          </property>
         </widget>
        </item>
-       <item>
+       <item row="0" column="4">
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="1" column="0">
         <widget class="QLabel" name="label_2">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -226,7 +141,7 @@
          </property>
         </widget>
        </item>
-       <item>
+       <item row="1" column="1">
         <widget class="QLineEdit" name="tod">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -245,7 +160,7 @@
          </property>
         </widget>
        </item>
-       <item>
+       <item row="1" column="2">
         <widget class="QLabel" name="label_4">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -264,7 +179,7 @@
          </property>
         </widget>
        </item>
-       <item>
+       <item row="1" column="3">
         <widget class="QLineEdit" name="boottime">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -283,51 +198,12 @@
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QPushButton" name="rebootButton">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>90</horstretch>
-           <verstretch>26</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>90</width>
-           <height>0</height>
-          </size>
-         </property>
+       <item row="1" column="4">
+        <widget class="QLabel" name="userLabel">
          <property name="text">
-          <string>Soft Reboot</string>
+          <string>User: Guest</string>
          </property>
         </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="logButton">
-         <property name="text">
-          <string>Show Log</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="consoleButton">
-         <property name="text">
-          <string>Show Console</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="horizontalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
        </item>
       </layout>
      </widget>
@@ -339,12 +215,84 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1332</width>
+     <width>697</width>
      <height>23</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuConfiguration">
+    <property name="title">
+     <string>Configuration</string>
+    </property>
+    <addaction name="actionApply"/>
+    <addaction name="actionSave"/>
+    <addaction name="actionRevert"/>
+   </widget>
+   <widget class="QMenu" name="menuIOC_Control">
+    <property name="title">
+     <string>IOC Control</string>
+    </property>
+    <addaction name="actionReboot"/>
+    <addaction name="actionLog"/>
+    <addaction name="actionConsole"/>
+   </widget>
+   <widget class="QMenu" name="menuMisc">
+    <property name="title">
+     <string>Utilities</string>
+    </property>
+    <addaction name="actionRemember"/>
+    <addaction name="actionAuth"/>
+    <addaction name="actionQuit"/>
+   </widget>
+   <addaction name="menuConfiguration"/>
+   <addaction name="menuIOC_Control"/>
+   <addaction name="menuMisc"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionApply">
+   <property name="text">
+    <string>Apply</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="text">
+    <string>Save</string>
+   </property>
+  </action>
+  <action name="actionRevert">
+   <property name="text">
+    <string>Revert</string>
+   </property>
+  </action>
+  <action name="actionReboot">
+   <property name="text">
+    <string>Soft Reboot</string>
+   </property>
+  </action>
+  <action name="actionLog">
+   <property name="text">
+    <string>Show Log</string>
+   </property>
+  </action>
+  <action name="actionConsole">
+   <property name="text">
+    <string>Show Console</string>
+   </property>
+  </action>
+  <action name="actionRemember">
+   <property name="text">
+    <string>Remember Versions</string>
+   </property>
+  </action>
+  <action name="actionAuth">
+   <property name="text">
+    <string>Authenticate User</string>
+   </property>
+  </action>
+  <action name="actionQuit">
+   <property name="text">
+    <string>Quit</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
