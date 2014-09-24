@@ -1,6 +1,9 @@
 # source function library
 . /etc/rc.d/init.d/functions
 
+# Add our stuff to the path!
+export PATH=${SCRIPTROOT}:$PATH
+
 PORTBASE=39000
 PROCMGRDBIN=/reg/g/pcds/package/procServ-2.5.1/procmgrd
 
