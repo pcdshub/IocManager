@@ -12,6 +12,5 @@ fi
 echo Using configuration $cfg.
 
 export SCRIPTROOT=/reg/g/pcds/pyps/apps/ioc/$cfg
-export PATH=${SCRIPTROOT}:$PATH
 
 source $SCRIPTROOT/initIOC.hutch
