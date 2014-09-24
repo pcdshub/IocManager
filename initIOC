@@ -6,9 +6,6 @@ cfg=`awk /$host/'{print $2;}'  /reg/g/pcds/pyps/config/hosts.special`
 if [ "${cfg}X" == "X" ]; then
     cfg=`echo $host | awk '{print substr($0,5,3);}' -`
 fi
-if [ "$cfg" == "xrt" ]; then
-    cfg=fee
-fi
 echo Using configuration $cfg.
 
 export SCRIPTROOT=/reg/g/pcds/pyps/apps/ioc/$cfg

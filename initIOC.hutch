@@ -8,7 +8,7 @@ PORTBASE=39000
 PROCMGRDBIN=/reg/g/pcds/package/procServ-2.5.1/procmgrd
 
 # Start up the procmgrd processes.
-if [ "$cfg" != "fee" -a "$cfg" != "las" ]; then
+if [ "$cfg" != "xrt" -a "$cfg" != "las" ]; then
     ctrlport=$(( PORTBASE + 100 ))
     logport=$(( ctrlport + 1 ))
     daemon --user=${cfg}ioc ${PROCMGRDBIN}1 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/tcsh -f
@@ -59,8 +59,8 @@ $RUNUSER "$PROCSERV --logfile $IOC_DATA/$IOC_HOST/iocInfo/caRepeater.log --name 
 sleep 5
 
 # Start all of our processes.
-if [ "$cfg" != "fee" -a "$cfg" != "las" ]; then
+if [ "$cfg" != "xrt" -a "$cfg" != "las" ]; then
     startAll $cfg $host
 fi
-startAll fee $host
+startAll xrt $host
 startAll las $host
