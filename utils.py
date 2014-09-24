@@ -68,7 +68,7 @@ AUTH_FILE   = "/reg/g/pcds/pyps/config/%s/iocmanager.auth"
 STATUS_DIR  = "/reg/g/pcds/pyps/config/.status/%s"
 LOGBASE     = "/reg/d/iocData/%s/iocInfo/ioc.log"
 PVFILE      = "/reg/d/iocData/%s/iocInfo/IOC.pvlist"
-INSTALL     = __file__[:-8] + "installConfig"
+INSTALL     = __file__[:__file__.rfind('/')] + "/installConfig"
 BASEPORT    = 39000
 
 STATUS_INIT      = "INITIALIZE WAIT"
