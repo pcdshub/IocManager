@@ -285,7 +285,7 @@ def restartProc(host, port):
 def startProc(cfg, entry):
     # Hopefully, we can dispose of this soon!
     platform = '1'
-    if cfg == 'fee':
+    if cfg == 'xrt':
         platform = '2'
     if cfg == 'las':
         platform = '3'
