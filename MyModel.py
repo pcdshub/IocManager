@@ -47,6 +47,7 @@ class StatusPoll(threading.Thread):
             result = utils.readConfig(self.hutch, self.mtime)
             if result != None:
                 (self.mtime, cfglist, hosts) = result
+                self.rmtime = {}      # Force a re-read!
                 self.model.configuration(cfglist, hosts)
 
             result = utils.readStatusDir(self.hutch, self.readStatusFile)
@@ -540,20 +541,13 @@ class MyModel(QAbstractTableModel):
             else:
                 entry['delay'] = newdelay
 
-            print details
-            print [newcmd, newdelay, newflags]
-
             if details != [newcmd, newdelay, newflags]:
-                print "Change!"
                 # We're changed, so flag this with a fake ID change!
                 if not 'newid' in entry.keys():
-                    print "Set newid"
                     entry['newid'] = entry['id'] + ' '
             else:
-                print "No Change!"
                 # We're not changed, so remove any fake ID change!
                 if 'newid' in entry.keys() and entry['newid'] == entry['id'] + ' ':
-                    print "Delete newid"
                     del entry['newid']
 
     def addIOC(self, id, host, port, dir):
