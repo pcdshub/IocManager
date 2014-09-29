@@ -311,12 +311,12 @@ def startProc(cfg, entry):
         sr += '/'
     cmd = "%sstartProc %s %d %s %s" % (sr, name, port, cfg, cmd)
     log = (LOGBASE % name) + "_" + datetime.datetime.today().strftime("%m%d%Y_%H%M%S")
-    ctrlport = BASEPORT + 100 * int(platform)
+    ctrlport = BASEPORT + 2 * (int(platform) - 1)
     print "Starting %s on port %s of host %s, platform %s..." % (name, port, host, platform)
     cmd = '%s --logfile %s --name %s --allow --coresize 0 %d %s' % \
           (PROCSERV, log, name, port, cmd)
     try:
-        tn = telnetlib.Telnet(host, BASEPORT + 100 * int(platform), 1)
+        tn = telnetlib.Telnet(host, ctrlport, 1)
     except:
         print "ERROR: telnet to procmgr (%s port %d) failed" % (host, ctrlport)
         print ">>> Please start the procServ process on host %s!" % host

@@ -9,16 +9,16 @@ PROCMGRDBIN=/reg/g/pcds/package/procServ-2.5.1/procmgrd
 
 # Start up the procmgrd processes.
 if [ "$cfg" != "xrt" -a "$cfg" != "las" ]; then
-    ctrlport=$(( PORTBASE + 100 ))
+    ctrlport=$(( PORTBASE ))
     logport=$(( ctrlport + 1 ))
     daemon --user=${cfg}ioc ${PROCMGRDBIN}1 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/tcsh -f
 fi
 
-ctrlport=$(( PORTBASE + 200 ))
+ctrlport=$(( PORTBASE + 2 ))
 logport=$(( ctrlport + 1 ))
 daemon --user=feeioc ${PROCMGRDBIN}2 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/tcsh -f
 
-ctrlport=$(( PORTBASE + 300 ))
+ctrlport=$(( PORTBASE + 4 ))
 logport=$(( ctrlport + 1 ))
 daemon --user=lasioc ${PROCMGRDBIN}3 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/tcsh -f
 
