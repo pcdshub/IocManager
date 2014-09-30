@@ -4,7 +4,7 @@
 # Add our stuff to the path!
 export PATH=${SCRIPTROOT}:$PATH
 
-PORTBASE=39000
+PORTBASE=39050
 PROCMGRDBIN=/reg/g/pcds/package/procServ-2.5.1/procmgrd
 
 # Start up the procmgrd processes.

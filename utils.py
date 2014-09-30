@@ -69,7 +69,7 @@ STATUS_DIR  = "/reg/g/pcds/pyps/config/.status/%s"
 LOGBASE     = "/reg/d/iocData/%s/iocInfo/ioc.log"
 PVFILE      = "/reg/d/iocData/%s/iocInfo/IOC.pvlist"
 INSTALL     = __file__[:__file__.rfind('/')] + "/installConfig"
-BASEPORT    = 39000
+BASEPORT    = 39050
 
 STATUS_INIT      = "INITIALIZE WAIT"
 STATUS_NOCONNECT = "NOCONNECT"
