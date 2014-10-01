@@ -634,7 +634,7 @@ def findParent(ioc, dir):
             var = m.group(1)
             val = m.group(2)
             if var == "RELEASE":
-                if val == '$$PATH/..':
+                if val == '$$PATH/..' or val == '$$UP(PATH)':
                     return fixdir(dir, ioc)
                 else:
                     return fixdir(val, ioc)
