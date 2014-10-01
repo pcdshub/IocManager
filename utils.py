@@ -62,7 +62,7 @@ import telnetlib, string, datetime, os, time, fcntl, re, glob
 #
 CAMRECORDER = "/reg/g/pcds/controls/camrecord"
 PROCSERV    = "/reg/g/pcds/package/procServ-2.5.1/procServ"
-STARTUP_DIR = "/reg/g/pcds/pyps/apps/ioc/latest/"
+STARTUP_DIR = "/reg/g/pcds/pyps/apps/ioc/%s/"
 CONFIG_FILE = "/reg/g/pcds/pyps/config/%s/iocmanager.cfg"
 AUTH_FILE   = "/reg/g/pcds/pyps/config/%s/iocmanager.auth"
 STATUS_DIR  = "/reg/g/pcds/pyps/config/.status/%s"
@@ -305,7 +305,7 @@ def startProc(cfg, entry):
         
     sr = os.getenv("SCRIPTROOT")
     if sr == None:
-        sr = STARTUP_DIR
+        sr = STARTUP_DIR % cfg
     elif sr[-1] != '/':
         sr += '/'
     cmd = "%sstartProc %s %d %s %s" % (sr, name, port, cfg, cmd)
@@ -582,14 +582,10 @@ def applyConfig(cfg):
 # Miscellaneous utilities
 #
 
-authinfo = {}
-
 def check_auth(user, hutch):
-    if not hutch in authinfo.keys():
-        lines = open(AUTH_FILE % hutch).readlines()
-        lines = [l.strip() for l in lines]
-        authinfo[hutch] = lines
-    for l in authinfo[hutch]:
+    lines = open(AUTH_FILE % hutch).readlines()
+    lines = [l.strip() for l in lines]
+    for l in lines:
         if l == user:
             return True
     return False

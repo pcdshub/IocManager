@@ -287,7 +287,12 @@ class MyModel(QAbstractTableModel):
         try:
             return entry[self.newfield[c]]
         except:
-            return entry[self.field[c]]
+            try:
+                return entry[self.field[c]]
+            except:
+                print "No %s in entry:" % self.field[c]
+                print entry
+                return ""
  
     def data(self, index, role=Qt.DisplayRole):
         if not index.isValid() or index.row() >= len(self.cfglist):
@@ -578,9 +583,9 @@ class MyModel(QAbstractTableModel):
 
     def addIOC(self, id, alias, host, port, dir):
         dir = utils.fixdir(dir, id)
-        cfg = {'id': id, 'host': host, 'port': port, 'dir': dir, 'status' : utils.STATUS_INIT,
+        cfg = {'id': id, 'host': host, 'port': int(port), 'dir': dir, 'status' : utils.STATUS_INIT,
                'stattime': 0, 'cfgstat' : utils.CONFIG_ADDED, 'disable' : False,
-               'history' : [], 'rid': id, 'rhost': host, 'rport': port, 'rdir': dir,
+               'history' : [], 'rid': id, 'rhost': host, 'rport': int(port), 'rdir': dir,
                'pdir' : utils.findParent(id, dir), 'newstyle' : True, 'alias' : alias }
         if not host in self.hosts:
             self.hosts.append(host)

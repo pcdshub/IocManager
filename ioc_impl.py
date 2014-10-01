@@ -228,7 +228,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
         l=d.layout()
 
         tmp=QtGui.QLabel()
-        tmp.setText("IOC Name")
+        tmp.setText("IOC Name *")
         l.addWidget(tmp, 4, 0)
         namegui=QtGui.QLineEdit()
         l.addWidget(namegui, 4, 1)
@@ -236,17 +236,17 @@ class GraphicUserInterface(QtGui.QMainWindow):
         tmp=QtGui.QLabel()
         tmp.setText("Alias")
         l.addWidget(tmp, 5, 0)
-        namegui=QtGui.QLineEdit()
+        aliasgui=QtGui.QLineEdit()
         l.addWidget(aliasgui, 5, 1)
 
         tmp=QtGui.QLabel()
-        tmp.setText("Host")
+        tmp.setText("Host *")
         l.addWidget(tmp, 6, 0)
         hostgui=QtGui.QLineEdit()
         l.addWidget(hostgui, 6, 1)
 
         tmp=QtGui.QLabel()
-        tmp.setText("Port")
+        tmp.setText("Port *")
         l.addWidget(tmp, 7, 0)
         portgui=QtGui.QLineEdit()
         l.addWidget(portgui, 7, 1)
@@ -258,24 +258,28 @@ class GraphicUserInterface(QtGui.QMainWindow):
         parentgui.setReadOnly(True)
         l.addWidget(parentgui, 8, 1)
 
+        tmp=QtGui.QLabel()
+        tmp.setText("* = Required Fields")
+        l.addWidget(tmp, 9, 0)
+
         fn = lambda dir : self.setParent(parentgui, namegui.text, dir)
         self.connect(d, QtCore.SIGNAL("directoryEntered(const QString &)"), fn)
         self.connect(d, QtCore.SIGNAL("currentChanged(const QString &)"), fn)
         
         if d.exec_() == Qt.QDialog.Rejected:
             return
-        name  = namegui.text()
-        alias = aliasgui.text()
-        host  = hostgui.text()
-        port  = portgui.text()
+        name  = str(namegui.text())
+        alias = str(aliasgui.text())
+        host  = str(hostgui.text())
+        port  = str(portgui.text())
         try:
             dir = str(d.selectedFiles()[0])
         except:
             dir = ""
         if name == "" or host == "" or port == "" or dir == "":
             QtGui.QMessageBox.critical(None,
-                                       "Error", "Failed to set all parameters for new IOC!",
-                                       QMessageBox.Ok, QMessageBox.Ok)
+                                       "Error", "Failed to set required parameters for new IOC!",
+                                       QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
             return
         self.model.addIOC(name, alias, host, port, dir)
 
