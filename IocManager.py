@@ -12,7 +12,7 @@ if __name__ == "__main__":
         options.usage(str(msg))
         sys.exit(1)
     app = QtGui.QApplication([''])
-    gui = GraphicUserInterface(app, options.hutch)
+    gui = GraphicUserInterface(app, options.hutch.lower())
     try:
         gui.show()
         retval = app.exec_()

@@ -157,7 +157,6 @@ def fixdir(dir, id):
 def readLogPortBanner(tn):
     response = tn.read_until(MSG_BANNER_END, 1)
     if not string.count(response, MSG_BANNER_END):
-        print response
         return {'status'      : STATUS_ERROR,
                 'pid'         : "-",
                 'rid'          : "-",
@@ -356,7 +355,7 @@ def startProc(cfg, entry):
 def readConfig(cfg, time = None):
     config = {'procmgr_config': None, 'hosts': None, 'dir':'dir',
               'id':'id', 'cmd':'cmd', 'flags':'flags', 'port':'port', 'host':'host',
-              'disable':'disable', 'history':'history', 'delay' : 'delay' }
+              'disable':'disable', 'history':'history', 'delay':'delay', 'alias':'alias' }
     if len(cfg.split('/')) > 1: # cfg is file path
         cfgfn = cfg
     else: # cfg is name of hutch
@@ -381,6 +380,8 @@ def readConfig(cfg, time = None):
             l['disable'] = False
         if not 'history' in l.keys():
             l['history'] = []
+        if not 'alias' in l.keys():
+            l['alias'] = ""
         l['cfgstat'] = CONFIG_NORMAL
         l['rid'] = l['id']
         l['rdir'] = l['dir']
@@ -409,6 +410,10 @@ def writeConfig(hutch, hostlist, cfglist, f=None):
         except:
             id = entry['id']
         try:
+            alias = entry['newalias']
+        except:
+            alias = entry['alias']
+        try:
             host = entry['newhost']
         except:
             host = entry['host']
@@ -423,6 +428,8 @@ def writeConfig(hutch, hostlist, cfglist, f=None):
         extra = ""
         if entry['disable']:
             extra += ", disable : True"
+        if alias != "":
+            extra += ", alias : '%s'" % alias
         try:
             h = entry['history']
             if h != []:
@@ -435,10 +442,6 @@ def writeConfig(hutch, hostlist, cfglist, f=None):
             pass
         try:
             extra += ", cmd : '%s'" % entry['cmd']
-        except:
-            pass
-        try:
-            extra += ", flags : '%s'" % entry['flags']
         except:
             pass
         f.write(" {id:'%s', host: '%s', port: %s, dir: '%s'%s},\n" %

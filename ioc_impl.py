@@ -75,7 +75,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
         # Not sure how to do this in designer, so we put it randomly and move it now.
         self.ui.statusbar.addWidget(self.ui.userLabel)
 
-        self.setWindowTitle("IocManager")
+        self.setWindowTitle("%s IocManager" % hutch.upper())
         self.hutch = hutch
         self.authdialog = authdialog(self)
         self.model = MyModel(hutch)
@@ -165,7 +165,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
     def getSelection(self, selected, deselected):
         try:
             row = selected.indexes()[0].row()
-            ioc = self.model.data(self.model.index(row, 0)).toString()
+            ioc = self.model.data(self.model.index(row, 0), QtCore.Qt.EditRole).toString()
             if ioc == self.currentIOC:
                 return
             self.disconnectPVs()
@@ -173,10 +173,11 @@ class GraphicUserInterface(QtGui.QMainWindow):
             self.ui.IOCname.setText(ioc)
             base = utils.getBaseName(ioc)
             self.currentBase = base
-            self.dopv(base + ":HEARTBEAT", self.ui.heartbeat, "%d")
-            self.dopv(base + ":TOD",       self.ui.tod,       "%s")
-            self.dopv(base + ":STARTTOD",  self.ui.boottime,  "%s")
-            pyca.flush_io()
+            if base != None:
+                self.dopv(base + ":HEARTBEAT", self.ui.heartbeat, "%d")
+                self.dopv(base + ":TOD",       self.ui.tod,       "%s")
+                self.dopv(base + ":STARTTOD",  self.ui.boottime,  "%s")
+                pyca.flush_io()
         except:
             pass
     
@@ -222,6 +223,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
         d.setOptions(Qt.QFileDialog.ShowDirsOnly|Qt.QFileDialog.DontUseNativeDialog)
         d.setSidebarUrls([QtCore.QUrl("file://" + os.getenv("HOME")),
                           QtCore.QUrl("file://" + utils.EPICS_SITE_TOP + "ioc/" + self.hutch),
+                          QtCore.QUrl("file://" + utils.EPICS_SITE_TOP + "ioc/common"),
                           QtCore.QUrl("file://" + utils.EPICS_TOP + "3.14-dev")])
         l=d.layout()
 
@@ -232,23 +234,29 @@ class GraphicUserInterface(QtGui.QMainWindow):
         l.addWidget(namegui, 4, 1)
 
         tmp=QtGui.QLabel()
-        tmp.setText("Host")
+        tmp.setText("Alias")
         l.addWidget(tmp, 5, 0)
+        namegui=QtGui.QLineEdit()
+        l.addWidget(aliasgui, 5, 1)
+
+        tmp=QtGui.QLabel()
+        tmp.setText("Host")
+        l.addWidget(tmp, 6, 0)
         hostgui=QtGui.QLineEdit()
-        l.addWidget(hostgui, 5, 1)
+        l.addWidget(hostgui, 6, 1)
 
         tmp=QtGui.QLabel()
         tmp.setText("Port")
-        l.addWidget(tmp, 6, 0)
+        l.addWidget(tmp, 7, 0)
         portgui=QtGui.QLineEdit()
-        l.addWidget(portgui, 6, 1)
+        l.addWidget(portgui, 7, 1)
 
         tmp=QtGui.QLabel()
         tmp.setText("Parent")
-        l.addWidget(tmp, 7, 0)
+        l.addWidget(tmp, 8, 0)
         parentgui=QtGui.QLineEdit()
         parentgui.setReadOnly(True)
-        l.addWidget(parentgui, 7, 1)
+        l.addWidget(parentgui, 8, 1)
 
         fn = lambda dir : self.setParent(parentgui, namegui.text, dir)
         self.connect(d, QtCore.SIGNAL("directoryEntered(const QString &)"), fn)
@@ -256,9 +264,10 @@ class GraphicUserInterface(QtGui.QMainWindow):
         
         if d.exec_() == Qt.QDialog.Rejected:
             return
-        name = namegui.text()
-        host = hostgui.text()
-        port = portgui.text()
+        name  = namegui.text()
+        alias = aliasgui.text()
+        host  = hostgui.text()
+        port  = portgui.text()
         try:
             dir = str(d.selectedFiles()[0])
         except:
@@ -268,7 +277,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
                                        "Error", "Failed to set all parameters for new IOC!",
                                        QMessageBox.Ok, QMessageBox.Ok)
             return
-        self.model.addIOC(name, host, port, dir)
+        self.model.addIOC(name, alias, host, port, dir)
 
     def authenticate_user(self, user, password):
         if user == "":

@@ -207,6 +207,7 @@ class MyModel(QAbstractTableModel):
             d['dir']     = d['rdir']
             d['disable'] = False
             d['cfgstat'] = utils.CONFIG_DELETED
+            d['alias']   = ""
             self.cfglist.append(d)
             self.sort(self.lastsort[0], self.lastsort[1])
 
@@ -261,7 +262,7 @@ class MyModel(QAbstractTableModel):
     def columnCount(self, parent): 
         return len(self.headerdata)
 
-    def value(self, entry, c):
+    def value(self, entry, c, display=True):
         if c == STATUS:
             return entry['status']
         elif c == EXTRA:
@@ -275,23 +276,35 @@ class MyModel(QAbstractTableModel):
             return v
         elif c == ENABLE:
             return ""
-        else:
+        if c == IOCNAME and display == True:
+            # First try to find an alias!
             try:
-                return entry[self.newfield[c]]
+                if entry['newalias'] != "":
+                    return entry['newalias']
             except:
-                return entry[self.field[c]]
-        return None
+                if entry['alias'] != "":
+                    return entry['alias']
+        try:
+            return entry[self.newfield[c]]
+        except:
+            return entry[self.field[c]]
  
     def data(self, index, role=Qt.DisplayRole):
         if not index.isValid() or index.row() >= len(self.cfglist):
             return QVariant()
         elif role == Qt.DisplayRole or role == Qt.EditRole:
-            return QVariant(self.value(self.cfglist[index.row()], index.column()))
+            return QVariant(self.value(self.cfglist[index.row()], index.column(),
+                                       role == Qt.DisplayRole))
         elif role == Qt.ForegroundRole:
             c = index.column()
             entry = self.cfglist[index.row()]
             if entry['cfgstat'] == utils.CONFIG_DELETED:
                 return QVariant(QBrush(Qt.red))
+            try:
+                if c == IOCNAME and entry['newalias'] != entry['alias']:
+                    return QVariant(QBrush(Qt.blue))
+            except:
+                pass
             try:
                 if entry[self.newfield[c]] != entry[self.field[c]]:
                     return QVariant(QBrush(Qt.blue))
@@ -498,6 +511,10 @@ class MyModel(QAbstractTableModel):
             entry['details'] = details
         self.detailsdialog.setWindowTitle("Edit Details - %s" % entry['id'])
         try:
+            self.detailsdialog.ui.aliasEdit.setText(entry['newalias'])
+        except:
+            self.detailsdialog.ui.aliasEdit.setText(entry['alias'])
+        try:
             self.detailsdialog.ui.cmdEdit.setText(entry['cmd'])
         except:
             self.detailsdialog.ui.cmdEdit.setText("")
@@ -541,6 +558,15 @@ class MyModel(QAbstractTableModel):
             else:
                 entry['delay'] = newdelay
 
+            alias = str(self.detailsdialog.ui.aliasEdit.text())
+            if alias != entry['alias']:
+                entry['newalias'] = alias
+            else:
+                try:
+                    del entry['newalias']
+                except:
+                    pass
+
             if details != [newcmd, newdelay, newflags]:
                 # We're changed, so flag this with a fake ID change!
                 if not 'newid' in entry.keys():
@@ -550,12 +576,12 @@ class MyModel(QAbstractTableModel):
                 if 'newid' in entry.keys() and entry['newid'] == entry['id'] + ' ':
                     del entry['newid']
 
-    def addIOC(self, id, host, port, dir):
+    def addIOC(self, id, alias, host, port, dir):
         dir = utils.fixdir(dir, id)
         cfg = {'id': id, 'host': host, 'port': port, 'dir': dir, 'status' : utils.STATUS_INIT,
                'stattime': 0, 'cfgstat' : utils.CONFIG_ADDED, 'disable' : False,
                'history' : [], 'rid': id, 'rhost': host, 'rport': port, 'rdir': dir,
-               'pdir' : utils.findParent(id, dir), 'newstyle' : True }
+               'pdir' : utils.findParent(id, dir), 'newstyle' : True, 'alias' : alias }
         if not host in self.hosts:
             self.hosts.append(host)
             self.hosts.sort()
