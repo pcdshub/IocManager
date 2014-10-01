@@ -236,7 +236,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
         tmp=QtGui.QLabel()
         tmp.setText("Alias")
         l.addWidget(tmp, 5, 0)
-        namegui=QtGui.QLineEdit()
+        aliasgui=QtGui.QLineEdit()
         l.addWidget(aliasgui, 5, 1)
 
         tmp=QtGui.QLabel()
