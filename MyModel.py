@@ -205,6 +205,7 @@ class MyModel(QAbstractTableModel):
             d['host']    = d['rhost']
             d['port']    = d['rport']
             d['dir']     = d['rdir']
+            d['pdir']    = ""
             d['disable'] = False
             d['cfgstat'] = utils.CONFIG_DELETED
             d['alias']   = ""
