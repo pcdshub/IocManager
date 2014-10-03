@@ -194,8 +194,18 @@ class MyModel(QAbstractTableModel):
             if self.cfglist[i]['dir'] == utils.CAMRECORDER:
                 d['rdir'] = utils.CAMRECORDER
             if d['status'] == utils.STATUS_RUNNING or self.cfglist[i]['cfgstat'] != utils.CONFIG_DELETED:
+                # Sigh.  If we just emit dataChanged for the row, editing the port number becomes
+                # nearly impossible, because we keep writing it over.  Therefore, we need to avoid
+                # it... except, of course, sometimes it *does* change!
+                oldport = self.cfglist[i]['rport']
                 self.cfglist[i].update(d);
-                self.dataChanged.emit(self.index(i,0), self.index(i,len(self.headerdata)))
+                if oldport != self.cfglist[i]['rport']:
+                    self.dataChanged.emit(self.index(i,0), self.index(i,len(self.headerdata)-1))
+                else:
+                    if PORT > 0:
+                        self.dataChanged.emit(self.index(i,0), self.index(i,PORT-1))
+                    if PORT < len(self.headerdata)-1:
+                        self.dataChanged.emit(self.index(i,PORT+1), self.index(i,len(self.headerdata)-1))
             else:
                 self.cfglist = self.cfglist[0:i]+self.cfglist[i+1:]
                 self.sort(self.lastsort[0], self.lastsort[1])
@@ -443,7 +453,7 @@ class MyModel(QAbstractTableModel):
                 except:
                     pass
         self.poll.mtime = None     # Force a re-read!
-        self.dataChanged.emit(self.index(0,0), self.index(len(self.cfglist),len(self.headerdata)))
+        self.dataChanged.emit(self.index(0,0), self.index(len(self.cfglist),len(self.headerdata)-1))
 
     def inConfig(self, index):
         entry = self.cfglist[index.row()]
@@ -468,14 +478,14 @@ class MyModel(QAbstractTableModel):
             except:
                 pass
         self.dataChanged.emit(self.index(index.row(),0),
-                              self.index(index.row(),len(self.headerdata)))
+                              self.index(index.row(),len(self.headerdata)-1))
 
     def deleteIOC(self, index):
         entry = self.cfglist[index.row()]
         entry['cfgstat'] = utils.CONFIG_DELETED
         if entry['status'] == utils.STATUS_RUNNING:
             self.dataChanged.emit(self.index(index.row(),0),
-                                  self.index(index.row(),len(self.headerdata)))
+                                  self.index(index.row(),len(self.headerdata)-1))
         else:
             self.cfglist = self.cfglist[0:index.row()]+self.cfglist[index.row()+1:]
             self.sort(self.lastsort[0], self.lastsort[1])
@@ -487,13 +497,13 @@ class MyModel(QAbstractTableModel):
                 entry['new'+f] = entry['r'+f]
         entry['cfgstat'] = utils.CONFIG_ADDED
         self.dataChanged.emit(self.index(index.row(),0),
-                              self.index(index.row(),len(self.headerdata)))
+                              self.index(index.row(),len(self.headerdata)-1))
 
     def addExisting(self, index):
         entry = self.cfglist[index.row()]
         entry['cfgstat'] = utils.CONFIG_ADDED
         self.dataChanged.emit(self.index(index.row(),0),
-                              self.index(index.row(),len(self.headerdata)))
+                              self.index(index.row(),len(self.headerdata)-1))
         
     def editDetails(self, index):
         entry = self.cfglist[index.row()]
