@@ -333,15 +333,27 @@ class MyModel(QAbstractTableModel):
             c = index.column()
             if c == STATUS:
                 entry = self.cfglist[index.row()]
-                if entry['status'] != utils.STATUS_RUNNING:
-                    return QVariant(QBrush(Qt.red))
-                if (entry['host'] != entry['rhost'] or
-                    entry['port'] != entry['rport'] or
-                    entry['dir'] != entry['rdir'] or
-                    entry['id'] != entry['rid']):
-                    return QVariant(QBrush(Qt.yellow))
+                if entry['disable']:
+                    if entry['status'] == utils.STATUS_RUNNING:
+                        if (entry['host'] != entry['rhost'] or
+                            entry['port'] != entry['rport'] or
+                            entry['dir'] != entry['rdir'] or
+                            entry['id'] != entry['rid']):
+                            return QVariant(QBrush(Qt.yellow))
+                        else:
+                            return QVariant(QBrush(Qt.red))
+                    else:
+                        return QVariant(QBrush(Qt.green))
                 else:
-                    return QVariant(QBrush(Qt.green))
+                    if entry['status'] != utils.STATUS_RUNNING:
+                        return QVariant(QBrush(Qt.red))
+                    if (entry['host'] != entry['rhost'] or
+                        entry['port'] != entry['rport'] or
+                        entry['dir'] != entry['rdir'] or
+                        entry['id'] != entry['rid']):
+                        return QVariant(QBrush(Qt.yellow))
+                    else:
+                        return QVariant(QBrush(Qt.green))
             elif c == PORT:
                 r = index.row()
                 h = self.value(self.cfglist[r], HOST)
