@@ -7,6 +7,7 @@ from Pv import Pv
 import pyca
 import utils
 import os
+import sys
 import pty
 import time
 import pwd
@@ -75,7 +76,18 @@ class GraphicUserInterface(QtGui.QMainWindow):
         # Not sure how to do this in designer, so we put it randomly and move it now.
         self.ui.statusbar.addWidget(self.ui.userLabel)
 
-        self.setWindowTitle("%s IocManager" % hutch.upper())
+        d = sys.path[0]
+        while os.path.islink(d):
+            l = os.readlink(d)
+            if l[0] != '/':
+                l = os.path.join(os.path.dirname(d), l)
+            d = l
+        version = os.path.basename(d)
+        if len(version) > 1 and version[0] == 'R':
+            version = " %s" % version
+        else:
+            version = ""
+        self.setWindowTitle("%s IocManager%s" % (hutch.upper(), version))
         self.hutch = hutch
         self.authdialog = authdialog(self)
         self.model = MyModel(hutch)
