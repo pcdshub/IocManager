@@ -669,7 +669,7 @@ def commit_config(hutch, comment, fd):
     # Sigh.  This does nothing but read the file, which makes NFS get the latest.
     do_write(fd, "cp " + config + " /tmp/foo\n")
     read_until(fd, "> ")
-    do_write(fd, "svn commit -F " + config + ".comment " + config + "\n")
+    do_write(fd, "umask 2; svn commit -F " + config + ".comment " + config + "\n")
     read_until(fd, "> ")
     do_write(fd, "rm -f " + config + ".comment\n")
     read_until(fd, "> ")
