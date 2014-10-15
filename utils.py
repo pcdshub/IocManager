@@ -62,7 +62,7 @@ import telnetlib, string, datetime, os, time, fcntl, re, glob
 #
 CAMRECORDER = "/reg/g/pcds/controls/camrecord"
 PROCSERV    = "/reg/g/pcds/package/procServ-2.5.1/procServ"
-STARTUP_DIR = "/reg/g/pcds/pyps/apps/ioc/%s/"
+STARTUP_DIR = "/reg/g/pcds/pyps/config/%s/iocmanager/"
 CONFIG_FILE = "/reg/g/pcds/pyps/config/%s/iocmanager.cfg"
 AUTH_FILE   = "/reg/g/pcds/pyps/config/%s/iocmanager.auth"
 STATUS_DIR  = "/reg/g/pcds/pyps/config/.status/%s"
