@@ -210,7 +210,7 @@ class MyModel(QAbstractTableModel):
                 self.cfglist = self.cfglist[0:i]+self.cfglist[i+1:]
                 self.sort(self.lastsort[0], self.lastsort[1])
             return
-        else:
+        elif d['status'] == utils.STATUS_RUNNING:
             d['id']      = d['rid']
             d['host']    = d['rhost']
             d['port']    = d['rport']

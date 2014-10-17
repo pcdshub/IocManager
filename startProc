@@ -7,6 +7,9 @@ cfg=$3
 shift;shift;shift
 if test X$SCRIPTROOT == X; then export SCRIPTROOT=/reg/g/pcds/pyps/apps/ioc/$cfg; fi
 
+# Start a new log if running procServ-2.6.0-SLAC.
+if test X$PROCSERVPID != X; then kill -HUP $PROCSERVPID; fi
+
 # Setup the IOC user environment.
 export IOC=$ioc
 source /reg/d/iocCommon/All/${cfg}_env.sh
