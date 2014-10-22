@@ -277,23 +277,34 @@ class GraphicUserInterface(QtGui.QMainWindow):
         fn = lambda dir : self.setParent(parentgui, namegui.text, dir)
         self.connect(d, QtCore.SIGNAL("directoryEntered(const QString &)"), fn)
         self.connect(d, QtCore.SIGNAL("currentChanged(const QString &)"), fn)
-        
-        if d.exec_() == Qt.QDialog.Rejected:
+
+        while True:
+            if d.exec_() == Qt.QDialog.Rejected:
+                return
+            name  = str(namegui.text())
+            alias = str(aliasgui.text())
+            host  = str(hostgui.text())
+            port  = str(portgui.text())
+            try:
+                dir = str(d.selectedFiles()[0])
+            except:
+                dir = ""
+            if name == "" or host == "" or port == "" or dir == "":
+                QtGui.QMessageBox.critical(None,
+                                           "Error",
+                                           "Failed to set required parameters for new IOC!",
+                                           QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
+                continue
+            try:
+                n = int(port)
+            except:
+                QtGui.QMessageBox.critical(None,
+                                           "Error",
+                                           "Port is not an integer!",
+                                           QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
+                continue
+            self.model.addIOC(name, alias, host, port, dir)
             return
-        name  = str(namegui.text())
-        alias = str(aliasgui.text())
-        host  = str(hostgui.text())
-        port  = str(portgui.text())
-        try:
-            dir = str(d.selectedFiles()[0])
-        except:
-            dir = ""
-        if name == "" or host == "" or port == "" or dir == "":
-            QtGui.QMessageBox.critical(None,
-                                       "Error", "Failed to set required parameters for new IOC!",
-                                       QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
-            return
-        self.model.addIOC(name, alias, host, port, dir)
 
     def authenticate_user(self, user, password):
         if user == "":
