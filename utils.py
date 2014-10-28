@@ -49,8 +49,18 @@
 #     any updated information, returning a list of lines or an empty list
 #     if the file was not read.  The default readfile always reads everything.
 #
-# applyConfig(hutch)
-#     Apply the current configuration for the specified hutch.
+# applyConfig(hutch, verify=None)
+#     Apply the current configuration for the specified hutch. Before
+#     the configuration is applied, the verify method, if any is called.
+#     This routine is passed:
+#         current - The actual state of things.
+#         config - The desired configuration.
+#         kill_list - The IOCs that should be killed.
+#         start_list - The IOCs that should be started.
+#         restart_list - The IOCs that should be restarted with ^X.
+#     The method should return a (kill, start, restart) tuple of the
+#     IOCs that should *really* be changed.  (This method could then
+#     query the user to limit the changes or cancel them altogether.)
 #
 ######################################################################
 
@@ -499,7 +509,7 @@ def readStatusDir(cfg, readfile=lambda fn, f: open(fn).readlines()):
 #
 # Apply the current configuration.
 #
-def applyConfig(cfg):
+def applyConfig(cfg, verify=None):
   result = readConfig(cfg)
   if result == None:
       print "Cannot read configuration for %s!" % cfg
@@ -571,6 +581,9 @@ def applyConfig(cfg):
                   current[l]['newstyle'] and current[l]['psslac'] and
                   current[l]['rport'] == config[l]['port'] and
                   current[l]['rdir'] != config[l]['dir']]
+
+  if verify != None:
+      (kill_list, start_list, restart_list) = verify(current, config, kill_list, start_list, restart_list)
   
   for l in kill_list:
     killProc(current[l]['rhost'], int(current[l]['rport']))

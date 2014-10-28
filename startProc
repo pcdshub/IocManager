@@ -15,6 +15,14 @@ export IOC=$ioc
 source /reg/d/iocCommon/All/${cfg}_env.sh
 
 dir=`$SCRIPTROOT/getDirectory $ioc $cfg`
+if test $dir == NO_DIRECTORY; then
+    if test X$PROCSERVPID != X; then 
+        kill -9 $PROCSERVPID;
+	exit 0;
+    else
+        while test 1 == 1; do sleep 3600; done;
+    fi
+fi
 cd /reg/g/pcds/package/epics/3.14
 if test -d $dir; then cd $dir; fi
 if test -f env.sh; then source env.sh; fi

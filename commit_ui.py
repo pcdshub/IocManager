@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'commit.ui'
 #
-# Created: Wed Sep 10 14:55:35 2014
+# Created: Mon Oct 27 16:20:40 2014
 #      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -28,7 +28,7 @@ class Ui_Dialog(object):
         self.verticalLayout.addWidget(self.commentEdit)
         self.buttonBox = QtGui.QDialogButtonBox(Dialog)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.No|QtGui.QDialogButtonBox.Yes)
+        self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.No|QtGui.QDialogButtonBox.Yes)
         self.buttonBox.setObjectName(_fromUtf8("buttonBox"))
         self.verticalLayout.addWidget(self.buttonBox)
 

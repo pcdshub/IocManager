@@ -101,10 +101,23 @@ class detailsdialog(QDialog):
       self.ui.setupUi(self)
 
 class commitdialog(QDialog):
+    def doYes(self):
+        self.result = QDialogButtonBox.Yes
+
+    def doNo(self):
+        self.result = QDialogButtonBox.No
+
+    def doCancel(self):
+        self.result = QDialogButtonBox.Cancel
+        
     def __init__(self, parent=None):
+      self.result = QDialogButtonBox.Cancel
       QWidget.__init__(self, parent)
       self.ui = commit_ui.Ui_Dialog()
       self.ui.setupUi(self)
+      self.ui.buttonBox.button(QDialogButtonBox.Yes).clicked.connect(self.doYes)
+      self.ui.buttonBox.button(QDialogButtonBox.No).clicked.connect(self.doNo)
+      self.ui.buttonBox.button(QDialogButtonBox.Cancel).clicked.connect(self.doCancel)
 
 class MyModel(QAbstractTableModel): 
     def __init__(self, hutch, parent=None):
@@ -396,21 +409,92 @@ class MyModel(QAbstractTableModel):
             self.cfglist.reverse()
         self.emit(SIGNAL("layoutChanged()"))
 
+    def applyAddList(self, i, config, current, pfix, d, lst, verb):
+        for l in lst:
+            try:
+                a = config[l]['alias']
+                if a == "":
+                    a = config[l]['id']
+                else:
+                    a += ' (%s)' % config[l]['id']
+            except:
+                a = config[l]['id']
+            check = QCheckBox(d)
+            check.setChecked(True)
+            check.setText("%s %s on %s:%d" % (verb, a, current[l][pfix + 'host'],
+                                              current[l][pfix + 'port']))
+            d.layout.addWidget(check)
+            i = i + 1
+            d.checks.append(check)
+        return i
+
+    def applyVerify(self, current, config, kill, start, restart):
+        d = QDialog();
+        d.setWindowTitle("Apply Confirmation")
+        d.layout = QVBoxLayout(d)
+        d.mlabel = QLabel(d)
+        d.mlabel.setText("Apply will take the following actions:")
+        d.layout.addWidget(d.mlabel)
+        d.checks = []
+        kill_only    = [k for k in kill if not k in start]
+        kill_restart = [k for k in kill if k in start]
+        start_only   = [s for s in start if not s in kill]
+        k  = self.applyAddList(0,  config, current, 'r', d, kill_only,    "KILL")
+        k2 = self.applyAddList(k,  config, current, 'r', d, kill_restart, "KILL and RESTART")
+        s  = self.applyAddList(k2, config, config,  '',  d, start_only,   "START")
+        r  = self.applyAddList(s,  config, current, 'r', d, restart,      "RESTART")
+
+        d.buttonBox = QDialogButtonBox(d)
+        d.buttonBox.setOrientation(Qt.Horizontal)
+        d.buttonBox.setStandardButtons(QDialogButtonBox.Cancel|QDialogButtonBox.Ok)
+        d.layout.addWidget(d.buttonBox)
+        d.connect(d.buttonBox, SIGNAL("accepted()"), d.accept)
+        d.connect(d.buttonBox, SIGNAL("rejected()"), d.reject)
+
+        if d.exec_() == QDialog.Accepted:
+            checks =  [c.isChecked() for c in d.checks]
+            kill_only    = [kill_only[i]    for i in range(len(kill_only))    if checks[i]]
+            kill_restart = [kill_restart[i] for i in range(len(kill_restart)) if checks[k+i]]
+            start_only   = [start_only[i]   for i in range(len(start_only))   if checks[k2+i]]
+            restart      = [restart[i]      for i in range(len(restart))      if checks[s+i]]
+            kill = kill_only + kill_restart
+            start = start_only + kill_restart
+            return (kill, start, restart)
+        else:
+            return ([], [], [])
+
     def doApply(self):
         if not self.validateConfig():
             QMessageBox.critical(None,
                                  "Error", "Configuration has errors, not applied!",
                                  QMessageBox.Ok, QMessageBox.Ok)
             return
-        self.doSave()
-        utils.applyConfig(self.hutch)
+        if self.doSave():
+            utils.applyConfig(self.hutch, self.applyVerify)
 
     def doSave(self):
         if not self.validateConfig():
             QMessageBox.critical(None,
                                  "Error", "Configuration has errors, not saved!",
                                  QMessageBox.Ok, QMessageBox.Ok)
-            return
+            return False
+        # Do we want to SVN it?!?
+        d = self.commitdialog
+        d.setWindowTitle("SVN Commit %s" % self.hutch)
+        d.ui.commentEdit.setPlainText("")
+        while True:
+            d.exec_()
+            if d.result == QDialogButtonBox.Cancel:
+                return False
+            if d.result == QDialogButtonBox.No:
+                comment = None
+                break
+            comment = str(d.ui.commentEdit.toPlainText())
+            if comment != "":
+                break
+            QMessageBox.critical(None,
+                                 "Error", "Must have a comment for SVN commit for %s" % self.hutch,
+                                 QMessageBox.Ok, QMessageBox.Ok)
         try:
             file = tempfile.NamedTemporaryFile(delete=False)
             utils.writeConfig(self.hutch, self.hosts, self.cfglist, file)
@@ -425,7 +509,7 @@ class MyModel(QAbstractTableModel):
             QMessageBox.critical(None,
                                  "Error", "Failed to lock configuration for %s" % self.hutch,
                                  QMessageBox.Ok, QMessageBox.Ok)
-            return
+            return False
         for entry in self.cfglist:
             #
             # IOC names are special.  If we just reprocess the file, we will have both the
@@ -440,21 +524,12 @@ class MyModel(QAbstractTableModel):
                 del entry['details']
             except:
                 pass
-        # SVN it?!?
-        self.commitdialog.setWindowTitle("SVN Commit %s" % self.hutch)
-        self.commitdialog.ui.commentEdit.setPlainText("")
-        while True:
-            if self.commitdialog.exec_() != QDialog.Accepted:
-                return
-            comment = str(self.commitdialog.ui.commentEdit.toPlainText())
-            if comment != "":
+        if comment != None:
+            try:
                 utils.commit_config(self.hutch, comment, self.userIO)
-                return
-            QMessageBox.critical(None,
-                                 "Error", "Must have a comment for SVN commit for %s" % self.hutch,
-                                 QMessageBox.Ok, QMessageBox.Ok)
-            
-
+            except:
+                pass
+        return True
 
     def doRevert(self):
         for entry in self.cfglist:
