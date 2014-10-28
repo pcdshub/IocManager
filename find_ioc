@@ -1,5 +1,5 @@
 #!/bin/bash
 export PSPKG_ROOT=/reg/common/package
-export PSPKG_RELEASE=controls-0.0.1
+export PSPKG_RELEASE=controls-0.0.3
 source $PSPKG_ROOT/etc/set_env.sh
 $0.py "$@"

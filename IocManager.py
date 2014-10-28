@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from PyQt4 import QtGui
-from options import Options
+from psp.options import Options
 from ioc_impl import GraphicUserInterface
 import sys
         

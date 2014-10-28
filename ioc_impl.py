@@ -3,7 +3,7 @@ from MyModel import MyModel
 from MyDelegate import MyDelegate
 from ioc_ui import Ui_MainWindow
 import auth_ui
-from Pv import Pv
+from psp.Pv import Pv
 import pyca
 import utils
 import os
