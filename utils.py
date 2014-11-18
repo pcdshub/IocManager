@@ -62,10 +62,13 @@
 #     IOCs that should *really* be changed.  (This method could then
 #     query the user to limit the changes or cancel them altogether.)
 #
+# netconfig(host)
+#     Return a dictionary with the netconfig information for this host.
+#
 ######################################################################
 
 
-import telnetlib, string, datetime, os, time, fcntl, re, glob
+import telnetlib, string, datetime, os, time, fcntl, re, glob, subprocess
 
 #
 # Defines
@@ -721,3 +724,17 @@ def find_iocs(**kwargs):
                 configs.append([cfg,ioc])
                 pass
     return configs
+
+def netconfig(host):
+    try:
+        p = subprocess.Popen(["netconfig", "view", host], stdout=subprocess.PIPE)
+        r = [l.strip().split(": ") for l in p.communicate()[0].split('\n')]
+        d = {}
+        for l in r:
+            if len(l) == 2:
+                d[l[0].lower()] = l[1]
+        return d
+    except:
+        return {}
+
+    

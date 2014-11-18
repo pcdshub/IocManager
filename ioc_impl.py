@@ -1,5 +1,5 @@
 from PyQt4 import QtCore, QtGui, Qt
-from MyModel import MyModel
+import MyModel
 from MyDelegate import MyDelegate
 from ioc_ui import Ui_MainWindow
 import auth_ui
@@ -90,7 +90,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
         self.setWindowTitle("%s IocManager%s" % (hutch.upper(), version))
         self.hutch = hutch
         self.authdialog = authdialog(self)
-        self.model = MyModel(hutch)
+        self.model = MyModel.MyModel(hutch)
         self.utimer = QtCore.QTimer()
         self.delegate = MyDelegate(None, hutch)
         self.connect(self.ui.actionApply,    QtCore.SIGNAL("triggered()"), self.doApply)
@@ -177,7 +177,8 @@ class GraphicUserInterface(QtGui.QMainWindow):
     def getSelection(self, selected, deselected):
         try:
             row = selected.indexes()[0].row()
-            ioc = self.model.data(self.model.index(row, 0), QtCore.Qt.EditRole).toString()
+            ioc = self.model.data(self.model.index(row, MyModel.IOCNAME), QtCore.Qt.EditRole).toString()
+            host = self.model.data(self.model.index(row, MyModel.HOST), QtCore.Qt.EditRole).toString()
             if ioc == self.currentIOC:
                 return
             self.disconnectPVs()
@@ -190,6 +191,15 @@ class GraphicUserInterface(QtGui.QMainWindow):
                 self.dopv(base + ":TOD",       self.ui.tod,       "%s")
                 self.dopv(base + ":STARTTOD",  self.ui.boottime,  "%s")
                 pyca.flush_io()
+            d = utils.netconfig(host)
+            try:
+                self.ui.location.setText(d['location'])
+            except:
+                self.ui.location.setText("")
+            try:
+                self.ui.description.setText(d['description'])
+            except:
+                self.ui.description.setText("")
         except:
             pass
     

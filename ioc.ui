@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>697</width>
-    <height>497</height>
+    <width>713</width>
+    <height>525</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -55,7 +55,7 @@
        <item row="0" column="1">
         <widget class="QLineEdit" name="IOCname">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
            <horstretch>170</horstretch>
            <verstretch>25</verstretch>
           </sizepolicy>
@@ -93,7 +93,7 @@
        <item row="0" column="3">
         <widget class="QLineEdit" name="heartbeat">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
            <horstretch>170</horstretch>
            <verstretch>25</verstretch>
           </sizepolicy>
@@ -144,7 +144,7 @@
        <item row="1" column="1">
         <widget class="QLineEdit" name="tod">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
            <horstretch>170</horstretch>
            <verstretch>25</verstretch>
           </sizepolicy>
@@ -182,7 +182,7 @@
        <item row="1" column="3">
         <widget class="QLineEdit" name="boottime">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
            <horstretch>170</horstretch>
            <verstretch>25</verstretch>
           </sizepolicy>
@@ -198,7 +198,35 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="4">
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>Location:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="location">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QLabel" name="label_6">
+         <property name="text">
+          <string>Description:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="3">
+        <widget class="QLineEdit" name="description">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="4">
         <widget class="QLabel" name="userLabel">
          <property name="text">
           <string>User: Guest</string>
@@ -215,7 +243,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>697</width>
+     <width>713</width>
      <height>23</height>
     </rect>
    </property>

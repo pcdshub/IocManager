@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ioc.ui'
 #
-# Created: Tue Sep 23 15:13:55 2014
+# Created: Tue Nov 18 13:22:48 2014
 #      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -17,7 +17,7 @@ except AttributeError:
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
-        MainWindow.resize(697, 497)
+        MainWindow.resize(713, 525)
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
         self.verticalLayout = QtGui.QVBoxLayout(self.centralwidget)
@@ -47,7 +47,7 @@ class Ui_MainWindow(object):
         self.label.setObjectName(_fromUtf8("label"))
         self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
         self.IOCname = QtGui.QLineEdit(self.widget_2)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(170)
         sizePolicy.setVerticalStretch(25)
         sizePolicy.setHeightForWidth(self.IOCname.sizePolicy().hasHeightForWidth())
@@ -67,7 +67,7 @@ class Ui_MainWindow(object):
         self.label_3.setObjectName(_fromUtf8("label_3"))
         self.gridLayout.addWidget(self.label_3, 0, 2, 1, 1)
         self.heartbeat = QtGui.QLineEdit(self.widget_2)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(170)
         sizePolicy.setVerticalStretch(25)
         sizePolicy.setHeightForWidth(self.heartbeat.sizePolicy().hasHeightForWidth())
@@ -89,7 +89,7 @@ class Ui_MainWindow(object):
         self.label_2.setObjectName(_fromUtf8("label_2"))
         self.gridLayout.addWidget(self.label_2, 1, 0, 1, 1)
         self.tod = QtGui.QLineEdit(self.widget_2)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(170)
         sizePolicy.setVerticalStretch(25)
         sizePolicy.setHeightForWidth(self.tod.sizePolicy().hasHeightForWidth())
@@ -109,7 +109,7 @@ class Ui_MainWindow(object):
         self.label_4.setObjectName(_fromUtf8("label_4"))
         self.gridLayout.addWidget(self.label_4, 1, 2, 1, 1)
         self.boottime = QtGui.QLineEdit(self.widget_2)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(170)
         sizePolicy.setVerticalStretch(25)
         sizePolicy.setHeightForWidth(self.boottime.sizePolicy().hasHeightForWidth())
@@ -118,13 +118,27 @@ class Ui_MainWindow(object):
         self.boottime.setReadOnly(True)
         self.boottime.setObjectName(_fromUtf8("boottime"))
         self.gridLayout.addWidget(self.boottime, 1, 3, 1, 1)
+        self.label_5 = QtGui.QLabel(self.widget_2)
+        self.label_5.setObjectName(_fromUtf8("label_5"))
+        self.gridLayout.addWidget(self.label_5, 2, 0, 1, 1)
+        self.location = QtGui.QLineEdit(self.widget_2)
+        self.location.setReadOnly(True)
+        self.location.setObjectName(_fromUtf8("location"))
+        self.gridLayout.addWidget(self.location, 2, 1, 1, 1)
+        self.label_6 = QtGui.QLabel(self.widget_2)
+        self.label_6.setObjectName(_fromUtf8("label_6"))
+        self.gridLayout.addWidget(self.label_6, 2, 2, 1, 1)
+        self.description = QtGui.QLineEdit(self.widget_2)
+        self.description.setReadOnly(True)
+        self.description.setObjectName(_fromUtf8("description"))
+        self.gridLayout.addWidget(self.description, 2, 3, 1, 1)
         self.userLabel = QtGui.QLabel(self.widget_2)
         self.userLabel.setObjectName(_fromUtf8("userLabel"))
-        self.gridLayout.addWidget(self.userLabel, 1, 4, 1, 1)
+        self.gridLayout.addWidget(self.userLabel, 2, 4, 1, 1)
         self.verticalLayout.addWidget(self.widget_2)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 697, 23))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 713, 23))
         self.menubar.setObjectName(_fromUtf8("menubar"))
         self.menuConfiguration = QtGui.QMenu(self.menubar)
         self.menuConfiguration.setObjectName(_fromUtf8("menuConfiguration"))
@@ -176,6 +190,8 @@ class Ui_MainWindow(object):
         self.label_3.setText(QtGui.QApplication.translate("MainWindow", "Heartbeat:", None, QtGui.QApplication.UnicodeUTF8))
         self.label_2.setText(QtGui.QApplication.translate("MainWindow", "Time of Day:", None, QtGui.QApplication.UnicodeUTF8))
         self.label_4.setText(QtGui.QApplication.translate("MainWindow", "Boot Time:", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_5.setText(QtGui.QApplication.translate("MainWindow", "Location:", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_6.setText(QtGui.QApplication.translate("MainWindow", "Description:", None, QtGui.QApplication.UnicodeUTF8))
         self.userLabel.setText(QtGui.QApplication.translate("MainWindow", "User: Guest", None, QtGui.QApplication.UnicodeUTF8))
         self.menuConfiguration.setTitle(QtGui.QApplication.translate("MainWindow", "Configuration", None, QtGui.QApplication.UnicodeUTF8))
         self.menuIOC_Control.setTitle(QtGui.QApplication.translate("MainWindow", "IOC Control", None, QtGui.QApplication.UnicodeUTF8))
