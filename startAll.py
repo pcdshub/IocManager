@@ -10,7 +10,7 @@ if __name__ == '__main__':
   if result == None:
       print "Cannot read configuration for %s!" % cfg
       sys.exit(-1)
-  (mtime, config, hosts) = result
+  (mtime, config, hosts, vdict) = result
   for l in config:
       if l['host'] == host and l['disable'] == False:
           utils.startProc(cfg, l)

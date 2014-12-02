@@ -163,7 +163,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
             self.model.viewlogIOC(self.currentIOC)
     
     def doConsole(self):
-        if self.currentIOC and self.authorize_action():
+        if self.currentIOC and (self.model.getVar('allow_console') or self.authorize_action()):
             self.model.connectIOC(self.currentIOC)
     
     def dopv(self, name, gui, format):

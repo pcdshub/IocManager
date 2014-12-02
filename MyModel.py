@@ -46,9 +46,9 @@ class StatusPoll(threading.Thread):
 
             result = utils.readConfig(self.hutch, self.mtime)
             if result != None:
-                (self.mtime, cfglist, hosts) = result
+                (self.mtime, cfglist, hosts, vdict) = result
                 self.rmtime = {}      # Force a re-read!
-                self.model.configuration(cfglist, hosts)
+                self.model.configuration(cfglist, hosts, vdict)
 
             result = utils.readStatusDir(self.hutch, self.readStatusFile)
             for l in result:
@@ -129,7 +129,7 @@ class MyModel(QAbstractTableModel):
         self.userIO = None
         self.poll = StatusPoll(self, 5)
         self.children = []
-        (self.poll.mtime, self.cfglist, self.hosts) = utils.readConfig(hutch)
+        (self.poll.mtime, self.cfglist, self.hosts, self.vdict) = utils.readConfig(hutch)
         self.addUsedHosts()
         
         for l in self.cfglist:
@@ -162,8 +162,9 @@ class MyModel(QAbstractTableModel):
                 return i
         return None
 
-    def configuration(self, cfglist, hostlist):
+    def configuration(self, cfglist, hostlist, vdict):
         # Process a new configuration file!
+        self.vdict = vdict
         cfgonly = []
         ouronly = []
         both    = []
@@ -497,7 +498,7 @@ class MyModel(QAbstractTableModel):
                                  QMessageBox.Ok, QMessageBox.Ok)
         try:
             file = tempfile.NamedTemporaryFile(delete=False)
-            utils.writeConfig(self.hutch, self.hosts, self.cfglist, file)
+            utils.writeConfig(self.hutch, self.hosts, self.cfglist, self.vdict, file)
             file.close()
             os.chmod(file.name, stat.S_IRUSR | stat.S_IRGRP |stat.S_IROTH)
             utils.installConfig(self.hutch, file.name, self.userIO)
@@ -507,7 +508,7 @@ class MyModel(QAbstractTableModel):
                 pass
         except:
             QMessageBox.critical(None,
-                                 "Error", "Failed to lock configuration for %s" % self.hutch,
+                                 "Error", "Failed to write configuration for %s" % self.hutch,
                                  QMessageBox.Ok, QMessageBox.Ok)
             return False
         for entry in self.cfglist:
@@ -803,3 +804,9 @@ class MyModel(QAbstractTableModel):
         # Anything else we want to check here?!?
         #
         return True
+
+    def getVar(self, v):
+        try:
+            return self.vdict[v]
+        except:
+            return None

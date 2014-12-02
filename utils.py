@@ -27,15 +27,17 @@
 # readConfig(hutch, time=None)
 #     Read the configuration file for a given hutch if newer than time.
 #     Return None on failure or no change, otherwise a tuple: (filetime,
-#     configlist, hostlist).  filetime is the modification time of the
-#     configuration, configlist is a list of dictionaries containing
-#     an IOC configuration, and hostlist is a (hint) list of hosts in
-#     this hutch.
+#     configlist, hostlist, vars).  filetime is the modification time of
+#     the configuration, configlist is a list of dictionaries containing
+#     an IOC configuration, hostlist is a (hint) list of hosts in this
+#     hutch, and vars is an additional list of variables defined in the
+#     config file.
 #
-# writeConfig(hutch, hostlist, configlist, f=None)
+# writeConfig(hutch, hostlist, configlist, vars, f=None)
 #     Write the configuration file for a given hutch.  Deals with the
 #     existence of uncommitted changes ("new*" fields).  If f is given,
 #     write to this open file instead of the real configuration file.
+#     vars is a dictionary of additional values to write.
 #
 # installConfig(hutch, filename, fd=None)
 #     Install the given filename as the configuration file for the
@@ -378,6 +380,7 @@ def readConfig(cfg, time = None):
     config = {'procmgr_config': None, 'hosts': None, 'dir':'dir',
               'id':'id', 'cmd':'cmd', 'flags':'flags', 'port':'port', 'host':'host',
               'disable':'disable', 'history':'history', 'delay':'delay', 'alias':'alias' }
+    vars = set(config.keys())
     if len(cfg.split('/')) > 1: # cfg is file path
         cfgfn = cfg
     else: # cfg is name of hutch
@@ -389,7 +392,11 @@ def readConfig(cfg, time = None):
         if time != None and time == mtime:
             raise Exception
         execfile(cfgfn, {}, config)
-        res = (mtime, config['procmgr_config'], config['hosts'])
+        newvars = set(config.keys()).difference(vars)
+        vdict = {}
+        for v in newvars:
+            vdict[v] = config[v]
+        res = (mtime, config['procmgr_config'], config['hosts'], vdict)
     except:
         res = None
     fcntl.lockf(f, fcntl.LOCK_UN)
@@ -416,12 +423,14 @@ def readConfig(cfg, time = None):
 #
 # Writes a hutch configuration file, dealing with possible changes ("new*" fields).
 #
-def writeConfig(hutch, hostlist, cfglist, f=None):
+def writeConfig(hutch, hostlist, cfglist, vars, f=None):
     if f == None:
         f = open(CONFIG_FILE % hutch, "r+")
     fcntl.lockf(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
     f.truncate()
-    f.write("hosts = [\n")
+    for (k, v) in vars.items():
+        f.write("%s = %s\n" % (k, str(v)))
+    f.write("\nhosts = [\n")
     for h in hostlist:
         f.write("   '%s',\n" % h)
     f.write("]\n\n");
@@ -476,6 +485,8 @@ def writeConfig(hutch, hostlist, cfglist, f=None):
 # Install an existing file as the hutch configuration file.
 #
 def installConfig(hutch, file, fd=None):
+    open(CONFIG_FILE % hutch, "r+").close()  # Sigh... NFS.
+    mtime = os.stat(CONFIG_FILE % hutch).st_mtime
     if fd != None:
         flush_input(fd)
         do_write(fd, "%s %s %s\n" % (INSTALL, hutch, file))
@@ -488,6 +499,10 @@ def installConfig(hutch, file, fd=None):
         f.writelines(l)
         fcntl.lockf(f, fcntl.LOCK_UN)
         f.close()
+    open(CONFIG_FILE % hutch, "r+").close()  # Sigh... NFS.
+    mtime2 = os.stat(CONFIG_FILE % hutch).st_mtime
+    if mtime == mtime2:
+        raise Exception("No change?!?")
 
 #
 # Reads the status directory for a hutch, looking for changes.  The newer
@@ -517,7 +532,7 @@ def applyConfig(cfg, verify=None):
   if result == None:
       print "Cannot read configuration for %s!" % cfg
       return -1
-  (mtime, cfglist, hostlist) = result
+  (mtime, cfglist, hostlist, vdict) = result
 
   config = {}
   for l in cfglist:
