@@ -260,6 +260,7 @@
      <string>IOC Control</string>
     </property>
     <addaction name="actionReboot"/>
+    <addaction name="actionHard_Reboot"/>
     <addaction name="actionLog"/>
     <addaction name="actionConsole"/>
    </widget>
@@ -319,6 +320,11 @@
   <action name="actionQuit">
    <property name="text">
     <string>Quit</string>
+   </property>
+  </action>
+  <action name="actionHard_Reboot">
+   <property name="text">
+    <string>Hard Reboot</string>
    </property>
   </action>
  </widget>

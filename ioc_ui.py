@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ioc.ui'
 #
-# Created: Tue Nov 18 13:22:48 2014
+# Created: Thu Dec 18 14:46:56 2014
 #      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -168,10 +168,13 @@ class Ui_MainWindow(object):
         self.actionAuth.setObjectName(_fromUtf8("actionAuth"))
         self.actionQuit = QtGui.QAction(MainWindow)
         self.actionQuit.setObjectName(_fromUtf8("actionQuit"))
+        self.actionHard_Reboot = QtGui.QAction(MainWindow)
+        self.actionHard_Reboot.setObjectName(_fromUtf8("actionHard_Reboot"))
         self.menuConfiguration.addAction(self.actionApply)
         self.menuConfiguration.addAction(self.actionSave)
         self.menuConfiguration.addAction(self.actionRevert)
         self.menuIOC_Control.addAction(self.actionReboot)
+        self.menuIOC_Control.addAction(self.actionHard_Reboot)
         self.menuIOC_Control.addAction(self.actionLog)
         self.menuIOC_Control.addAction(self.actionConsole)
         self.menuMisc.addAction(self.actionRemember)
@@ -205,4 +208,5 @@ class Ui_MainWindow(object):
         self.actionRemember.setText(QtGui.QApplication.translate("MainWindow", "Remember Versions", None, QtGui.QApplication.UnicodeUTF8))
         self.actionAuth.setText(QtGui.QApplication.translate("MainWindow", "Authenticate User", None, QtGui.QApplication.UnicodeUTF8))
         self.actionQuit.setText(QtGui.QApplication.translate("MainWindow", "Quit", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionHard_Reboot.setText(QtGui.QApplication.translate("MainWindow", "Hard Reboot", None, QtGui.QApplication.UnicodeUTF8))
 

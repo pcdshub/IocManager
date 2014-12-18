@@ -730,6 +730,20 @@ class MyModel(QAbstractTableModel):
         except:
             pass
 
+    # index is either an IOC name or an index!
+    def rebootIOC(self, index):
+        if isinstance(index, QModelIndex):
+            entry = self.cfglist[index.row()]
+        else:
+            entry = None
+            for l in self.cfglist:
+                if l['id'] == index:
+                    entry = l
+                    break
+            if entry == None:
+                return
+        utils.restartProc(entry['host'], entry['port'])
+
     def cleanupChildren(self):
         for p in self.children:
             p.kill()

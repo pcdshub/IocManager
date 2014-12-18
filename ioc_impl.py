@@ -97,6 +97,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
         self.connect(self.ui.actionSave,     QtCore.SIGNAL("triggered()"), self.doSave)
         self.connect(self.ui.actionRevert,   QtCore.SIGNAL("triggered()"), self.model.doRevert)
         self.connect(self.ui.actionReboot,   QtCore.SIGNAL("triggered()"), self.doReboot)
+        self.connect(self.ui.actionHard_Reboot, QtCore.SIGNAL("triggered()"), self.doHardReboot)
         self.connect(self.ui.actionLog,      QtCore.SIGNAL("triggered()"), self.doLog)
         self.connect(self.ui.actionConsole,  QtCore.SIGNAL("triggered()"), self.doConsole)
         self.connect(self.ui.actionRemember, QtCore.SIGNAL("triggered()"), self.model.doSaveVersions)
@@ -158,6 +159,10 @@ class GraphicUserInterface(QtGui.QMainWindow):
         if self.currentBase:
             caput(self.currentBase + ":SYSRESET", 1)
 
+    def doHardReboot(self):
+        if self.currentIOC:
+            self.model.rebootIOC(self.currentIOC)
+    
     def doLog(self):
         if self.currentIOC:
             self.model.viewlogIOC(self.currentIOC)
