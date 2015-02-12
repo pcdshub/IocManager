@@ -85,6 +85,8 @@ LOGBASE     = "/reg/d/iocData/%s/iocInfo/ioc.log"
 PVFILE      = "/reg/d/iocData/%s/iocInfo/IOC.pvlist"
 INSTALL     = __file__[:__file__.rfind('/')] + "/installConfig"
 BASEPORT    = 39050
+COMMITHOST  = "psdev"
+KINIT       = "/afs/slac.stanford.edu/package/heimdal/bin/kinit"
 
 STATUS_INIT      = "INITIALIZE WAIT"
 STATUS_NOCONNECT = "NOCONNECT"
@@ -703,8 +705,6 @@ def do_write(fd, msg):
 def commit_config(hutch, comment, fd):
     config = CONFIG_FILE % hutch
     flush_input(fd)
-    do_write(fd, "ssh psdev /bin/tcsh -if\n");
-    read_until(fd, "> ")
     do_write(fd, "cat >" + config + ".comment <<EOFEOFEOF\n");
     do_write(fd, comment)
     do_write(fd, "\nEOFEOFEOF\n");
@@ -712,14 +712,12 @@ def commit_config(hutch, comment, fd):
     # Sigh.  This does nothing but read the file, which makes NFS get the latest.
     do_write(fd, "cp " + config + " /tmp/foo\n")
     read_until(fd, "> ")
+    do_write(fd, "rm -f /tmp/foo\n")
+    read_until(fd, "> ")
     do_write(fd, "umask 2; svn commit -F " + config + ".comment " + config + "\n")
     read_until(fd, "> ")
     do_write(fd, "rm -f " + config + ".comment\n")
     read_until(fd, "> ")
-    do_write(fd, "exit\n")
-    read_until(fd, "> ")
-    read_until(fd, "> ")
-
 
 # Find siocs matching input arguments
 # May want to extend this to regular expressions at some point

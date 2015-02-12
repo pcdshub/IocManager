@@ -333,19 +333,23 @@ class GraphicUserInterface(QtGui.QMainWindow):
         (pid, fd) = pty.fork()
         if pid == 0:
             if need_su:
-                os.execv("/bin/su", ["/bin/su", "-lfs", "/bin/tcsh", user])
+                os.execv("/usr/bin/ssh", ["ssh", user + "@" + utils.COMMITHOST, "/bin/tcsh", "-if"])
             else:
-                os.execv("/bin/tcsh", ["/bin/tcsh", "-f"])
+                os.execv("/usr/bin/ssh", ["ssh", utils.COMMITHOST, "/bin/tcsh", "-if"])
             print "Say what?  execv failed?"
             sys.exit(0)
-        l = utils.read_until(fd, "(Password:|> )").group(1)
+        l = utils.read_until(fd, "(assword:|> )").group(1)
         if l != "> ":
+            os.write(fd, password + "\n")
+            l = utils.read_until(fd, "> ")
+        if utils.KINIT != None and password != "":
+            os.write(fd, utils.KINIT + "\n")
+            l = utils.read_until(fd, ": ")
             os.write(fd, password + "\n")
             l = utils.read_until(fd, "> ")
         self.model.user = user
         if self.model.userIO != None:
             try:
-                os.write(self.model.userIO, "exit\n")
                 os.close(self.model.userIO)
             except:
                 pass

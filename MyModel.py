@@ -497,7 +497,7 @@ class MyModel(QAbstractTableModel):
                                  "Error", "Must have a comment for SVN commit for %s" % self.hutch,
                                  QMessageBox.Ok, QMessageBox.Ok)
         try:
-            file = tempfile.NamedTemporaryFile(delete=False)
+            file = tempfile.NamedTemporaryFile(dir=".", delete=False)
             utils.writeConfig(self.hutch, self.hosts, self.cfglist, self.vdict, file)
             file.close()
             os.chmod(file.name, stat.S_IRUSR | stat.S_IRGRP |stat.S_IROTH)
