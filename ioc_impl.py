@@ -132,7 +132,10 @@ class GraphicUserInterface(QtGui.QMainWindow):
 
     def disconnectPVs(self):
         for pv in self.pvlist:
-            pv.disconnect()
+            try:
+                pv.disconnect()
+            except:
+                pass
         self.pvlist = []
 
     def displayPV(self, pv, e=None):
@@ -332,10 +335,13 @@ class GraphicUserInterface(QtGui.QMainWindow):
         #
         (pid, fd) = pty.fork()
         if pid == 0:
-            if need_su:
-                os.execv("/usr/bin/ssh", ["ssh", user + "@" + utils.COMMITHOST, "/bin/tcsh", "-if"])
-            else:
-                os.execv("/usr/bin/ssh", ["ssh", utils.COMMITHOST, "/bin/tcsh", "-if"])
+            try:
+                if need_su:
+                    os.execv("/usr/bin/ssh", ["ssh", user + "@" + utils.COMMITHOST, "/bin/tcsh", "-if"])
+                else:
+                    os.execv("/usr/bin/ssh", ["ssh", utils.COMMITHOST, "/bin/tcsh", "-if"])
+            except:
+                pass
             print "Say what?  execv failed?"
             sys.exit(0)
         l = utils.read_until(fd, "(assword:|> )").group(1)

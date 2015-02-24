@@ -746,7 +746,10 @@ class MyModel(QAbstractTableModel):
 
     def cleanupChildren(self):
         for p in self.children:
-            p.kill()
+            try:
+                p.kill()
+            except:
+                pass
 
     def doSaveVersions(self):
         for i in range(len(self.cfglist)):
