@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Usage: getDirectory IOC HUTCH
 
 export PSPKG_ROOT=/reg/common/package

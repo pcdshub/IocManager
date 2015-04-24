@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 mydir=`dirname $0`
 if [ $# -eq 0 ];
     then
