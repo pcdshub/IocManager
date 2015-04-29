@@ -8,6 +8,7 @@ if [ "${cfg}X" == "X" ]; then
 fi
 echo Using configuration $cfg.
 
-export SCRIPTROOT=/reg/g/pcds/pyps/config/$cfg/iocmanager
+#export SCRIPTROOT=/reg/g/pcds/pyps/config/$cfg/iocmanager
+export SCRIPTROOT=/home1/mcbrowne/controls/ioc
 
 source $SCRIPTROOT/initIOC.hutch

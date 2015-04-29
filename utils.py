@@ -76,7 +76,7 @@ import telnetlib, string, datetime, os, time, fcntl, re, glob, subprocess
 # Defines
 #
 CAMRECORDER = "/reg/g/pcds/controls/camrecord"
-PROCSERV    = "/reg/g/pcds/package/procServ-2.6.0-SLAC/procServ"
+PROCSERV    = "procServ"
 STARTUP_DIR = "/reg/g/pcds/pyps/config/%s/iocmanager/"
 CONFIG_FILE = "/reg/g/pcds/pyps/config/%s/iocmanager.cfg"
 AUTH_FILE   = "/reg/g/pcds/pyps/config/%s/iocmanager.auth"
@@ -104,6 +104,7 @@ MSG_ISSHUTDOWN = "is SHUT DOWN"
 MSG_ISSHUTTING = "is shutting down"
 MSG_KILLED     = "process was killed"
 MSG_RESTART = "new child"
+MSG_PROMPT_OLD = "\x0d\x0a[$>] "
 MSG_PROMPT = "\x0d\x0a> "
 MSG_SPAWN = "procServ: spawning daemon"
 MSG_AUTORESTART_IS_ON = "auto restart is ON"
@@ -240,6 +241,14 @@ def openTelnet(host, port):
     else:
         return None
 
+def fixTelnetShell(host, port):
+    tn = openTelnet(host, port)
+    tn.write("\x15\x0d");
+    statd = tn.expect([MSG_PROMPT_OLD], 2)
+    tn.write("export PS1='> '\n");
+    statd = tn.read_until(MSG_PROMPT, 2)
+    tn.close()
+    
 def killProc(host, port):
     print "Killing IOC on host %s, port %s..." % (host, port)
     tn = openTelnet(host, port)
