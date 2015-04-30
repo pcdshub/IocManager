@@ -316,7 +316,7 @@ def restartProc(host, port):
 
     return started
 
-def startProc(cfg, entry):
+def startProc(cfg, entry, local=False):
     # Hopefully, we can dispose of this soon!
     platform = '1'
     if cfg == 'xrt':
@@ -324,7 +324,10 @@ def startProc(cfg, entry):
     if cfg == 'las':
         platform = '3'
 
-    host  = entry['host']
+    if local:
+        host = "localhost"
+    else:
+        host  = entry['host']
     port  = entry['port']
     name  = entry['id']
     try:

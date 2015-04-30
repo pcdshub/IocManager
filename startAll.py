@@ -13,7 +13,7 @@ if __name__ == '__main__':
   (mtime, config, hosts, vdict) = result
   for l in config:
       if l['host'] == host and l['disable'] == False:
-          utils.startProc(cfg, l)
+          utils.startProc(cfg, l, True)
           try:
               time.sleep(l['delay'])
           except:
