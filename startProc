@@ -30,8 +30,9 @@ if test -d children/build/iocBoot/$ioc; then cd children/build/iocBoot/$ioc; fi
 if test -d build/iocBoot/$ioc; then cd build/iocBoot/$ioc; fi
 if test -d iocBoot/$ioc; then cd iocBoot/$ioc; fi
 if test -f env.sh; then source env.sh; fi
+umask 2
 echo $$ `hostname -s` $port $dir >/reg/g/pcds/pyps/config/.status/$cfg/$ioc
-chmod g+w /reg/g/pcds/pyps/config/.status/$cfg/$ioc
+chmod g+rw /reg/g/pcds/pyps/config/.status/$cfg/$ioc
 if ! test -d /reg/d/iocData/$ioc; then
     mkdir /reg/d/iocData/$ioc
     mkdir /reg/d/iocData/$ioc/autosave
@@ -39,7 +40,7 @@ if ! test -d /reg/d/iocData/$ioc; then
     mkdir /reg/d/iocData/$ioc/iocInfo
     mkdir /reg/d/iocData/$ioc/logs
     chgrp ps-ioc -R /reg/d/iocData/$ioc
-    chmod g+w -R /reg/d/iocData/$ioc
+    chmod g+rw -R /reg/d/iocData/$ioc
 fi
 if test -f ../../archive/$ioc.archive; then
     cp -f -p ../../archive/$ioc.archive /reg/d/iocData/$ioc/archive;
