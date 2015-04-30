@@ -3,6 +3,6 @@ export PSPKG_ROOT=/reg/common/package
 export PSPKG_RELEASE=controls-basic-0.0.1
 source $PSPKG_ROOT/etc/set_env.sh
 if [ X$SCRIPTROOT == X ]; then
-    export SCRIPTROOT=/reg/g/pcds/pyps/config/$2/iocmanager
+    export SCRIPTROOT=/reg/g/pcds/pyps/config/$1/iocmanager
 fi
-python installConfig.py "$@"
+python $SCRIPTROOT/installConfig.py "$@"
