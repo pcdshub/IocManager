@@ -77,6 +77,7 @@ import telnetlib, string, datetime, os, time, fcntl, re, glob, subprocess
 #
 CAMRECORDER = "/reg/g/pcds/controls/camrecord"
 PROCSERV    = "procServ"
+TMP_DIR     = "/reg/g/pcds/pyps/config/.status/tmp"
 STARTUP_DIR = "/reg/g/pcds/pyps/config/%s/iocmanager/"
 CONFIG_FILE = "/reg/g/pcds/pyps/config/%s/iocmanager.cfg"
 AUTH_FILE   = "/reg/g/pcds/pyps/config/%s/iocmanager.auth"
@@ -499,7 +500,7 @@ def writeConfig(hutch, hostlist, cfglist, vars, f=None):
 # Install an existing file as the hutch configuration file.
 #
 def installConfig(hutch, file, fd=None):
-    open(CONFIG_FILE % hutch, "r+").close()  # Sigh... NFS.
+    open(CONFIG_FILE % hutch, "r").close()  # Sigh... NFS.
     mtime = os.stat(CONFIG_FILE % hutch).st_mtime
     if fd != None:
         flush_input(fd)
@@ -513,7 +514,8 @@ def installConfig(hutch, file, fd=None):
         f.writelines(l)
         fcntl.lockf(f, fcntl.LOCK_UN)
         f.close()
-    open(CONFIG_FILE % hutch, "r+").close()  # Sigh... NFS.
+    open(CONFIG_FILE % hutch, "r").close()  # Sigh... NFS.
+    time.sleep(1)
     mtime2 = os.stat(CONFIG_FILE % hutch).st_mtime
     if mtime == mtime2:
         raise Exception("No change?!?")
