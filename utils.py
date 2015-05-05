@@ -515,8 +515,13 @@ def installConfig(hutch, file, fd=None):
         fcntl.lockf(f, fcntl.LOCK_UN)
         f.close()
     open(CONFIG_FILE % hutch, "r").close()  # Sigh... NFS.
-    time.sleep(1)
     mtime2 = os.stat(CONFIG_FILE % hutch).st_mtime
+    i = 0
+    while mtime == mtime2 and i < 40:
+        if mtime == mtime2:
+            time.sleep(0.25)
+        i += 1
+        mtime2 = os.stat(CONFIG_FILE % hutch).st_mtime
     if mtime == mtime2:
         raise Exception("No change?!?")
 
