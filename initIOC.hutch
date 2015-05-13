@@ -1,6 +1,3 @@
-# source function library
-. /etc/rc.d/init.d/functions
-
 PORTBASE=29000
 PROCMGRDBIN=/reg/g/pcds/package/procServ-2.5.1/procmgrd
 
@@ -8,16 +5,16 @@ PROCMGRDBIN=/reg/g/pcds/package/procServ-2.5.1/procmgrd
 if [ "$cfg" != "fee" -a "$cfg" != "las" ]; then
     ctrlport=$(( PORTBASE + 100 ))
     logport=$(( ctrlport + 1 ))
-    daemon --user=${cfg}ioc ${PROCMGRDBIN}1 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/tcsh -f
+    su ${cfg}ioc "${PROCMGRDBIN}1 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/tcsh -f"
 fi
 
 ctrlport=$(( PORTBASE + 200 ))
 logport=$(( ctrlport + 1 ))
-daemon --user=feeioc ${PROCMGRDBIN}2 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/tcsh -f
+su feeioc "${PROCMGRDBIN}2 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/tcsh -f"
 
 ctrlport=$(( PORTBASE + 300 ))
 logport=$(( ctrlport + 1 ))
-daemon --user=lasioc ${PROCMGRDBIN}3 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/tcsh -f
+su lasioc "${PROCMGRDBIN}3 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/tcsh -f"
 
 # Driver stuff.
 
