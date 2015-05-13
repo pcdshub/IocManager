@@ -5,16 +5,16 @@ PROCMGRDBIN=/reg/g/pcds/package/procServ-2.5.1/procmgrd
 if [ "$cfg" != "fee" -a "$cfg" != "las" ]; then
     ctrlport=$(( PORTBASE + 100 ))
     logport=$(( ctrlport + 1 ))
-    su ${cfg}ioc -c "${PROCMGRDBIN}1 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/tcsh -f"
+    su ${cfg}ioc -s /bin/sh -c "${PROCMGRDBIN}1 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/tcsh -f"
 fi
 
 ctrlport=$(( PORTBASE + 200 ))
 logport=$(( ctrlport + 1 ))
-su feeioc -c "${PROCMGRDBIN}2 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/tcsh -f"
+su feeioc -s /bin/sh -c "${PROCMGRDBIN}2 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/tcsh -f"
 
 ctrlport=$(( PORTBASE + 300 ))
 logport=$(( ctrlport + 1 ))
-su lasioc -c "${PROCMGRDBIN}3 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/tcsh -f"
+su lasioc -s /bin/sh c "${PROCMGRDBIN}3 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/tcsh -f"
 
 # Driver stuff.
 
