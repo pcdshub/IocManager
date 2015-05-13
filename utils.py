@@ -242,12 +242,22 @@ def openTelnet(host, port):
     else:
         return None
 
+#def fixTelnetShell(host, port):
+#    tn = openTelnet(host, port)
+#    tn.write("\x15\x0d");
+#    statd = tn.expect([MSG_PROMPT_OLD], 2)
+#    tn.write("export PS1='> '\n");
+#    statd = tn.read_until(MSG_PROMPT, 2)
+#    tn.close()
+
 def fixTelnetShell(host, port):
     tn = openTelnet(host, port)
     tn.write("\x15\x0d");
-    statd = tn.expect([MSG_PROMPT_OLD], 2)
-    tn.write("export PS1='> '\n");
     statd = tn.read_until(MSG_PROMPT, 2)
+    print statd
+    tn.write("source ~mcbrowne/fixup\n")
+    statd = tn.read_until(MSG_PROMPT, 2)
+    print statd
     tn.close()
     
 def killProc(host, port):

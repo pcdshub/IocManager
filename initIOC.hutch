@@ -5,18 +5,18 @@ PROCMGRDBIN=procmgrd
 if [ "$cfg" != "xrt" -a "$cfg" != "las" ]; then
     ctrlport=$(( PORTBASE ))
     logport=$(( ctrlport + 1 ))
-    su ${cfg}ioc -c "${PROCMGRDBIN}0 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/sh -f"
+    su ${cfg}ioc -s /bin/sh -c "${PROCMGRDBIN}0 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/sh -f"
     fixTelnet $ctrlport
 fi
 
 ctrlport=$(( PORTBASE + 2 ))
 logport=$(( ctrlport + 1 ))
-su ${cfg}ioc -c "${PROCMGRDBIN}1 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/sh -f"
+su ${cfg}ioc -c -s /bin/sh "${PROCMGRDBIN}1 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/sh -f"
 fixTelnet $ctrlport
 
 ctrlport=$(( PORTBASE + 4 ))
 logport=$(( ctrlport + 1 ))
-su ${cfg}ioc -c "${PROCMGRDBIN}2 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/sh -f"
+su ${cfg}ioc -s /bin/sh -c "${PROCMGRDBIN}2 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/sh -f"
 fixTelnet $ctrlport
 
 # Driver stuff.
