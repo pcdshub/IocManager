@@ -1,9 +1,3 @@
-# Setup the path!
-export PSPKG_ROOT=/reg/common/package
-export PSPKG_RELEASE=controls-basic-0.0.1
-source $PSPKG_ROOT/etc/set_env.sh
-export PATH=${SCRIPTROOT}:$PATH
-
 PORTBASE=39050
 PROCMGRDBIN=procmgrd
 

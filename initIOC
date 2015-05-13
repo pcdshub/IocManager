@@ -10,4 +10,10 @@ echo Using configuration $cfg.
 
 export SCRIPTROOT=/reg/g/pcds/pyps/config/$cfg/iocmanager
 
+# Setup our path, so we can find procServ/procmgrd!
+export PSPKG_ROOT=/reg/common/package
+export PSPKG_RELEASE=controls-basic-0.0.1
+source $PSPKG_ROOT/etc/set_env.sh
+export PATH=${SCRIPTROOT}:$PATH
+
 source $SCRIPTROOT/initIOC.hutch
