@@ -541,8 +541,15 @@ def readStatusDir(cfg, readfile=lambda fn, f: open(fn).readlines()):
         l = readfile(fn, f)
         if l != []:
             stat = l[0].strip().split()                     # PID HOST PORT DIRECTORY
-            d.append({'rid' : f, 'pid': stat[0], 'rhost': stat[1], 'rport': int(stat[2]),
-                      'rdir': stat[3], 'newstyle' : True})
+            if len(stat) == 4:
+                d.append({'rid' : f, 'pid': stat[0], 'rhost': stat[1],
+                          'rport': int(stat[2]), 'rdir': stat[3],
+                          'newstyle' : True})
+            else:
+                try:
+                    os.unlink(f)
+                except:
+                    pass
     return d
 
 #
