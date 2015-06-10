@@ -214,16 +214,17 @@ class GraphicUserInterface(QtGui.QMainWindow):
     def showContextMenu(self, pos):
         index = self.ui.tableView.indexAt(pos)
         menu = QtGui.QMenu()
-        menu.addAction("Delete IOC")
         menu.addAction("Add New IOC")
-        if not self.model.inConfig(index):
-            menu.addAction("Add Running to Config")
-        if self.model.notSynched(index):
-            menu.addAction("Set from Running")
-        if self.model.isChanged(index):
-            menu.addAction("Revert IOC")
-        menu.addAction("Remember Version")
-        menu.addAction("Edit Details")
+        if index.row() != -1:
+            menu.addAction("Delete IOC")
+            if not self.model.inConfig(index):
+                menu.addAction("Add Running to Config")
+            if self.model.notSynched(index):
+                menu.addAction("Set from Running")
+            if self.model.isChanged(index):
+                menu.addAction("Revert IOC")
+            menu.addAction("Remember Version")
+            menu.addAction("Edit Details")
         gpos = self.ui.tableView.viewport().mapToGlobal(pos)
         selectedItem = menu.exec_(gpos)
         if selectedItem != None:
