@@ -11,7 +11,7 @@ fi
 
 ctrlport=$(( PORTBASE + 2 ))
 logport=$(( ctrlport + 1 ))
-su ${cfg}ioc -c -s /bin/sh "${PROCMGRDBIN}1 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/sh -f"
+su ${cfg}ioc -s /bin/sh -c "${PROCMGRDBIN}1 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/sh -f"
 fixTelnet $ctrlport
 
 ctrlport=$(( PORTBASE + 4 ))
