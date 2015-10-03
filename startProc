@@ -42,8 +42,10 @@ if ! test -d /reg/d/iocData/$ioc; then
     chgrp ps-ioc -R /reg/d/iocData/$ioc
     chmod g+rw -R /reg/d/iocData/$ioc
 fi
+# Force an updated timestamp on the archive request file each time
+# so we know when they're stale
 if test -f ../../archive/$ioc.archive; then
-    cp -f -p ../../archive/$ioc.archive /reg/d/iocData/$ioc/archive;
+    cp -f  ../../archive/$ioc.archive /reg/d/iocData/$ioc/archive;
 fi
 cmd=$1
 shift
