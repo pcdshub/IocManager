@@ -175,7 +175,10 @@ def fixdir(dir, id):
 # Returns a dictionary of information.
 #
 def readLogPortBanner(tn):
-    response = tn.read_until(MSG_BANNER_END, 1)
+    try:
+        response = tn.read_until(MSG_BANNER_END, 1)
+    except:
+        response = ""
     if not string.count(response, MSG_BANNER_END):
         return {'status'      : STATUS_ERROR,
                 'pid'         : "-",
