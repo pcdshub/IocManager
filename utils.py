@@ -75,15 +75,15 @@ import telnetlib, string, datetime, os, time, fcntl, re, glob, subprocess
 #
 # Defines
 #
-CAMRECORDER = "/reg/g/pcds/controls/camrecord"
+CAMRECORDER = os.getenv("CAMRECORD_ROOT")
 PROCSERV    = "procServ"
-TMP_DIR     = "/reg/g/pcds/pyps/config/.status/tmp"
-STARTUP_DIR = "/reg/g/pcds/pyps/config/%s/iocmanager/"
-CONFIG_FILE = "/reg/g/pcds/pyps/config/%s/iocmanager.cfg"
-AUTH_FILE   = "/reg/g/pcds/pyps/config/%s/iocmanager.auth"
-STATUS_DIR  = "/reg/g/pcds/pyps/config/.status/%s"
-LOGBASE     = "/reg/d/iocData/%s/iocInfo/ioc.log"
-PVFILE      = "/reg/d/iocData/%s/iocInfo/IOC.pvlist"
+TMP_DIR     = "%s/config/.status/tmp" % os.getenv("PYPS_ROOT")
+STARTUP_DIR = "%s/config/%%s/iocmanager/" % os.getenv("PYPS_ROOT")
+CONFIG_FILE = "%s/config/%%s/iocmanager.cfg" % os.getenv("PYPS_ROOT")
+AUTH_FILE   = "%s/config/%%s/iocmanager.auth" % os.getenv("PYPS_ROOT")
+STATUS_DIR  = "%s/config/.status/%%s" % os.getenv("PYPS_ROOT")
+LOGBASE     = "%s/%%s/iocInfo/ioc.log" % os.getenv("IOC_DATA")
+PVFILE      = "%s/%%s/iocInfo/IOC.pvlist" % os.getenv("IOC_DATA")
 INSTALL     = __file__[:__file__.rfind('/')] + "/installConfig"
 BASEPORT    = 39050
 COMMITHOST  = "psdev"
