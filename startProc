@@ -1,18 +1,28 @@
 #!/bin/sh
 # Usage: startProc IOCNAME PORT HUTCH
+if [ -x /etc/pathinit ]; then
+    source /etc/pathinit
+else
+    export PSPKG_ROOT=/reg/common/package
+    export PYPS_ROOT=/reg/g/pcds/pyps
+    export IOC_ROOT=/reg/g/pcds/package/epics/3.14/ioc
+    export CAMRECORD_ROOT=/reg/g/pcds/controls/camrecord
+    export IOC_DATA=/reg/d/iocData
+    export IOC_COMMON=/reg/d/iocCommon
+fi
 
 ioc=$1
 port=$2
 cfg=$3
 shift;shift;shift
-if test X$SCRIPTROOT == X; then export SCRIPTROOT=/reg/g/pcds/pyps/config/$cfg/iocmanager; fi
+if test X$SCRIPTROOT == X; then export SCRIPTROOT=$PYPS_ROOT/config/$cfg/iocmanager; fi
 
 # Start a new log if running procServ-2.6.0-SLAC.
 if test X$PROCSERVPID != X; then kill -HUP $PROCSERVPID; fi
 
 # Setup the IOC user environment.
 export IOC=$ioc
-source /reg/d/iocCommon/All/${cfg}_env.sh
+source $IOC_COMMON/All/${cfg}_env.sh
 
 dir=`$SCRIPTROOT/getDirectory $ioc $cfg`
 if test $dir == NO_DIRECTORY; then
@@ -23,7 +33,7 @@ if test $dir == NO_DIRECTORY; then
         while test 1 == 1; do sleep 3600; done;
     fi
 fi
-cd /reg/g/pcds/package/epics/3.14
+cd $IOC_ROOT/..
 if test -d $dir; then cd $dir; fi
 if test -f env.sh; then source env.sh; fi
 if test -d children/build/iocBoot/$ioc; then cd children/build/iocBoot/$ioc; fi
@@ -31,21 +41,21 @@ if test -d build/iocBoot/$ioc; then cd build/iocBoot/$ioc; fi
 if test -d iocBoot/$ioc; then cd iocBoot/$ioc; fi
 if test -f env.sh; then source env.sh; fi
 umask 2
-echo $$ `hostname -s` $port $dir >/reg/g/pcds/pyps/config/.status/$cfg/$ioc
-chmod g+rw /reg/g/pcds/pyps/config/.status/$cfg/$ioc
-if ! test -d /reg/d/iocData/$ioc; then
-    mkdir /reg/d/iocData/$ioc
-    mkdir /reg/d/iocData/$ioc/autosave
-    mkdir /reg/d/iocData/$ioc/archive
-    mkdir /reg/d/iocData/$ioc/iocInfo
-    mkdir /reg/d/iocData/$ioc/logs
-    chgrp ps-ioc -R /reg/d/iocData/$ioc
-    chmod g+rw -R /reg/d/iocData/$ioc
+echo $$ `hostname -s` $port $dir >$PYPS_ROOT/config/.status/$cfg/$ioc
+chmod g+rw $PYPS_ROOT/config/.status/$cfg/$ioc
+if ! test -d $IOC_DATA/$ioc; then
+    mkdir $IOC_DATA/$ioc
+    mkdir $IOC_DATA/$ioc/autosave
+    mkdir $IOC_DATA/$ioc/archive
+    mkdir $IOC_DATA/$ioc/iocInfo
+    mkdir $IOC_DATA/$ioc/logs
+    chgrp ps-ioc -R $IOC_DATA/$ioc
+    chmod g+rw -R $IOC_DATA/$ioc
 fi
 # Force an updated timestamp on the archive request file each time
 # so we know when they're stale
 if test -f ../../archive/$ioc.archive; then
-    cp -f  ../../archive/$ioc.archive /reg/d/iocData/$ioc/archive;
+    cp -f -p ../../archive/$ioc.archive $IOC_DATA/$ioc/archive;
 fi
 cmd=$1
 shift

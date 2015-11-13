@@ -25,10 +25,10 @@ if [ -x /sbin/service ]; then
         /sbin/service hyperthreading-disable start
 fi
 
-if [ ! -e /dev/era0 ]; then
+if [ ! -e /dev/era0 -a -e $IOC_ROOT/../modules/event2/latest/driver/evr_load_module ]; then
         # Load EVR module on startup
         # Must be run as root
-        /reg/g/pcds/package/epics/3.14/modules/event2/latest/driver/evr_load_module
+        $IOC_ROOT/../modules/event2/latest/driver/evr_load_module
 	if [ ! -e /dev/era0 ]
         then
 	    /sbin/rmmod evr_device
@@ -49,7 +49,7 @@ fi
 
 # Setup the IOC user environment.
 export IOC=$host
-source /reg/d/iocCommon/All/${cfg}_env.sh
+source $IOC_COMMON/All/${cfg}_env.sh
 
 # Start caRepeater.
 su ${cfg}ioc -s /bin/sh -c "$PROCSERV --logfile $IOC_DATA/$IOC_HOST/iocInfo/caRepeater.log --name caRepeater 30000 $CA_BIN/caRepeater"
