@@ -40,7 +40,7 @@ if ! test -d /reg/d/iocData/$ioc; then
     mkdir /reg/d/iocData/$ioc/iocInfo
     mkdir /reg/d/iocData/$ioc/logs
     chgrp ps-ioc -R /reg/d/iocData/$ioc
-    chmod g+rw -R /reg/d/iocData/$ioc
+    chmod g+rws -R /reg/d/iocData/$ioc
 fi
 if test -f ../../archive/$ioc.archive; then
     cp -f -p ../../archive/$ioc.archive /reg/d/iocData/$ioc/archive;
