@@ -40,7 +40,7 @@ if ! test -d /reg/d/iocData/$ioc; then
     mkdir /reg/d/iocData/$ioc/iocInfo
     mkdir /reg/d/iocData/$ioc/logs
     chgrp ps-ioc -R /reg/d/iocData/$ioc
-    chmod g+rw -R /reg/d/iocData/$ioc
+    chmod g+rws -R /reg/d/iocData/$ioc
 fi
 # Force an updated timestamp on the archive request file each time
 # so we know when they're stale
