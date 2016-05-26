@@ -3,7 +3,7 @@ PROCMGRDBIN=procmgrd
 
 # Start up the procmgrd processes.
 cfguser=${cfg}ioc
-if [ "$cfg" != "xrt" ]; then
+if [ "$cfg" == "xrt" ]; then
     cfguser = feeioc
 fi
 
