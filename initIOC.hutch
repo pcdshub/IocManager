@@ -33,7 +33,7 @@ fi
 if [ ! -e /dev/era0 -a -e $IOC_ROOT/../modules/event2/latest/driver/evr_load_module ]; then
         # Load EVR module on startup
         # Must be run as root
-        $IOC_ROOT/../modules/event2/latest/driver/evr_load_module
+        $IOC_ROOT/../modules/ev2_driver/latest/driver/evr_load_module
 	if [ ! -e /dev/era0 ]
         then
 	    /sbin/rmmod evr_device
