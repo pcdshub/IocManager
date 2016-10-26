@@ -101,6 +101,7 @@ class MyDelegate(QStyledItemDelegate):
                 d.setSidebarUrls([QUrl("file://" + r),
                                   QUrl("file://" + os.getenv("HOME")),
                                   QUrl("file://" + utils.EPICS_SITE_TOP + "ioc/" + self.hutch),
+                                  QUrl("file://" + utils.EPICS_SITE_TOP + "ioc/common"),
                                   QUrl("file://" + utils.EPICS_TOP + "3.14-dev")])
                 l=d.layout()
                 tmp=QLabel()
