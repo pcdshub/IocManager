@@ -70,7 +70,7 @@
 ######################################################################
 
 
-import telnetlib, string, datetime, os, time, fcntl, re, glob, subprocess
+import telnetlib, string, datetime, os, time, fcntl, re, glob, subprocess, copy
 
 #
 # Defines
@@ -88,6 +88,7 @@ INSTALL     = __file__[:__file__.rfind('/')] + "/installConfig"
 BASEPORT    = 39050
 COMMITHOST  = "psdev"
 KINIT       = "/afs/slac.stanford.edu/package/heimdal/bin/kinit"
+NETCONFIG   = "/reg/common/tools/bin/netconfig"
 
 STATUS_INIT      = "INITIALIZE WAIT"
 STATUS_NOCONNECT = "NOCONNECT"
@@ -769,7 +770,9 @@ def find_iocs(**kwargs):
 
 def netconfig(host):
     try:
-        p = subprocess.Popen(["netconfig", "view", host], stdout=subprocess.PIPE)
+        env = copy.deepcopy(os.environ)
+        del env['LD_LIBRARY_PATH']
+        p = subprocess.Popen([NETCONFIG, "view", host], env=env, stdout=subprocess.PIPE)
         r = [l.strip().split(": ") for l in p.communicate()[0].split('\n')]
         d = {}
         for l in r:
