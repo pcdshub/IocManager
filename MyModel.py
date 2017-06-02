@@ -429,6 +429,10 @@ class MyModel(QAbstractTableModel):
             d.checks.append(check)
         return i
 
+    def setDialogState(self, d, v):
+        for c in d.checks:
+            c.setChecked(v)
+
     def applyVerify(self, current, config, kill, start, restart):
         d = QDialog();
         d.setWindowTitle("Apply Confirmation")
@@ -448,9 +452,13 @@ class MyModel(QAbstractTableModel):
         d.buttonBox = QDialogButtonBox(d)
         d.buttonBox.setOrientation(Qt.Horizontal)
         d.buttonBox.setStandardButtons(QDialogButtonBox.Cancel|QDialogButtonBox.Ok)
+        clear_button = d.buttonBox.addButton("Clear All", QDialogButtonBox.ActionRole)
+        set_button = d.buttonBox.addButton("Set All", QDialogButtonBox.ActionRole)
         d.layout.addWidget(d.buttonBox)
         d.connect(d.buttonBox, SIGNAL("accepted()"), d.accept)
         d.connect(d.buttonBox, SIGNAL("rejected()"), d.reject)
+        d.connect(clear_button, SIGNAL("clicked()"), lambda : self.setDialogState(d, False))
+        d.connect(set_button, SIGNAL("clicked()"), lambda : self.setDialogState(d, True))
 
         if d.exec_() == QDialog.Accepted:
             checks =  [c.isChecked() for c in d.checks]
@@ -463,6 +471,16 @@ class MyModel(QAbstractTableModel):
             return (kill, start, restart)
         else:
             return ([], [], [])
+
+    def applyOne(self, index):
+        id = self.cfglist[index.row()]['id']
+        if not self.validateConfig():
+            QMessageBox.critical(None,
+                                 "Error", "Configuration has errors, not applied!",
+                                 QMessageBox.Ok, QMessageBox.Ok)
+            return
+        if self.doSave():
+            utils.applyConfig(self.hutch, self.applyVerify, id)
 
     def doApply(self):
         if not self.validateConfig():
@@ -556,6 +574,21 @@ class MyModel(QAbstractTableModel):
         entry = self.cfglist[index.row()]
         keys = entry.keys()
         return 'newhost' in keys or 'newport' in keys or 'newdir' in keys or 'newid' in keys
+
+    def needsApply(self, index):
+        entry = self.cfglist[index.row()]
+        if entry['disable']:
+            return entry['status'] == utils.STATUS_RUNNING
+        else:
+            if entry['status'] != utils.STATUS_RUNNING:
+                return True
+            if (entry['host'] != entry['rhost'] or
+                entry['port'] != entry['rport'] or
+                entry['dir'] != entry['rdir'] or
+                entry['id'] != entry['rid']):
+                return True
+            else:
+                return False
 
     def revertIOC(self, index):
         entry = self.cfglist[index.row()]

@@ -223,6 +223,8 @@ class GraphicUserInterface(QtGui.QMainWindow):
                 menu.addAction("Set from Running")
             if self.model.isChanged(index):
                 menu.addAction("Revert IOC")
+            if self.model.needsApply(index):
+                menu.addAction("Apply Configuration")
             menu.addAction("Remember Version")
             menu.addAction("Edit Details")
         gpos = self.ui.tableView.viewport().mapToGlobal(pos)
@@ -243,6 +245,8 @@ class GraphicUserInterface(QtGui.QMainWindow):
                 self.model.saveVersion(index)
             elif txt == "Edit Details":
                 self.model.editDetails(index)
+            elif txt == "Apply Configuration":
+                self.model.applyOne(index)
 
     def setParent(self, gui, iocfn, dir):
         if dir != "":

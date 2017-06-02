@@ -51,7 +51,7 @@
 #     any updated information, returning a list of lines or an empty list
 #     if the file was not read.  The default readfile always reads everything.
 #
-# applyConfig(hutch, verify=None)
+# applyConfig(hutch, verify=None, ioc=None)
 #     Apply the current configuration for the specified hutch. Before
 #     the configuration is applied, the verify method, if any is called.
 #     This routine is passed:
@@ -63,6 +63,8 @@
 #     The method should return a (kill, start, restart) tuple of the
 #     IOCs that should *really* be changed.  (This method could then
 #     query the user to limit the changes or cancel them altogether.)
+#     If an ioc is specified (by name), only that IOC will be changed,
+#     otherwise the entire configuration will be applied.
 #
 # netconfig(host)
 #     Return a dictionary with the netconfig information for this host.
@@ -559,7 +561,7 @@ def readStatusDir(cfg, readfile=lambda fn, f: open(fn).readlines()):
 #
 # Apply the current configuration.
 #
-def applyConfig(cfg, verify=None):
+def applyConfig(cfg, verify=None, ioc=None):
   result = readConfig(cfg)
   if result == None:
       print "Cannot read configuration for %s!" % cfg
@@ -568,21 +570,23 @@ def applyConfig(cfg, verify=None):
 
   config = {}
   for l in cfglist:
-    config[l['id']] = l
+    if ioc == None or ioc == l['id']:
+        config[l['id']] = l
 
   runninglist = readStatusDir(cfg)
 
   current = {}
   for l in runninglist:
-      result = check_status(l['rhost'], l['rport'], l['rid'])
-      if result['status'] == STATUS_RUNNING:
-          rdir = l['rdir']
-          l.update(result);
-          if l['rdir'] == '/tmp':
-              l['rdir'] = rdir
-          else:
-              l['newstyle'] = False
-          current[l['rid']] = l
+      if ioc == None or ioc == l['rid']:
+          result = check_status(l['rhost'], l['rport'], l['rid'])
+          if result['status'] == STATUS_RUNNING:
+              rdir = l['rdir']
+              l.update(result);
+              if l['rdir'] == '/tmp':
+                  l['rdir'] = rdir
+              else:
+                  l['newstyle'] = False
+              current[l['rid']] = l
 
   running = current.keys()
   wanted  = config.keys()
