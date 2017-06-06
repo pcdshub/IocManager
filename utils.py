@@ -88,7 +88,7 @@ LOGBASE     = "%s/%%s/iocInfo/ioc.log" % os.getenv("IOC_DATA")
 PVFILE      = "%s/%%s/iocInfo/IOC.pvlist" % os.getenv("IOC_DATA")
 INSTALL     = __file__[:__file__.rfind('/')] + "/installConfig"
 BASEPORT    = 39050
-COMMITHOST  = "psdev"
+COMMITHOST  = "psbuild-rhel7"
 KINIT       = "/afs/slac.stanford.edu/package/heimdal/bin/kinit"
 NETCONFIG   = "/reg/common/tools/bin/netconfig"
 
