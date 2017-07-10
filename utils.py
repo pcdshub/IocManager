@@ -69,6 +69,9 @@
 # netconfig(host)
 #     Return a dictionary with the netconfig information for this host.
 #
+# rebootServer(host)
+#     Attempt to reboot the specified host.
+#
 ######################################################################
 
 
@@ -786,4 +789,5 @@ def netconfig(host):
     except:
         return {}
 
-    
+def rebootServer(host):
+    os.system("/usr/bin/ipmitool -I lanplus -U ADMIN -Pipmia8min -H %s power cycle &" % host)

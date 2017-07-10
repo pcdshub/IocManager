@@ -98,11 +98,13 @@ class GraphicUserInterface(QtGui.QMainWindow):
         self.connect(self.ui.actionRevert,   QtCore.SIGNAL("triggered()"), self.model.doRevert)
         self.connect(self.ui.actionReboot,   QtCore.SIGNAL("triggered()"), self.doReboot)
         self.connect(self.ui.actionHard_Reboot, QtCore.SIGNAL("triggered()"), self.doHardReboot)
+        self.connect(self.ui.actionReboot_Server, QtCore.SIGNAL("triggered()"), self.doServerReboot)
         self.connect(self.ui.actionLog,      QtCore.SIGNAL("triggered()"), self.doLog)
         self.connect(self.ui.actionConsole,  QtCore.SIGNAL("triggered()"), self.doConsole)
         self.connect(self.ui.actionRemember, QtCore.SIGNAL("triggered()"), self.model.doSaveVersions)
         self.connect(self.ui.actionAuth,     QtCore.SIGNAL("triggered()"), self.doAuthenticate)
         self.connect(self.ui.actionQuit,     QtCore.SIGNAL("triggered()"), self.doQuit)
+        self.connect(self.ui.actionHelp,     QtCore.SIGNAL("triggered()"), self.doHelp)
         self.connect(self.utimer, QtCore.SIGNAL("timeout()"), self.unauthenticate)
         self.ui.tableView.setModel(self.model)
         self.ui.tableView.setItemDelegate(self.delegate)
@@ -149,6 +151,23 @@ class GraphicUserInterface(QtGui.QMainWindow):
         if not self.authorize_action():
             return
         self.model.doApply()
+
+    def doHelp(self):
+        d = QtGui.QDialog();
+        d.setWindowTitle("IocManager Help")
+        d.layout = QtGui.QVBoxLayout(d)
+        d.label1 = QtGui.QLabel(d)
+        d.label1.setText("Documentation for the IocManager can be found on confluence:")
+        d.layout.addWidget(d.label1)
+        d.label2 = QtGui.QLabel(d)
+        d.label2.setText("https://confluence.slac.stanford.edu/display/PCDS/IOC+Manager+User+Guide")
+        d.layout.addWidget(d.label2)
+        d.buttonBox = QtGui.QDialogButtonBox(d)
+        d.buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        d.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Ok)
+        d.layout.addWidget(d.buttonBox)
+        d.connect(d.buttonBox, QtCore.SIGNAL("accepted()"), d.accept)
+        d.exec_()
                              
     def doQuit(self):
         self.close()
@@ -165,6 +184,12 @@ class GraphicUserInterface(QtGui.QMainWindow):
     def doHardReboot(self):
         if self.currentIOC:
             self.model.rebootIOC(self.currentIOC)
+
+    def doServerReboot(self):
+        if self.currentIOC:
+            if not self.authorize_action():
+                return
+            self.model.rebootServer(self.currentIOC)
     
     def doLog(self):
         if self.currentIOC:

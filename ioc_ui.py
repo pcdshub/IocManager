@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ioc.ui'
 #
-# Created: Thu Dec 18 14:46:56 2014
-#      by: PyQt4 UI code generator 4.9.1
+# Created: Mon Jul 10 12:42:34 2017
+#      by: PyQt4 UI code generator 4.10.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -12,7 +12,16 @@ from PyQt4 import QtCore, QtGui
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
 except AttributeError:
-    _fromUtf8 = lambda s: s
+    def _fromUtf8(s):
+        return s
+
+try:
+    _encoding = QtGui.QApplication.UnicodeUTF8
+    def _translate(context, text, disambig):
+        return QtGui.QApplication.translate(context, text, disambig, _encoding)
+except AttributeError:
+    def _translate(context, text, disambig):
+        return QtGui.QApplication.translate(context, text, disambig)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -138,7 +147,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.widget_2)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 713, 23))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 713, 22))
         self.menubar.setObjectName(_fromUtf8("menubar"))
         self.menuConfiguration = QtGui.QMenu(self.menubar)
         self.menuConfiguration.setObjectName(_fromUtf8("menuConfiguration"))
@@ -170,13 +179,19 @@ class Ui_MainWindow(object):
         self.actionQuit.setObjectName(_fromUtf8("actionQuit"))
         self.actionHard_Reboot = QtGui.QAction(MainWindow)
         self.actionHard_Reboot.setObjectName(_fromUtf8("actionHard_Reboot"))
+        self.actionReboot_Server = QtGui.QAction(MainWindow)
+        self.actionReboot_Server.setObjectName(_fromUtf8("actionReboot_Server"))
+        self.actionHelp = QtGui.QAction(MainWindow)
+        self.actionHelp.setObjectName(_fromUtf8("actionHelp"))
         self.menuConfiguration.addAction(self.actionApply)
         self.menuConfiguration.addAction(self.actionSave)
         self.menuConfiguration.addAction(self.actionRevert)
         self.menuIOC_Control.addAction(self.actionReboot)
         self.menuIOC_Control.addAction(self.actionHard_Reboot)
+        self.menuIOC_Control.addAction(self.actionReboot_Server)
         self.menuIOC_Control.addAction(self.actionLog)
         self.menuIOC_Control.addAction(self.actionConsole)
+        self.menuMisc.addAction(self.actionHelp)
         self.menuMisc.addAction(self.actionRemember)
         self.menuMisc.addAction(self.actionAuth)
         self.menuMisc.addAction(self.actionQuit)
@@ -188,25 +203,27 @@ class Ui_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "MainWindow", None, QtGui.QApplication.UnicodeUTF8))
-        self.label.setText(QtGui.QApplication.translate("MainWindow", "Current IOC:", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_3.setText(QtGui.QApplication.translate("MainWindow", "Heartbeat:", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_2.setText(QtGui.QApplication.translate("MainWindow", "Time of Day:", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_4.setText(QtGui.QApplication.translate("MainWindow", "Boot Time:", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_5.setText(QtGui.QApplication.translate("MainWindow", "Location:", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_6.setText(QtGui.QApplication.translate("MainWindow", "Description:", None, QtGui.QApplication.UnicodeUTF8))
-        self.userLabel.setText(QtGui.QApplication.translate("MainWindow", "User: Guest", None, QtGui.QApplication.UnicodeUTF8))
-        self.menuConfiguration.setTitle(QtGui.QApplication.translate("MainWindow", "Configuration", None, QtGui.QApplication.UnicodeUTF8))
-        self.menuIOC_Control.setTitle(QtGui.QApplication.translate("MainWindow", "IOC Control", None, QtGui.QApplication.UnicodeUTF8))
-        self.menuMisc.setTitle(QtGui.QApplication.translate("MainWindow", "Utilities", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionApply.setText(QtGui.QApplication.translate("MainWindow", "Apply", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionSave.setText(QtGui.QApplication.translate("MainWindow", "Save", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionRevert.setText(QtGui.QApplication.translate("MainWindow", "Revert", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionReboot.setText(QtGui.QApplication.translate("MainWindow", "Soft Reboot", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionLog.setText(QtGui.QApplication.translate("MainWindow", "Show Log", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionConsole.setText(QtGui.QApplication.translate("MainWindow", "Show Console", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionRemember.setText(QtGui.QApplication.translate("MainWindow", "Remember Versions", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionAuth.setText(QtGui.QApplication.translate("MainWindow", "Authenticate User", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionQuit.setText(QtGui.QApplication.translate("MainWindow", "Quit", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionHard_Reboot.setText(QtGui.QApplication.translate("MainWindow", "Hard Reboot", None, QtGui.QApplication.UnicodeUTF8))
+        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow", None))
+        self.label.setText(_translate("MainWindow", "Current IOC:", None))
+        self.label_3.setText(_translate("MainWindow", "Heartbeat:", None))
+        self.label_2.setText(_translate("MainWindow", "Time of Day:", None))
+        self.label_4.setText(_translate("MainWindow", "Boot Time:", None))
+        self.label_5.setText(_translate("MainWindow", "Location:", None))
+        self.label_6.setText(_translate("MainWindow", "Description:", None))
+        self.userLabel.setText(_translate("MainWindow", "User: Guest", None))
+        self.menuConfiguration.setTitle(_translate("MainWindow", "Configuration", None))
+        self.menuIOC_Control.setTitle(_translate("MainWindow", "IOC Control", None))
+        self.menuMisc.setTitle(_translate("MainWindow", "Utilities", None))
+        self.actionApply.setText(_translate("MainWindow", "Apply", None))
+        self.actionSave.setText(_translate("MainWindow", "Save", None))
+        self.actionRevert.setText(_translate("MainWindow", "Revert", None))
+        self.actionReboot.setText(_translate("MainWindow", "Soft IOC Reboot", None))
+        self.actionLog.setText(_translate("MainWindow", "Show Log", None))
+        self.actionConsole.setText(_translate("MainWindow", "Show Console", None))
+        self.actionRemember.setText(_translate("MainWindow", "Remember Versions", None))
+        self.actionAuth.setText(_translate("MainWindow", "Authenticate User", None))
+        self.actionQuit.setText(_translate("MainWindow", "Quit", None))
+        self.actionHard_Reboot.setText(_translate("MainWindow", "Hard IOC Reboot", None))
+        self.actionReboot_Server.setText(_translate("MainWindow", "Reboot Server", None))
+        self.actionHelp.setText(_translate("MainWindow", "Help", None))
 

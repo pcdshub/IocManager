@@ -244,7 +244,7 @@
      <x>0</x>
      <y>0</y>
      <width>713</width>
-     <height>23</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuConfiguration">
@@ -261,6 +261,7 @@
     </property>
     <addaction name="actionReboot"/>
     <addaction name="actionHard_Reboot"/>
+    <addaction name="actionReboot_Server"/>
     <addaction name="actionLog"/>
     <addaction name="actionConsole"/>
    </widget>
@@ -268,6 +269,7 @@
     <property name="title">
      <string>Utilities</string>
     </property>
+    <addaction name="actionHelp"/>
     <addaction name="actionRemember"/>
     <addaction name="actionAuth"/>
     <addaction name="actionQuit"/>
@@ -294,7 +296,7 @@
   </action>
   <action name="actionReboot">
    <property name="text">
-    <string>Soft Reboot</string>
+    <string>Soft IOC Reboot</string>
    </property>
   </action>
   <action name="actionLog">
@@ -324,7 +326,17 @@
   </action>
   <action name="actionHard_Reboot">
    <property name="text">
-    <string>Hard Reboot</string>
+    <string>Hard IOC Reboot</string>
+   </property>
+  </action>
+  <action name="actionReboot_Server">
+   <property name="text">
+    <string>Reboot Server</string>
+   </property>
+  </action>
+  <action name="actionHelp">
+   <property name="text">
+    <string>Help</string>
    </property>
   </action>
  </widget>

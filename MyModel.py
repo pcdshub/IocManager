@@ -777,6 +777,63 @@ class MyModel(QAbstractTableModel):
                 return
         utils.restartProc(entry['host'], entry['port'])
 
+    def rebootServer(self, index):
+        if isinstance(index, QModelIndex):
+            entry = self.cfglist[index.row()]
+        else:
+            entry = None
+            for l in self.cfglist:
+                if l['id'] == index:
+                    entry = l
+                    break
+            if entry == None:
+                return
+        host = entry['host']
+        ihost = host + '-ipmi'
+        d = QDialog();
+        d.setWindowTitle("Reboot Server " + host)
+        d.layout = QVBoxLayout(d)
+        nc = utils.netconfig(ihost)
+        try:
+            nc['name']
+        except:
+            label = QLabel(d)
+            label.setText("Cannot find IPMI address for host %s!" % host)
+            d.layout.addWidget(label)
+            d.buttonBox = QDialogButtonBox(d)
+            d.buttonBox.setOrientation(Qt.Horizontal)
+            d.buttonBox.setStandardButtons(QDialogButtonBox.Ok)
+            d.layout.addWidget(d.buttonBox)
+            d.connect(d.buttonBox, SIGNAL("accepted()"), d.accept)
+            d.exec_()
+            return
+        llist = []
+        label = QLabel(d)
+        label.setText("Rebooting " + host + " will temporarily stop the following IOCs:")
+        d.layout.addWidget(label)
+        llist.append(label)
+        for l in self.cfglist:
+            if l['host'] == host:
+                label = QLabel(d)
+                if l['alias'] != "":
+                    label.setText("        " + l['alias'] + " (" + l['id'] + ")");
+                else:
+                    label.setText("        " + l['id']);
+                d.layout.addWidget(label)
+                llist.append(label)
+        label = QLabel(d)
+        label.setText("Proceed?")
+        d.layout.addWidget(label)
+        llist.append(label)
+        d.buttonBox = QDialogButtonBox(d)
+        d.buttonBox.setOrientation(Qt.Horizontal)
+        d.buttonBox.setStandardButtons(QDialogButtonBox.Cancel|QDialogButtonBox.Ok)
+        d.layout.addWidget(d.buttonBox)
+        d.connect(d.buttonBox, SIGNAL("accepted()"), d.accept)
+        d.connect(d.buttonBox, SIGNAL("rejected()"), d.reject)
+        if d.exec_() == QDialog.Accepted:
+            utils.rebootServer(ihost)
+
     def cleanupChildren(self):
         for p in self.children:
             try:
