@@ -3,7 +3,7 @@
 if [ -x /etc/pathinit ]; then
     source /etc/pathinit
 else
-    export PSPKG_ROOT=/reg/common/package
+    export PSPKG_ROOT=/reg/g/pcds/pkg_mgr
     export PYPS_ROOT=/reg/g/pcds/pyps
     export IOC_ROOT=/reg/g/pcds/package/epics/3.14/ioc
     export CAMRECORD_ROOT=/reg/g/pcds/controls/camrecord

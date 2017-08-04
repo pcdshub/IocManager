@@ -11,7 +11,7 @@ else
     export IOC_COMMON=/reg/d/iocCommon
 fi
 
-export PSPKG_RELEASE=controls-basic-0.0.1
+export PSPKG_RELEASE=controls-basic-0.0.3
 source $PSPKG_ROOT/etc/set_env.sh
 if [ X$SCRIPTROOT == X ]; then
     export SCRIPTROOT=/reg/g/pcds/pyps/config/$1/iocmanager

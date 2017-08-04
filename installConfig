@@ -2,7 +2,7 @@
 if [ -x /etc/pathinit ]; then
     source /etc/pathinit
 else
-    export PSPKG_ROOT=/reg/common/package
+    export PSPKG_ROOT=/reg/g/pcds/pkg_mgr
     export PYPS_ROOT=/reg/g/pcds/pyps
     export IOC_ROOT=/reg/g/pcds/package/epics/3.14/ioc
     export CAMRECORD_ROOT=/reg/g/pcds/controls/camrecord
@@ -10,7 +10,7 @@ else
     export IOC_COMMON=/reg/d/iocCommon
 fi
 
-export PSPKG_RELEASE=controls-basic-0.0.1
+export PSPKG_RELEASE=controls-basic-0.0.3
 source $PSPKG_ROOT/etc/set_env.sh
 if [ X$SCRIPTROOT == X ]; then
     export SCRIPTROOT=$PYPS_ROOT/config/$1/iocmanager

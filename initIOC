@@ -11,7 +11,7 @@ echo Using configuration $cfg.
 export SCRIPTROOT=$PYPS_ROOT/config/$cfg/iocmanager
 
 # Setup our path, so we can find procServ/procmgrd!
-export PSPKG_RELEASE=controls-basic-0.0.1
+export PSPKG_RELEASE=controls-basic-0.0.3
 source $PSPKG_ROOT/etc/set_env.sh
 export PATH=${SCRIPTROOT}:$PATH
 
