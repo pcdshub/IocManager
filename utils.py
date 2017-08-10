@@ -544,22 +544,44 @@ def installConfig(hutch, file, fd=None):
 #
 def readStatusDir(cfg, readfile=lambda fn, f: open(fn).readlines()):
     files = os.listdir(STATUS_DIR % cfg)
-    d = []
+    d = {}
     for f in files:
         fn = (STATUS_DIR % cfg) + "/" + f
+        mtime = os.stat(fn).st_mtime
         l = readfile(fn, f)
         if l != []:
             stat = l[0].strip().split()                     # PID HOST PORT DIRECTORY
             if len(stat) == 4:
-                d.append({'rid' : f, 'pid': stat[0], 'rhost': stat[1],
-                          'rport': int(stat[2]), 'rdir': stat[3],
-                          'newstyle' : True})
+                try:
+                    if d[(stat[1], int(stat[2]))]['mtime'] < mtime:
+                        # Duplicate, but newer, so replace!
+                        try:
+                            print "Deleting obsolete %s in favor of %s" % (d[(stat[1], int(stat[2]))]['rid'], f)
+                            os.unlink(d[(stat[1], int(stat[2]))]['rid'])
+                        except:
+                            pass
+                        raise Exception
+                    else:
+                        # Duplicate, but older, so ignore!
+                        try:
+                            print "Deleting obsolete %s in favor of %s" % (f, d[(stat[1], int(stat[2]))]['rid'])
+                            os.unlink(f)
+                        except:
+                            pass
+                except:
+                    d[(stat[1], int(stat[2]))] = {'rid' : f,
+                                                  'pid': stat[0],
+                                                  'rhost': stat[1],
+                                                  'rport': int(stat[2]),
+                                                  'rdir': stat[3],
+                                                  'newstyle' : True,
+                                                  'mtime': mtime}
             else:
                 try:
                     os.unlink(f)
                 except:
                     pass
-    return d
+    return d.values()
 
 #
 # Apply the current configuration.
