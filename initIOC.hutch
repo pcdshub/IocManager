@@ -1,30 +1,63 @@
-PORTBASE=39050
-PROCMGRDBIN=procmgrd
+BASEPORT=39050
+PROCMGRD_ROOT=procmgrd
 
-# Start up the procmgrd processes.
+if [ -z "$IOC_DATA" ]; then
+	IOC_DATA=/reg/d/iocData
+fi
+host=`hostname -s`
+PROCMGRD_LOG_DIR=$IOC_DATA/$host/logs
+
+# Figure out the hutch configuration: fee, amo, sxr, xpp, ...
+cfg=`awk /$host/'{print $2;}'  $PYPS_ROOT/config/hosts.special`
+if [ "${cfg}X" == "X" ]; then
+    cfg=`echo $host | awk '{print substr($0,5,3);}' -`
+fi
+
 cfguser=${cfg}ioc
 if [ "$cfg" == "xrt" ]; then
     cfguser=feeioc
 fi
 
-if [ "$cfg" != "xrt" -a "$cfg" != "las" ]; then
-    ctrlport=$(( PORTBASE ))
-    logport=$(( ctrlport + 1 ))
-    su ${cfguser} -s /bin/sh -c "${PROCMGRDBIN}0 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/sh -f"
-    fixTelnet $ctrlport
+# Make sure we have a procmgrd log directory
+if [ ! -d $PROCMGRD_LOG_DIR ]; then
+	su $cfguser mkdir -p $PROCMGRD_LOG_DIR
 fi
 
-ctrlport=$(( PORTBASE + 2 ))
-logport=$(( ctrlport + 1 ))
-su feeioc -s /bin/sh -c "${PROCMGRDBIN}1 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/sh -f"
-fixTelnet $ctrlport
+# Allow control connections from anywhere
+# ignore ^D so procmgrd doesn't terminate on ^D
+# No max on coresize
+# Start child processes from /tmp
+PROCMGRD_ARGS="--allow --ignore '^D' --coresize 0 -c /tmp"
 
-ctrlport=$(( PORTBASE + 4 ))
-logport=$(( ctrlport + 1 ))
-su lasioc -s /bin/sh -c "${PROCMGRDBIN}2 --allow --ignore '^D' -l $logport --coresize 0 -c /tmp $ctrlport /bin/sh -f"
-fixTelnet $ctrlport
+# Disable readline and filename expansion
+PROCMGRD_SHELL="/bin/sh --noediting -f"
+
+function launchProcMgrD()
+{
+	cfgduser=$1
+    PROCMGRD_BIN=$2
+    ctrlport=$3
+    logport=$(( ctrlport + 1 ))
+	PROCMGRD_LOGFILE=$PROCMGRD_LOG_DIR/$PROCMGRD_BIN.log
+    su ${cfgduser} -s /bin/sh -c "$PROCMGRD_BIN $PROCMGRD_ARGS -l $logport --logfile $PROCMGRD_LOGFILE $ctrlport $PROCMGRD_SHELL"
+    fixTelnet $ctrlport
+}
+
+# Start up the procmgrd for the hutch cfguser.
+if [ "$cfg" != "xrt" -a "$cfg" != "las" ]; then
+	launchProcMgrD( $cfguser, ${PROCMGRD_ROOT}0, $(( BASEPORT )) )
+fi
+
+# Start up the procmgrd for feeioc
+launchProcMgrD( feeioc, ${PROCMGRD_ROOT}1, $(( BASEPORT + 2 ))
+
+# Start up the procmgrd for lasioc
+launchProcMgrD( lasioc, ${PROCMGRD_ROOT}2, $(( BASEPORT + 4 ))
 
 # Driver stuff.
+# TODO: Remove reliance on iocmanager for driver initialization
+# Should be handled in a generic way by a common host startup script w/
+# optional override of default driver versions via host specific files.
 
 if [ -x /sbin/service ]; then
         /sbin/service hyperthreading-disable start
