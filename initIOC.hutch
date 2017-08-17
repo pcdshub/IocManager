@@ -32,7 +32,7 @@ PROCMGRD_ARGS="--allow --ignore '^D' --coresize 0 -c /tmp"
 # Disable readline and filename expansion
 PROCMGRD_SHELL="/bin/sh --noediting -f"
 
-function launchProcMgrD()
+launchProcMgrD()
 {
 	cfgduser=$1
     PROCMGRD_BIN=$2
@@ -45,14 +45,14 @@ function launchProcMgrD()
 
 # Start up the procmgrd for the hutch cfguser.
 if [ "$cfg" != "xrt" -a "$cfg" != "las" ]; then
-	launchProcMgrD( $cfguser, ${PROCMGRD_ROOT}0, $(( BASEPORT )) )
+	launchProcMgrD $cfguser ${PROCMGRD_ROOT}0 $(( BASEPORT ))
 fi
 
 # Start up the procmgrd for feeioc
-launchProcMgrD( feeioc, ${PROCMGRD_ROOT}1, $(( BASEPORT + 2 ))
+launchProcMgrD feeioc ${PROCMGRD_ROOT}1 $(( BASEPORT + 2 ))
 
 # Start up the procmgrd for lasioc
-launchProcMgrD( lasioc, ${PROCMGRD_ROOT}2, $(( BASEPORT + 4 ))
+launchProcMgrD lasioc ${PROCMGRD_ROOT}2 $(( BASEPORT + 4 ))
 
 # Driver stuff.
 # TODO: Remove reliance on iocmanager for driver initialization

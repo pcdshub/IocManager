@@ -1,6 +1,7 @@
 #!/bin/sh
 
 # Find our standard configuration.
+export PYPS_ROOT=/reg/g/pcds/pyps
 host=`hostname -s`
 cfg=`awk /$host/'{print $2;}'  $PYPS_ROOT/config/hosts.special`
 if [ "${cfg}X" == "X" ]; then
