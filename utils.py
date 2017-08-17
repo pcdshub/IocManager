@@ -117,7 +117,6 @@ MSG_SPAWN = "procServ: spawning daemon"
 MSG_AUTORESTART_IS_ON = "auto restart is ON"
 MSG_AUTORESTART_TO_ON = "auto restart to ON"
 MSG_AUTORESTART_TO_OFF = "auto restart to OFF"
-MSG_SLAC_PROCSERV = "Welcome to.*\(.*2.6.0-SLAC\)"
 
 EPICS_DEV_TOP	 = "/reg/g/pcds/package/epics/3.14-dev"
 EPICS_SITE_TOP   = "/reg/g/pcds/epics/"
@@ -188,8 +187,7 @@ def readLogPortBanner(tn):
                 'pid'         : "-",
                 'rid'          : "-",
                 'autorestart' : False,
-                'rdir'        : "/tmp",
-                'psslac'      : False }
+                'rdir'        : "/tmp" }
     if re.search('SHUT DOWN', response):
         tmpstatus = STATUS_SHUTDOWN
         pid = "-"
@@ -204,17 +202,12 @@ def readLogPortBanner(tn):
         arst = True
     else:
         arst = False
-    if re.search(MSG_SLAC_PROCSERV, response):
-        psslac = True
-    else:
-        psslac = False
-        
+
     return {'status'      : tmpstatus,
             'pid'         : pid,
             'rid'         : getid,
             'autorestart' : arst,
-            'rdir'        : fixdir(dir, getid),
-            'psslac'      : psslac }
+            'rdir'        : fixdir(dir, getid) }
 
 #
 # Returns a dictionary with status information for a given host/port.
@@ -227,8 +220,7 @@ def check_status(host, port, id):
                 'rid'         : id,
                 'pid'         : "-",
                 'autorestart' : False,
-                'rdir'        : "/tmp",
-                'psslac'      : False}
+                'rdir'        : "/tmp" }
     result = readLogPortBanner(tn)
     tn.close()
     return result
@@ -641,21 +633,22 @@ def applyConfig(cfg, verify=None, ioc=None):
   
   # Kill anyone who we don't want, or is running on the wrong host or port, or is oldstyle and needs
   # an upgrade.
-  kill_list    = [l for l in running if not l in wanted or current[l]['rhost'] != config[l]['host'] or
-                  current[l]['rport'] != config[l]['port'] or
-                  ((not current[l]['psslac'] or not current[l]['newstyle']) and
-                   current[l]['rdir'] != config[l]['dir'])]
+  kill_list    = [l for l in running if not l in wanted or
+                    current[l]['rhost'] != config[l]['host'] or
+                    current[l]['rport'] != config[l]['port'] or
+                    (	(not current[l]['newstyle']) and
+                        current[l]['rdir'] != config[l]['dir']	)]
                   
   # Start anyone who wasn't running, or was running on the wrong host or port, or is oldstyle and needs
   # an upgrade.
   start_list   = [l for l in wanted if not l in running or current[l]['rhost'] != config[l]['host'] or
                   current[l]['rport'] != config[l]['port'] or
-                  ((not current[l]['psslac'] or not current[l]['newstyle']) and
+                  (not current[l]['newstyle'] and
                    current[l]['rdir'] != config[l]['dir'])]
 
   # Anyone running the wrong version, newstyle, on the right host and port just needs a restart.
   restart_list = [l for l in wanted if l in running and current[l]['rhost'] == config[l]['host'] and
-                  current[l]['newstyle'] and current[l]['psslac'] and
+                  current[l]['newstyle'] and
                   current[l]['rport'] == config[l]['port'] and
                   current[l]['rdir'] != config[l]['dir']]
 
