@@ -284,7 +284,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
         d.setSidebarUrls([QtCore.QUrl("file://" + os.getenv("HOME")),
                           QtCore.QUrl("file://" + utils.EPICS_SITE_TOP + "ioc/" + self.hutch),
                           QtCore.QUrl("file://" + utils.EPICS_SITE_TOP + "ioc/common"),
-                          QtCore.QUrl("file://" + utils.EPICS_TOP + "3.14-dev")])
+                          QtCore.QUrl("file://" + utils.EPICS_DEV_TOP )])
         l=d.layout()
 
         tmp=QtGui.QLabel()

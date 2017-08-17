@@ -102,7 +102,7 @@ class MyDelegate(QStyledItemDelegate):
                                   QUrl("file://" + os.getenv("HOME")),
                                   QUrl("file://" + utils.EPICS_SITE_TOP + "ioc/" + self.hutch),
                                   QUrl("file://" + utils.EPICS_SITE_TOP + "ioc/common"),
-                                  QUrl("file://" + utils.EPICS_TOP + "3.14-dev")])
+                                  QUrl("file://" + utils.EPICS_DEV_TOP )])
                 l=d.layout()
                 tmp=QLabel()
                 tmp.setText("Parent")

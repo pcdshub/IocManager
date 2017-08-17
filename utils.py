@@ -119,8 +119,8 @@ MSG_AUTORESTART_TO_ON = "auto restart to ON"
 MSG_AUTORESTART_TO_OFF = "auto restart to OFF"
 MSG_SLAC_PROCSERV = "Welcome to.*\(.*2.6.0-SLAC\)"
 
-EPICS_TOP      = "/reg/g/pcds/package/epics/"
-EPICS_SITE_TOP = "/reg/g/pcds/package/epics/3.14/"
+EPICS_DEV_TOP	 = "/reg/g/pcds/package/epics/3.14-dev"
+EPICS_SITE_TOP   = "/reg/g/pcds/epics/"
 
 ######################################################################
 #
@@ -148,8 +148,6 @@ def getBaseName(ioc):
 def fixdir(dir, id):
     if dir[0:len(EPICS_SITE_TOP)] == EPICS_SITE_TOP:
         dir = dir[len(EPICS_SITE_TOP):]
-    if dir[0:len(EPICS_TOP)] == EPICS_TOP:
-        dir = "../" + dir[len(EPICS_TOP):]
     try:
         ext = "/children/build/iocBoot/" + id
         if dir[len(dir)-len(ext):len(dir)] == ext:
