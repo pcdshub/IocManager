@@ -18,6 +18,16 @@ if [ "$cfg" == "xrt" ]; then
     cfguser=feeioc
 fi
 
+# Setup the cfg environment.
+export IOC=${host}
+export IOC_USER=${cfguser}
+source $IOC_COMMON/All/${cfg}_env.sh
+
+# Find the procmgrd bin directory via ${cfg}_env PROCSERV variable
+PROCSERV_WORDS=($PROCSERV)
+PROCSERV_EXE=${PROCSERV_WORDS[0]}
+PROCMGRD_DIR=$(dirname $PROCSERV_EXE)
+
 # Make sure we have a procmgrd log directory
 if [ ! -d $PROCMGRD_LOG_DIR ]; then
 	su $cfguser mkdir -p $PROCMGRD_LOG_DIR
@@ -35,10 +45,10 @@ PROCMGRD_SHELL="/bin/sh --noediting -f"
 launchProcMgrD()
 {
 	cfgduser=$1
-    PROCMGRD_BIN=$2
+    PROCMGRD_BIN=$PROCMGRD_DIR/$2
     ctrlport=$3
     logport=$(( ctrlport + 1 ))
-	PROCMGRD_LOGFILE=$PROCMGRD_LOG_DIR/$PROCMGRD_BIN.log
+	PROCMGRD_LOGFILE=$PROCMGRD_LOG_DIR/$2.log
     su ${cfgduser} -s /bin/sh -c "$PROCMGRD_BIN $PROCMGRD_ARGS -l $logport --logfile $PROCMGRD_LOGFILE $ctrlport $PROCMGRD_SHELL"
     fixTelnet $ctrlport
 }
@@ -87,7 +97,6 @@ fi
 
 # Setup the IOC user environment.
 export IOC=$host
-source $IOC_COMMON/All/${cfg}_env.sh
 
 # Start caRepeater.
 su ${cfguser} -s /bin/sh -c "$PROCSERV --logfile $IOC_DATA/$IOC_HOST/iocInfo/caRepeater.log --name caRepeater 30000 $CA_BIN/caRepeater"
