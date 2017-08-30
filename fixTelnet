@@ -16,7 +16,7 @@ cfg=`awk /$host/'{print $2;}'  $PYPS_ROOT/config/hosts.special`
 if [ "${cfg}X" == "X" ]; then
     cfg=`echo $host | awk '{print substr($0,5,3);}' -`
 fi
-export PSPKG_RELEASE=controls-basic-0.0.3
+export PSPKG_RELEASE=controls-basic-0.0.1
 source $PSPKG_ROOT/etc/set_env.sh
 if [ X$SCRIPTROOT == X ]; then
     export SCRIPTROOT=$PYPS_ROOT/config/$cfg/iocmanager
