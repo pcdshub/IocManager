@@ -81,7 +81,9 @@ import telnetlib, string, datetime, os, time, fcntl, re, glob, subprocess, copy
 # Defines
 #
 CAMRECORDER = os.getenv("CAMRECORD_ROOT")
-PROCSERV    = "procServ"
+PROCSERV	= os.getenv("PROCSERV")
+if PROCSERV is None:
+    PROCSERV= "procServ"
 TMP_DIR     = "%s/config/.status/tmp" % os.getenv("PYPS_ROOT")
 STARTUP_DIR = "%s/config/%%s/iocmanager/" % os.getenv("PYPS_ROOT")
 CONFIG_FILE = "%s/config/%%s/iocmanager.cfg" % os.getenv("PYPS_ROOT")
