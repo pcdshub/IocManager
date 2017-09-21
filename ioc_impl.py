@@ -30,39 +30,6 @@ def caput(pvname,value,timeout=1.0):
     except pyca.caexc, e:
         print 'channel access exception: %s' %(e)
 
-def connectPv(name, timeout=-1.0):
-    try:
-        pv = Pv(name)
-        if timeout < 0:
-            pv.connect_cb = lambda isconn: __connect_callback(pv, isconn)
-            pv.connect(timeout)
-        else:
-            pv.connect(timeout)
-            pv.get(False, timeout)
-        return pv
-    except:
-      return None
-
-def __connect_callback(pv, isconn):
-    if (isconn):
-        pv.connect_cb = pv.connection_handler
-        pv.get(False, -1.0)
-
-def __getevt_callback(pv, e=None):
-    if e is None:
-        pv.getevt_cb = None
-        pv.monitor(pyca.DBE_VALUE)
-        pyca.flush_io()
-
-def monitorPv(name,handler):
-    try:
-        pv = connectPv(name)
-        pv.getevt_cb = lambda  e=None: __getevt_callback(pv, e)
-        pv.monitor_cb = lambda e=None: handler(pv, e)
-        return pv
-    except:
-        return None
-
 ######################################################################
  
 class GraphicUserInterface(QtGui.QMainWindow):
@@ -200,12 +167,15 @@ class GraphicUserInterface(QtGui.QMainWindow):
             self.model.connectIOC(self.currentIOC)
     
     def dopv(self, name, gui, format):
-        pv = monitorPv(name, self.displayPV)
+        pv = Pv(name, initialize=True)
         if pv != None:
             gui.setText("")
             pv.gui = gui
             pv.format = format
             self.pvlist.append(pv)
+            pv.add_monitor_callback(lambda e: self.displayPV(pv, e))
+            pv.wait_ready()
+            pv.monitor()
 
     def getSelection(self, selected, deselected):
         try:
