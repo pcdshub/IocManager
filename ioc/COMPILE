@@ -1,0 +1,5 @@
+pyuic4 -o ioc_ui.py ioc.ui
+pyuic4 -o hostname_ui.py hostname.ui
+pyuic4 -o auth_ui.py auth.ui
+pyuic4 -o details_ui.py details.ui
+pyuic4 -o commit_ui.py commit.ui
