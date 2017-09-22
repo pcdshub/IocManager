@@ -167,15 +167,20 @@ class GraphicUserInterface(QtGui.QMainWindow):
             self.model.connectIOC(self.currentIOC)
     
     def dopv(self, name, gui, format):
+        print "dopv %s" % name
         pv = Pv(name, initialize=True)
+        print "dopv %s done" % name
         if pv != None:
             gui.setText("")
             pv.gui = gui
             pv.format = format
             self.pvlist.append(pv)
             pv.add_monitor_callback(lambda e: self.displayPV(pv, e))
-            pv.wait_ready()
-            pv.monitor()
+            try:
+                pv.wait_ready(0.5)
+                pv.monitor()
+            except:
+                pass
 
     def getSelection(self, selected, deselected):
         try:
