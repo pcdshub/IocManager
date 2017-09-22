@@ -167,9 +167,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
             self.model.connectIOC(self.currentIOC)
     
     def dopv(self, name, gui, format):
-        print "dopv %s" % name
         pv = Pv(name, initialize=True)
-        print "dopv %s done" % name
         if pv != None:
             gui.setText("")
             pv.gui = gui
