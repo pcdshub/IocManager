@@ -215,15 +215,16 @@ class GraphicUserInterface(QtGui.QMainWindow):
         menu.addAction("Add New IOC")
         if index.row() != -1:
             menu.addAction("Delete IOC")
-            if not self.model.inConfig(index):
-                menu.addAction("Add Running to Config")
-            if self.model.notSynched(index):
-                menu.addAction("Set from Running")
+            if not self.model.isHard(index):
+                if not self.model.inConfig(index):
+                    menu.addAction("Add Running to Config")
+                if self.model.notSynched(index):
+                    menu.addAction("Set from Running")
+                if self.model.needsApply(index):
+                    menu.addAction("Apply Configuration")
+                menu.addAction("Remember Version")
             if self.model.isChanged(index):
                 menu.addAction("Revert IOC")
-            if self.model.needsApply(index):
-                menu.addAction("Apply Configuration")
-            menu.addAction("Remember Version")
             menu.addAction("Edit Details")
         gpos = self.ui.tableView.viewport().mapToGlobal(pos)
         selectedItem = menu.exec_(gpos)
@@ -261,7 +262,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
         l=d.layout()
 
         tmp=QtGui.QLabel()
-        tmp.setText("IOC Name *")
+        tmp.setText("IOC Name *+")
         l.addWidget(tmp, 4, 0)
         namegui=QtGui.QLineEdit()
         l.addWidget(namegui, 4, 1)
@@ -279,7 +280,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
         l.addWidget(hostgui, 6, 1)
 
         tmp=QtGui.QLabel()
-        tmp.setText("Port *")
+        tmp.setText("Port (-1 = HARD IOC) *+")
         l.addWidget(tmp, 7, 0)
         portgui=QtGui.QLineEdit()
         l.addWidget(portgui, 7, 1)
@@ -292,8 +293,13 @@ class GraphicUserInterface(QtGui.QMainWindow):
         l.addWidget(parentgui, 8, 1)
 
         tmp=QtGui.QLabel()
-        tmp.setText("* = Required Fields")
+        tmp.setText("* = Required Fields for Soft IOCs.")
         l.addWidget(tmp, 9, 0)
+
+        tmp=QtGui.QLabel()
+        tmp.setText("+ = Required Fields for Hard IOCs.")
+        l.addWidget(tmp, 10, 0)
+
 
         fn = lambda dir : self.setParent(parentgui, namegui.text, dir)
         self.connect(d, QtCore.SIGNAL("directoryEntered(const QString &)"), fn)
@@ -310,18 +316,18 @@ class GraphicUserInterface(QtGui.QMainWindow):
                 dir = str(d.selectedFiles()[0])
             except:
                 dir = ""
-            if name == "" or host == "" or port == "" or dir == "":
-                QtGui.QMessageBox.critical(None,
-                                           "Error",
-                                           "Failed to set required parameters for new IOC!",
-                                           QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
-                continue
             try:
                 n = int(port)
             except:
                 QtGui.QMessageBox.critical(None,
                                            "Error",
                                            "Port is not an integer!",
+                                           QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
+                continue
+            if name == "" or (n != -1 and (host == "" or port == "" or dir == "")):
+                QtGui.QMessageBox.critical(None,
+                                           "Error",
+                                           "Failed to set required parameters for new IOC!",
                                            QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
                 continue
             self.model.addIOC(name, alias, host, port, dir)

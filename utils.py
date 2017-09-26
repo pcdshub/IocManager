@@ -80,24 +80,28 @@ import telnetlib, string, datetime, os, time, fcntl, re, glob, subprocess, copy
 #
 # Defines
 #
-CAMRECORDER = os.getenv("CAMRECORD_ROOT")
-PROCSERV	= os.getenv("PROCSERV")
+CAMRECORDER  = os.getenv("CAMRECORD_ROOT")
+PROCSERV     = os.getenv("PROCSERV")
 if PROCSERV is None:
-    PROCSERV= "procServ"
+    PROCSERV = "procServ"
 else:
-    PROCSERV= PROCSERV.split()[0]
-TMP_DIR     = "%s/config/.status/tmp" % os.getenv("PYPS_ROOT")
-STARTUP_DIR = "%s/config/%%s/iocmanager/" % os.getenv("PYPS_ROOT")
-CONFIG_FILE = "%s/config/%%s/iocmanager.cfg" % os.getenv("PYPS_ROOT")
-AUTH_FILE   = "%s/config/%%s/iocmanager.auth" % os.getenv("PYPS_ROOT")
-STATUS_DIR  = "%s/config/.status/%%s" % os.getenv("PYPS_ROOT")
-LOGBASE     = "%s/%%s/iocInfo/ioc.log" % os.getenv("IOC_DATA")
-PVFILE      = "%s/%%s/iocInfo/IOC.pvlist" % os.getenv("IOC_DATA")
-INSTALL     = __file__[:__file__.rfind('/')] + "/installConfig"
-BASEPORT    = 39050
-COMMITHOST  = "psbuild-rhel7"
-KINIT       = "/afs/slac.stanford.edu/package/heimdal/bin/kinit"
-NETCONFIG   = "/reg/common/tools/bin/netconfig"
+    PROCSERV = PROCSERV.split()[0]
+TMP_DIR      = "%s/config/.status/tmp" % os.getenv("PYPS_ROOT")
+STARTUP_DIR  = "%s/config/%%s/iocmanager/" % os.getenv("PYPS_ROOT")
+#CONFIG_FILE = "%s/config/%%s/iocmanager.cfg" % os.getenv("PYPS_ROOT")
+CONFIG_FILE  = "/reg/neh/home4/mcbrowne/controls/ioc/iocmanager.cfg.%s"
+HIOC_STARTUP = "/reg/d/iocCommon/hioc/%s/startup.cmd"
+HIOC_POWER   = "/reg/common/tools/bin/power"
+HIOC_CONSOLE = "/reg/common/tools/bin/console"
+AUTH_FILE    = "%s/config/%%s/iocmanager.auth" % os.getenv("PYPS_ROOT")
+STATUS_DIR   = "%s/config/.status/%%s" % os.getenv("PYPS_ROOT")
+LOGBASE      = "%s/%%s/iocInfo/ioc.log" % os.getenv("IOC_DATA")
+PVFILE       = "%s/%%s/iocInfo/IOC.pvlist" % os.getenv("IOC_DATA")
+INSTALL      = __file__[:__file__.rfind('/')] + "/installConfig"
+BASEPORT     = 39050
+COMMITHOST   = "psbuild-rhel7"
+KINIT        = "/afs/slac.stanford.edu/package/heimdal/bin/kinit"
+NETCONFIG    = "/reg/common/tools/bin/netconfig"
 
 STATUS_INIT      = "INITIALIZE WAIT"
 STATUS_NOCONNECT = "NOCONNECT"
@@ -397,7 +401,7 @@ def startProc(cfg, entry, local=False):
 def readConfig(cfg, time = None):
     config = {'procmgr_config': None, 'hosts': None, 'dir':'dir',
               'id':'id', 'cmd':'cmd', 'flags':'flags', 'port':'port', 'host':'host',
-              'disable':'disable', 'history':'history', 'delay':'delay', 'alias':'alias' }
+              'disable':'disable', 'history':'history', 'delay':'delay', 'alias':'alias', 'hard':'hard' }
     vars = set(config.keys())
     if len(cfg.split('/')) > 1: # cfg is file path
         cfgfn = cfg
@@ -425,17 +429,30 @@ def readConfig(cfg, time = None):
         # Add defaults!
         if not 'disable' in l.keys():
             l['disable'] = False
+        if not 'hard' in l.keys():
+            l['hard'] = False
         if not 'history' in l.keys():
             l['history'] = []
         if not 'alias' in l.keys():
             l['alias'] = ""
         l['cfgstat'] = CONFIG_NORMAL
-        l['rid'] = l['id']
-        l['rdir'] = l['dir']
-        l['rhost'] = l['host']
-        l['rport'] = l['port']
-        l['newstyle'] = False
-        l['pdir'] = findParent(l['id'], l['dir'])
+        if l['hard']:
+            l['base'] = getBaseName(l['id'])
+            l['dir'] = getHardIOCDir(l['id'])
+            l['host'] = l['id']
+            l['port'] = -1
+            l['rhost'] = l['id']
+            l['rport'] = -1
+            l['rdir'] = l['dir']
+            l['newstyle'] = False
+            l['pdir'] = ""
+        else:
+            l['rid'] = l['id']
+            l['rdir'] = l['dir']
+            l['rhost'] = l['host']
+            l['rport'] = l['port']
+            l['newstyle'] = False
+            l['pdir'] = findParent(l['id'], l['dir'])
     return res
 
 #
@@ -462,6 +479,13 @@ def writeConfig(hutch, hostlist, cfglist, vars, f=None):
             alias = entry['newalias']
         except:
             alias = entry['alias']
+        if entry['hard']:
+            if alias != "":
+                extra = ", alias: '%s'" % alias
+            else:
+                extra = ""
+            f.write(" {id:'%s', hard: True%s},\n" % (id, extra))
+            continue
         try:
             host = entry['newhost']
         except:
@@ -476,21 +500,21 @@ def writeConfig(hutch, hostlist, cfglist, vars, f=None):
             dir = entry['dir']
         extra = ""
         if entry['disable']:
-            extra += ", disable : True"
+            extra += ", disable: True"
         if alias != "":
-            extra += ", alias : '%s'" % alias
+            extra += ", alias: '%s'" % alias
         try:
             h = entry['history']
             if h != []:
-                extra += ",\n  history : [" + ", ".join(["'"+l+"'" for l in h]) + "]"
+                extra += ",\n  history: [" + ", ".join(["'"+l+"'" for l in h]) + "]"
         except:
             pass
         try:
-            extra += ", delay : %d" % entry['delay']
+            extra += ", delay: %d" % entry['delay']
         except:
             pass
         try:
-            extra += ", cmd : '%s'" % entry['cmd']
+            extra += ", cmd: '%s'" % entry['cmd']
         except:
             pass
         f.write(" {id:'%s', host: '%s', port: %s, dir: '%s'%s},\n" %
@@ -621,7 +645,7 @@ def applyConfig(cfg, verify=None, ioc=None):
               current[l] = result
 
   running = current.keys()
-  wanted = [l for l in wanted if not config[l]['disable']]
+  wanted = [l for l in wanted if not config[l]['disable'] and not config[l]['hard']]
 
   # Camera recorders always seem to be in the wrong directory, so cheat!
   for l in cfglist:
@@ -808,3 +832,46 @@ def netconfig(host):
 
 def rebootServer(host):
     os.system("/usr/bin/ipmitool -I lanplus -U ADMIN -Pipmia8min -H %s power cycle &" % host)
+
+def getHardIOCDir(host):
+    dir = "Unknown"
+    try:
+        lines = [l.strip() for l in open(HIOC_STARTUP % host).readlines()]
+    except:
+        pass
+    for l in lines:
+        if l[:5] == "chdir":
+            try:
+                dir = "ioc/" + re.search('\"/iocs/(.*)/iocBoot', l).group(1)
+            except:
+                pass
+    return dir
+
+def restartHIOC(host):
+    try:
+        for l in netconfig(host)['console port dn'].split(','):
+            if l[:7] == 'cn=port':
+                port = 2000 + int(l[7:])
+            if l[:7] == 'cn=digi':
+                host = l[3:]
+    except:
+        return
+    try:
+        tn = telnetlib.Telnet(host, port, 1)
+    except:
+        return
+    tn.write("\x0a")
+    tn.read_until("> ", 2)
+    tn.write("exit\x0a")
+    tn.read_until("> ", 2)
+    tn.write("rtemsReboot()\x0a")
+    tn.close()
+
+def rebootHIOC(host):
+    try:
+        env = copy.deepcopy(os.environ)
+        del env['LD_LIBRARY_PATH']
+        p = subprocess.Popen([HIOC_POWER, host, 'cycle'], env=env, stdout=subprocess.PIPE)
+        print p.communicate()[0]
+    except:
+        pass

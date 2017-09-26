@@ -10,6 +10,7 @@ import threading
 import subprocess
 import tempfile
 import stat
+import psp
 
 #
 # Column definitions.
@@ -64,7 +65,20 @@ class StatusPoll(threading.Thread):
             for l in self.model.cfglist:
                 if l['stattime'] + self.interval > time.time():
                     continue;
-                s = utils.check_status(l['host'], l['port'], l['id'])
+                if l['hard']:
+                    s = {'pid'         : -1,
+                         'autorestart' : False }
+                    try:
+                        pv = psp.Pv.Pv(l['base'] + ":HEARTBEAT")
+                        pv.connect(0.5)
+                        pv.disconnect()
+                        s['status'] = utils.STATUS_RUNNING
+                    except:
+                        s['status'] = utils.STATUS_SHUTDOWN
+                    s['rid'] = l['id']
+                    s['rdir'] = l['dir']
+                else:
+                    s = utils.check_status(l['host'], l['port'], l['id'])
                 s['stattime'] = time.time()
                 s['rhost'] = l['host']
                 s['rport'] = l['port']
@@ -238,20 +252,29 @@ class MyModel(QAbstractTableModel):
 
     #
     # IOCNAME can be selected.
-    # ENABLE can be selected and checked.
-    # HOST, PORT, and VERSION can be edited.
+    # ENABLE can be selected.  If not hard, it can also be checked.
+    # HOST, PORT, and VERSION can be edited if not hard.
     # STATUS and EXTRA are only enabled.
     #
     def flags(self, index):
         c = index.column()
+        try:
+            if self.cfglist[index.row()]['hard']:
+                editable = Qt.NoItemFlags
+                checkable = Qt.NoItemFlags
+            else:
+                editable = Qt.ItemIsEditable
+                checkable = Qt.ItemIsUserCheckable
+        except:
+            return Qt.NoItemFlags
         if c == IOCNAME:
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable
         elif c == ENABLE:
-            return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsUserCheckable
+            return Qt.ItemIsEnabled | Qt.ItemIsSelectable | checkable
         elif c == STATUS or c == EXTRA:
             return Qt.ItemIsEnabled
         else:
-            return Qt.ItemIsEnabled | Qt.ItemIsEditable
+            return Qt.ItemIsEnabled | editable
 
     def setData(self, index, value, role=Qt.EditRole):
         try:
@@ -291,6 +314,8 @@ class MyModel(QAbstractTableModel):
         if c == STATUS:
             return entry['status']
         elif c == EXTRA:
+            if entry['hard']:
+                return "HARD IOC"
             v = ""
             if entry['dir'] != entry['rdir'] and entry['rdir'] != "/tmp":
                 v = entry['rdir'] + " "
@@ -309,6 +334,8 @@ class MyModel(QAbstractTableModel):
             except:
                 if entry['alias'] != "":
                     return entry['alias']
+        if c == PORT and entry['hard']:
+            return ""
         try:
             return entry[self.newfield[c]]
         except:
@@ -370,6 +397,8 @@ class MyModel(QAbstractTableModel):
                         return QVariant(QBrush(Qt.green))
             elif c == PORT:
                 r = index.row()
+                if self.cfglist[r]['hard']:
+                    return QVariant(QBrush(QColor(224,224,224)))  # Light gray
                 h = self.value(self.cfglist[r], HOST)
                 p = self.value(self.cfglist[r], PORT)
                 for i in range(len(self.cfglist)):
@@ -573,7 +602,16 @@ class MyModel(QAbstractTableModel):
     def isChanged(self, index):
         entry = self.cfglist[index.row()]
         keys = entry.keys()
+        try:
+            if entry['cfgstat'] == utils.CONFIG_DELETED:
+                return True
+        except:
+            pass
         return 'newhost' in keys or 'newport' in keys or 'newdir' in keys or 'newid' in keys
+
+    def isHard(self, index):
+        entry = self.cfglist[index.row()]
+        return entry['hard']
 
     def needsApply(self, index):
         entry = self.cfglist[index.row()]
@@ -592,6 +630,8 @@ class MyModel(QAbstractTableModel):
 
     def revertIOC(self, index):
         entry = self.cfglist[index.row()]
+        if entry['cfgstat'] == utils.CONFIG_DELETED:
+            entry['cfgstat'] = utils.CONFIG_NORMAL
         for f in self.newfield:
             try:
                 if f != None:
@@ -664,36 +704,41 @@ class MyModel(QAbstractTableModel):
         except:
             self.detailsdialog.ui.flagCheckBox.setChecked(False)
         if self.detailsdialog.exec_() == QDialog.Accepted:
-            newcmd = str(self.detailsdialog.ui.cmdEdit.text())
-            if newcmd == "":
-                try:
-                    del entry['cmd']
-                except:
-                    pass
-            else:
-                entry['cmd'] = newcmd
-                
-            if 'cmd' in entry.keys() and self.detailsdialog.ui.flagCheckBox.isChecked():
-                newflags = 'u'
-                entry['flags'] = 'u'
-            else:
-                newflags = ""
-                try:
-                    del entry['flags']
-                except:
-                    pass
-                
-            try:
-                newdelay = int(self.detailsdialog.ui.delayEdit.text())
-            except:
+            if entry['hard']:
+                newcmd = ""
                 newdelay = 0
-            if newdelay == 0:
-                try:
-                    del entry['delay']
-                except:
-                    pass
+                newflags = ""
             else:
-                entry['delay'] = newdelay
+                newcmd = str(self.detailsdialog.ui.cmdEdit.text())
+                if newcmd == "":
+                    try:
+                        del entry['cmd']
+                    except:
+                        pass
+                else:
+                    entry['cmd'] = newcmd
+                
+                if 'cmd' in entry.keys() and self.detailsdialog.ui.flagCheckBox.isChecked():
+                    newflags = 'u'
+                    entry['flags'] = 'u'
+                else:
+                    newflags = ""
+                    try:
+                        del entry['flags']
+                    except:
+                        pass
+                
+                try:
+                    newdelay = int(self.detailsdialog.ui.delayEdit.text())
+                except:
+                    newdelay = 0
+                if newdelay == 0:
+                    try:
+                        del entry['delay']
+                    except:
+                        pass
+                else:
+                    entry['delay'] = newdelay
 
             alias = str(self.detailsdialog.ui.aliasEdit.text())
             if alias != entry['alias']:
@@ -714,11 +759,23 @@ class MyModel(QAbstractTableModel):
                     del entry['newid']
 
     def addIOC(self, id, alias, host, port, dir):
-        dir = utils.fixdir(dir, id)
-        cfg = {'id': id, 'host': host, 'port': int(port), 'dir': dir, 'status' : utils.STATUS_INIT,
-               'stattime': 0, 'cfgstat' : utils.CONFIG_ADDED, 'disable' : False,
-               'history' : [], 'rid': id, 'rhost': host, 'rport': int(port), 'rdir': dir,
-               'pdir' : utils.findParent(id, dir), 'newstyle' : True, 'alias' : alias }
+        if int(port) == -1:
+            dir = utils.getHardIOCDir(id)
+            host = id
+            base = utils.getBaseName(id)
+            if base is None:
+                base = ""
+            cfg = {'id': id, 'host': id, 'port': -1, 'dir': dir,
+                   'status': utils.STATUS_INIT, 'base': base,
+                   'stattime': 0, 'cfgstat' : utils.CONFIG_ADDED, 'disable' : False,
+                   'history': [], 'rid': id, 'rhost': id, 'rport': -1, 'rdir': dir,
+                   'pdir': "", 'newstyle': False, 'alias': alias, 'hard': True }
+        else:
+            dir = utils.fixdir(dir, id)
+            cfg = {'id': id, 'host': host, 'port': int(port), 'dir': dir, 'status' : utils.STATUS_INIT,
+                   'stattime': 0, 'cfgstat' : utils.CONFIG_ADDED, 'disable' : False,
+                   'history' : [], 'rid': id, 'rhost': host, 'rport': int(port), 'rdir': dir,
+                   'pdir' : utils.findParent(id, dir), 'newstyle' : True, 'alias' : alias, 'hard' : False }
         if not host in self.hosts:
             self.hosts.append(host)
             self.hosts.sort()
@@ -743,9 +800,18 @@ class MyModel(QAbstractTableModel):
         # we have to get rid of LD_LIBRARY_PATH here.
         #
         try:
+            if entry['hard']:
+                for l in utils.netconfig(entry['id'])['console port dn'].split(','):
+                    if l[:7] == 'cn=port':
+                        port = 2000 + int(l[7:])
+                    if l[:7] == 'cn=digi':
+                        host = l[3:]
+            else:
+                host = entry['host']
+                port = entry['port']
             x = subprocess.Popen(["gnome-terminal", "--disable-factory", "-t", entry['id'], "-x",
                                  "/bin/csh", "-c",
-                                 "unsetenv LD_LIBRARY_PATH ; telnet %s %s" % (entry['host'], entry['port'])])
+                                 "unsetenv LD_LIBRARY_PATH ; telnet %s %s" % (host, port)])
             self.children.append(x)
         except:
             pass
@@ -775,7 +841,10 @@ class MyModel(QAbstractTableModel):
                     break
             if entry == None:
                 return
-        utils.restartProc(entry['host'], entry['port'])
+        if entry['hard']:
+            utils.restartHIOC(entry['id'])
+        else:
+            utils.restartProc(entry['host'], entry['port'])
 
     def rebootServer(self, index):
         if isinstance(index, QModelIndex):
@@ -788,11 +857,14 @@ class MyModel(QAbstractTableModel):
                     break
             if entry == None:
                 return
+        if entry['hard']:
+            utils.rebootHIOC(entry['id'])
+            return
         host = entry['host']
-        ihost = host + '-ipmi'
         d = QDialog();
         d.setWindowTitle("Reboot Server " + host)
         d.layout = QVBoxLayout(d)
+        ihost = host + '-ipmi'
         nc = utils.netconfig(ihost)
         try:
             nc['name']
