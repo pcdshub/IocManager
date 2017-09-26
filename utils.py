@@ -88,8 +88,7 @@ else:
     PROCSERV = PROCSERV.split()[0]
 TMP_DIR      = "%s/config/.status/tmp" % os.getenv("PYPS_ROOT")
 STARTUP_DIR  = "%s/config/%%s/iocmanager/" % os.getenv("PYPS_ROOT")
-#CONFIG_FILE = "%s/config/%%s/iocmanager.cfg" % os.getenv("PYPS_ROOT")
-CONFIG_FILE  = "/reg/neh/home4/mcbrowne/controls/ioc/iocmanager.cfg.%s"
+CONFIG_FILE = "%s/config/%%s/iocmanager.cfg" % os.getenv("PYPS_ROOT")
 HIOC_STARTUP = "/reg/d/iocCommon/hioc/%s/startup.cmd"
 HIOC_POWER   = "/reg/common/tools/bin/power"
 HIOC_CONSOLE = "/reg/common/tools/bin/console"
