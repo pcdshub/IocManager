@@ -574,7 +574,7 @@ def readStatusDir(cfg, readfile=lambda fn, f: open(fn).readlines()):
                         # Duplicate, but newer, so replace!
                         try:
                             print "Deleting obsolete %s in favor of %s" % (d[(stat[1], int(stat[2]))]['rid'], f)
-                            os.unlink(d[(stat[1], int(stat[2]))]['rid'])
+                            os.unlink((STATUS_DIR % cfg) + "/" + d[(stat[1], int(stat[2]))]['rid'])
                         except:
                             pass
                         raise Exception
@@ -582,7 +582,7 @@ def readStatusDir(cfg, readfile=lambda fn, f: open(fn).readlines()):
                         # Duplicate, but older, so ignore!
                         try:
                             print "Deleting obsolete %s in favor of %s" % (f, d[(stat[1], int(stat[2]))]['rid'])
-                            os.unlink(f)
+                            os.unlink(fn)
                         except:
                             pass
                 except:
@@ -595,7 +595,7 @@ def readStatusDir(cfg, readfile=lambda fn, f: open(fn).readlines()):
                                                   'mtime': mtime}
             else:
                 try:
-                    os.unlink(f)
+                    os.unlink(fn)
                 except:
                     pass
     return d.values()
