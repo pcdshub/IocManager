@@ -874,3 +874,10 @@ def rebootHIOC(host):
         print p.communicate()[0]
     except:
         pass
+
+def findPV(regexp, ioc):
+    try:
+        lines = [l.split(",")[0] for l in open(PVFILE % ioc).readlines()]
+    except:
+        return []
+    return filter(regexp.match, lines)

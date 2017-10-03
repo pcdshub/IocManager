@@ -233,6 +233,17 @@
          </property>
         </widget>
        </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_55">
+         <property name="text">
+          <string>Find PV:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLineEdit" name="findpv">
+        </widget>
+       </item>
       </layout>
      </widget>
     </item>

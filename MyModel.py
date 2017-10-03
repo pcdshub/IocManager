@@ -11,6 +11,7 @@ import subprocess
 import tempfile
 import stat
 import psp
+import re
 
 #
 # Column definitions.
@@ -164,7 +165,9 @@ class MyModel(QAbstractTableModel):
     def startPoll(self):
         self.poll.start()
 
-    def findid(self, id, l):
+    def findid(self, id, l=None):
+        if l is None:
+            l = self.cfglist
         for i in range(len(l)):
             if id == l[i]['id']:
                 return i
@@ -989,3 +992,17 @@ class MyModel(QAbstractTableModel):
             return self.vdict[v]
         except:
             return None
+
+    def findPV(self, name):
+        l = []
+        regexp = re.compile(".*"+name)
+        row = 0
+        for entry in self.cfglist:
+            ll = utils.findPV(regexp, entry['id'])
+            for r in ll:
+                if r == name:  # One exact match, forget the rest!
+                    return [(r, entry['id'], entry['alias'])]
+                else:
+                    l.append((r, entry['id'], entry['alias']))
+            row += 1
+        return l

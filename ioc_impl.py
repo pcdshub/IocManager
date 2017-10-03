@@ -72,6 +72,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
         self.connect(self.ui.actionAuth,     QtCore.SIGNAL("triggered()"), self.doAuthenticate)
         self.connect(self.ui.actionQuit,     QtCore.SIGNAL("triggered()"), self.doQuit)
         self.connect(self.ui.actionHelp,     QtCore.SIGNAL("triggered()"), self.doHelp)
+        self.connect(self.ui.findpv,         QtCore.SIGNAL("returnPressed()"), self. doFindPV)
         self.connect(self.utimer, QtCore.SIGNAL("timeout()"), self.unauthenticate)
         self.ui.tableView.setModel(self.model)
         self.ui.tableView.setItemDelegate(self.delegate)
@@ -129,6 +130,38 @@ class GraphicUserInterface(QtGui.QMainWindow):
         d.label2 = QtGui.QLabel(d)
         d.label2.setText("https://confluence.slac.stanford.edu/display/PCDS/IOC+Manager+User+Guide")
         d.layout.addWidget(d.label2)
+        d.buttonBox = QtGui.QDialogButtonBox(d)
+        d.buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        d.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Ok)
+        d.layout.addWidget(d.buttonBox)
+        d.connect(d.buttonBox, QtCore.SIGNAL("accepted()"), d.accept)
+        d.exec_()
+
+    def doFindPV(self):
+        d = QtGui.QDialog();
+        d.setWindowTitle("Find PV: %s" % self.ui.findpv.text())
+        d.layout = QtGui.QVBoxLayout(d)
+        te = QtGui.QPlainTextEdit(d)
+        te.setMinimumSize(QtCore.QSize(600, 200))
+        font = QtGui.QFont()
+        font.setFamily("Monospace")
+        font.setPointSize(10)
+        te.setFont(font)
+        te.setTextInteractionFlags(QtCore.Qt.TextSelectableByKeyboard|QtCore.Qt.TextSelectableByMouse)
+        te.setMaximumBlockCount(500)
+        te.setPlainText("")
+        result = self.model.findPV(str(self.ui.findpv.text())) # Return list of (pv, ioc, alias)
+        for l in result:
+            if l[2] != "":
+                te.appendPlainText("%s --> %s (%s)" % l)
+            else:
+                te.appendPlainText("%s --> %s%s" % l)     # Since l[2] is empty!
+        if len(result) == 1:
+            sm = self.ui.tableView.selectionModel()
+            idx = self.model.createIndex(self.model.findid(l[1]), 0)
+            sm.select(idx, Qt.QItemSelectionModel.SelectCurrent)
+            self.ui.tableView.scrollTo(idx, Qt.QAbstractItemView.PositionAtCenter)
+        d.layout.addWidget(te)
         d.buttonBox = QtGui.QDialogButtonBox(d)
         d.buttonBox.setOrientation(QtCore.Qt.Horizontal)
         d.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Ok)

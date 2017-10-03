@@ -2,8 +2,7 @@
 
 # Form implementation generated from reading ui file 'ioc.ui'
 #
-# Created: Mon Jul 10 12:42:34 2017
-#      by: PyQt4 UI code generator 4.10.1
+# Created by: PyQt4 UI code generator 4.11.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -42,7 +41,6 @@ class Ui_MainWindow(object):
         self.widget_2.setSizePolicy(sizePolicy)
         self.widget_2.setObjectName(_fromUtf8("widget_2"))
         self.gridLayout = QtGui.QGridLayout(self.widget_2)
-        self.gridLayout.setMargin(0)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
         self.label = QtGui.QLabel(self.widget_2)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Preferred)
@@ -144,6 +142,12 @@ class Ui_MainWindow(object):
         self.userLabel = QtGui.QLabel(self.widget_2)
         self.userLabel.setObjectName(_fromUtf8("userLabel"))
         self.gridLayout.addWidget(self.userLabel, 2, 4, 1, 1)
+        self.label_55 = QtGui.QLabel(self.widget_2)
+        self.label_55.setObjectName(_fromUtf8("label_55"))
+        self.gridLayout.addWidget(self.label_55, 3, 0, 1, 1)
+        self.findpv = QtGui.QLineEdit(self.widget_2)
+        self.findpv.setObjectName(_fromUtf8("findpv"))
+        self.gridLayout.addWidget(self.findpv, 3, 1, 1, 1)
         self.verticalLayout.addWidget(self.widget_2)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
@@ -211,6 +215,7 @@ class Ui_MainWindow(object):
         self.label_5.setText(_translate("MainWindow", "Location:", None))
         self.label_6.setText(_translate("MainWindow", "Description:", None))
         self.userLabel.setText(_translate("MainWindow", "User: Guest", None))
+        self.label_55.setText(_translate("MainWindow", "Find PV:", None))
         self.menuConfiguration.setTitle(_translate("MainWindow", "Configuration", None))
         self.menuIOC_Control.setTitle(_translate("MainWindow", "IOC Control", None))
         self.menuMisc.setTitle(_translate("MainWindow", "Utilities", None))
