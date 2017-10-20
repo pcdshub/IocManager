@@ -576,7 +576,9 @@ def readStatusDir(cfg, readfile=lambda fn, f: open(fn).readlines()):
                             print "Deleting obsolete %s in favor of %s" % (d[(stat[1], int(stat[2]))]['rid'], f)
                             os.unlink((STATUS_DIR % cfg) + "/" + d[(stat[1], int(stat[2]))]['rid'])
                         except:
+                            print "Error while trying to delete file %s!" % (STATUS_DIR % cfg) + "/" + d[(stat[1], int(stat[2]))]['rid']
                             pass
+                        # Leave this here to make sure file is updated.
                         raise Exception
                     else:
                         # Duplicate, but older, so ignore!
@@ -584,6 +586,8 @@ def readStatusDir(cfg, readfile=lambda fn, f: open(fn).readlines()):
                             print "Deleting obsolete %s in favor of %s" % (f, d[(stat[1], int(stat[2]))]['rid'])
                             os.unlink(fn)
                         except:
+                            print "Error while trying to delete file!" % (STATUS_DIR % cfg) + "/" + d[(stat[1], int(stat[2]))]['rid']
+
                             pass
                 except:
                     d[(stat[1], int(stat[2]))] = {'rid' : f,
