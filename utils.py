@@ -586,8 +586,7 @@ def readStatusDir(cfg, readfile=lambda fn, f: open(fn).readlines()):
                             print "Deleting obsolete %s in favor of %s" % (f, d[(stat[1], int(stat[2]))]['rid'])
                             os.unlink(fn)
                         except:
-                            print "Error while trying to delete file!" % (STATUS_DIR % cfg) + "/" + d[(stat[1], int(stat[2]))]['rid']
-
+                            print "Error while trying to delete file %s!" % fn
                             pass
                 except:
                     d[(stat[1], int(stat[2]))] = {'rid' : f,
@@ -601,6 +600,7 @@ def readStatusDir(cfg, readfile=lambda fn, f: open(fn).readlines()):
                 try:
                     os.unlink(fn)
                 except:
+                    print "Error while trying to delete file %s!" % fn
                     pass
     return d.values()
 
@@ -692,6 +692,7 @@ def applyConfig(cfg, verify=None, ioc=None):
         # This is dead, so get rid of the status file!
         os.unlink((STATUS_DIR % cfg) + "/" + l)
     except:
+        print "Error while trying to delete file %s!" % (STATUS_DIR % cfg) + "/" + l
         pass
 
   for l in start_list:
