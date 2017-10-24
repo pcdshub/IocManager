@@ -89,6 +89,7 @@ else:
 TMP_DIR      = "%s/config/.status/tmp" % os.getenv("PYPS_ROOT")
 STARTUP_DIR  = "%s/config/%%s/iocmanager/" % os.getenv("PYPS_ROOT")
 CONFIG_FILE = "%s/config/%%s/iocmanager.cfg" % os.getenv("PYPS_ROOT")
+NOSSH_FILE = "%s/config/%%s/iocmanager.nossh" % os.getenv("PYPS_ROOT")
 HIOC_STARTUP = "/reg/d/iocCommon/hioc/%s/startup.cmd"
 HIOC_POWER   = "/reg/common/tools/bin/power"
 HIOC_CONSOLE = "/reg/common/tools/bin/console"
@@ -716,6 +717,17 @@ def check_auth(user, hutch):
         if l == user:
             return True
     return False
+
+def check_ssh(user, hutch):
+    try:
+        lines = open(NOSSH_FILE % hutch).readlines()
+    except:
+        return True
+    lines = [l.strip() for l in lines]
+    for l in lines:
+        if l == user:
+            return False
+    return True
 
 eq      = re.compile("^[ \t]*([A-Za-z_][A-Za-z0-9_]*)[ \t]*=[ \t]*(.*?)[ \t]*$")
 eqq     = re.compile('^[ \t]*([A-Za-z_][A-Za-z0-9_]*)[ \t]*=[ \t]*"([^"]*)"[ \t]*$')

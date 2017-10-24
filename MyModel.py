@@ -431,11 +431,18 @@ class MyModel(QAbstractTableModel):
             return QVariant(self.headerdata[col])
         return QVariant()
 
+    def _portkey(self, d, Ncol):
+        v = self.value(d, Ncol)
+        if v == "":
+            return -1
+        else:
+            return int(v)
+
     def sort(self, Ncol, order):
         self.lastsort = (Ncol, order)
         self.emit(SIGNAL("layoutAboutToBeChanged()"))
         if Ncol == PORT:
-            self.cfglist = sorted(self.cfglist, key=lambda d: int(self.value(d, Ncol)))
+            self.cfglist = sorted(self.cfglist, key=lambda d: self._portkey(d, Ncol))
         else:
             self.cfglist = sorted(self.cfglist, key=lambda d: self.value(d, Ncol))
         if order == Qt.DescendingOrder:

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>713</width>
+    <width>1600</width>
     <height>525</height>
    </rect>
   </property>
@@ -241,8 +241,7 @@
         </widget>
        </item>
        <item row="3" column="1">
-        <widget class="QLineEdit" name="findpv">
-        </widget>
+        <widget class="QLineEdit" name="findpv"/>
        </item>
       </layout>
      </widget>
@@ -254,8 +253,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>713</width>
-     <height>22</height>
+     <width>1263</width>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuConfiguration">

@@ -116,7 +116,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
             pass
 
     def doApply(self):
-        if not self.authorize_action():
+        if not self.authorize_action(True):
             return
         self.model.doApply()
 
@@ -173,7 +173,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
         self.close()
         
     def doSave(self):
-        if not self.authorize_action():
+        if not self.authorize_action(True):
             return
         self.model.doSave()
 
@@ -187,7 +187,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
 
     def doServerReboot(self):
         if self.currentIOC:
-            if not self.authorize_action():
+            if not self.authorize_action(False):
                 return
             self.model.rebootServer(self.currentIOC)
     
@@ -196,7 +196,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
             self.model.viewlogIOC(self.currentIOC)
     
     def doConsole(self):
-        if self.currentIOC and (self.model.getVar('allow_console') or self.authorize_action()):
+        if self.currentIOC and (self.model.getVar('allow_console') or self.authorize_action(False)):
             self.model.connectIOC(self.currentIOC)
     
     def dopv(self, name, gui, format):
@@ -370,6 +370,16 @@ class GraphicUserInterface(QtGui.QMainWindow):
         if user == "":
             user = self.myuid
         need_su = self.myuid != user
+        if not utils.check_ssh(user, self.hutch):
+            if self.model.userIO != None:
+                try:
+                    os.close(self.model.userIO)
+                except:
+                    pass
+            self.model.userIO = None
+            self.ui.userLabel.setText("User: " + self.myuid)
+            self.model.user = self.myuid
+            return self.myuid == user
         #
         # Try to use su to become the user.  If this fails, one of the
         # I/O operations below will raise an exception, because the su
@@ -422,14 +432,16 @@ class GraphicUserInterface(QtGui.QMainWindow):
         self.utimer.stop()
         self.authenticate_user(self.myuid, "")
 
-    def authorize_action(self):
+    def authorize_action(self, file_action):
         # The user might be OK.
-        if utils.check_auth(self.model.user, self.hutch):
+        if (utils.check_auth(self.model.user, self.hutch) and
+            utils.check_ssh(self.model.user, self.hutch) == file_action):
             return True
         # If the user isn't OK, give him or her a chance to authenticate.
         if self.model.user == self.myuid:
             self.doAuthenticate()
-        if utils.check_auth(self.model.user, self.hutch):
+        if (utils.check_auth(self.model.user, self.hutch) and
+            utils.check_ssh(self.model.user, self.hutch) == file_action):
             return True
         QtGui.QMessageBox.critical(None,
                                    "Error", "Action not authorized for user %s" % self.model.user,
