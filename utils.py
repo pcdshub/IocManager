@@ -145,7 +145,7 @@ def getBaseName(ioc):
             if pv[-10:] == ":HEARTBEAT":
                 return pv[:-10]
     except:
-        pass
+        print "Error parsing % for base PV name!" % PVFILE
     return None
 
 #
@@ -578,7 +578,6 @@ def readStatusDir(cfg, readfile=lambda fn, f: open(fn).readlines()):
                             os.unlink((STATUS_DIR % cfg) + "/" + d[(stat[1], int(stat[2]))]['rid'])
                         except:
                             print "Error while trying to delete file %s!" % (STATUS_DIR % cfg) + "/" + d[(stat[1], int(stat[2]))]['rid']
-                            pass
                         # Leave this here to make sure file is updated.
                         raise Exception
                     else:
@@ -588,7 +587,6 @@ def readStatusDir(cfg, readfile=lambda fn, f: open(fn).readlines()):
                             os.unlink(fn)
                         except:
                             print "Error while trying to delete file %s!" % fn
-                            pass
                 except:
                     d[(stat[1], int(stat[2]))] = {'rid' : f,
                                                   'pid': stat[0],
@@ -602,7 +600,6 @@ def readStatusDir(cfg, readfile=lambda fn, f: open(fn).readlines()):
                     os.unlink(fn)
                 except:
                     print "Error while trying to delete file %s!" % fn
-                    pass
     return d.values()
 
 #
@@ -694,7 +691,6 @@ def applyConfig(cfg, verify=None, ioc=None):
         os.unlink((STATUS_DIR % cfg) + "/" + l)
     except:
         print "Error while trying to delete file %s!" % (STATUS_DIR % cfg) + "/" + l
-        pass
 
   for l in start_list:
     startProc(cfg, config[l])
@@ -854,16 +850,17 @@ def getHardIOCDir(host):
     try:
         lines = [l.strip() for l in open(HIOC_STARTUP % host).readlines()]
     except:
-        pass
+        print "Error while trying to read HIOC startup file for %!" % host
     for l in lines:
         if l[:5] == "chdir":
             try:
                 dir = "ioc/" + re.search('\"/iocs/(.*)/iocBoot', l).group(1)
             except:
-                pass
+                pass # Having dir show "Unknown" should suffice.
     return dir
 
 def restartHIOC(host):
+    """ Attempts to console into a HIOC and reboot it via the shell. """
     try:
         for l in netconfig(host)['console port dn'].split(','):
             if l[:7] == 'cn=port':
@@ -871,10 +868,12 @@ def restartHIOC(host):
             if l[:7] == 'cn=digi':
                 host = l[3:]
     except:
+        print "Error parsing netconfig for HIOC % console info!" % host
         return
     try:
         tn = telnetlib.Telnet(host, port, 1)
     except:
+        print "Error making telnet connection to HIOC %!" % host
         return
     tn.write("\x0a")
     tn.read_until("> ", 2)
@@ -884,13 +883,14 @@ def restartHIOC(host):
     tn.close()
 
 def rebootHIOC(host):
+    """ Attempts to power cycle a HIOC via the PDU entry in netconfig. """
     try:
         env = copy.deepcopy(os.environ)
         del env['LD_LIBRARY_PATH']
         p = subprocess.Popen([HIOC_POWER, host, 'cycle'], env=env, stdout=subprocess.PIPE)
         print p.communicate()[0]
     except:
-        pass
+        print "Error while trying to power cycle HIOC %!" % host
 
 def findPV(regexp, ioc):
     try:

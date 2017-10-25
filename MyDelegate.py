@@ -92,7 +92,7 @@ class MyDelegate(QStyledItemDelegate):
                     try:
                         r=utils.EPICS_SITE_TOP + r[:r.rindex('/')]
                     except:
-                        pass
+                        print "Error picking new directory!"
                 row = index.row()
                 id = model.getID(row)
                 d=QFileDialog(self.parent, "New Version for %s" % id, r)

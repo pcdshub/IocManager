@@ -560,9 +560,9 @@ class MyModel(QAbstractTableModel):
             os.chmod(file.name, stat.S_IRUSR | stat.S_IRGRP |stat.S_IROTH)
             utils.installConfig(self.hutch, file.name, self.userIO)
             try:
-                os.remove(file.name)
+                os.unlink(file.name)
             except:
-                pass
+                print "Error removing temporary file %!" % file.name
         except:
             QMessageBox.critical(None,
                                  "Error", "Failed to write configuration for %s" % self.hutch,
@@ -577,16 +577,16 @@ class MyModel(QAbstractTableModel):
                 entry['id'] = entry['newid'].strip()
                 del entry['newid']
             except:
-                pass
+                print "Error while renaming IOC % -> %!" % entry['id'],entry['newid']
             try:
                 del entry['details']
             except:
-                pass
+                print "Error deleting IOC details!"
         if comment != None:
             try:
                 utils.commit_config(self.hutch, comment, self.userIO)
             except:
-                pass
+                print "Error committing config file!"
         return True
 
     def doRevert(self):
@@ -616,7 +616,7 @@ class MyModel(QAbstractTableModel):
             if entry['cfgstat'] == utils.CONFIG_DELETED:
                 return True
         except:
-            pass
+            print "Error looking for 'cfgstat' key in: %" % entry
         return 'newhost' in keys or 'newport' in keys or 'newdir' in keys or 'newid' in keys
 
     def isHard(self, index):
@@ -823,8 +823,10 @@ class MyModel(QAbstractTableModel):
                                  "/bin/csh", "-c",
                                  "unsetenv LD_LIBRARY_PATH ; telnet %s %s" % (host, port)])
             self.children.append(x)
+        except KeyError:
+            print "Dict key error while setting up telnet interface for: %" % entry
         except:
-            pass
+            print "Unspecified error while setting up telnet interface"
 
     def viewlogIOC(self, index):
         if isinstance(index, QModelIndex):
@@ -837,7 +839,7 @@ class MyModel(QAbstractTableModel):
                                   "tail -1000lf `ls -t " + (utils.LOGBASE % id) + "* |head -1`"])
             self.children.append(x)
         except:
-            pass
+            print "Error while trying to view log file!"
 
     # index is either an IOC name or an index!
     def rebootIOC(self, index):
