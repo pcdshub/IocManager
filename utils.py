@@ -897,4 +897,4 @@ def findPV(regexp, ioc):
         lines = [l.split(",")[0] for l in open(PVFILE % ioc).readlines()]
     except:
         return []
-    return filter(regexp.match, lines)
+    return filter(regexp.search, lines)

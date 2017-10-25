@@ -435,13 +435,13 @@ class GraphicUserInterface(QtGui.QMainWindow):
     def authorize_action(self, file_action):
         # The user might be OK.
         if (utils.check_auth(self.model.user, self.hutch) and
-            utils.check_ssh(self.model.user, self.hutch) == file_action):
+            (not file_action or utils.check_ssh(self.model.user, self.hutch) == file_action)):
             return True
         # If the user isn't OK, give him or her a chance to authenticate.
         if self.model.user == self.myuid:
             self.doAuthenticate()
         if (utils.check_auth(self.model.user, self.hutch) and
-            utils.check_ssh(self.model.user, self.hutch) == file_action):
+            (not file_action or utils.check_ssh(self.model.user, self.hutch) == file_action)):
             return True
         QtGui.QMessageBox.critical(None,
                                    "Error", "Action not authorized for user %s" % self.model.user,

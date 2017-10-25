@@ -816,6 +816,8 @@ class MyModel(QAbstractTableModel):
                         port = 2000 + int(l[7:])
                     if l[:7] == 'cn=digi':
                         host = l[3:]
+                    if l[:5] == 'cn=ts':
+                        host = l[3:]
             else:
                 host = entry['host']
                 port = entry['port']
@@ -1002,7 +1004,7 @@ class MyModel(QAbstractTableModel):
 
     def findPV(self, name):
         l = []
-        regexp = re.compile(".*"+name)
+        regexp = re.compile(name)
         row = 0
         for entry in self.cfglist:
             ll = utils.findPV(regexp, entry['id'])
