@@ -71,7 +71,7 @@ class StatusPoll(threading.Thread):
                          'autorestart' : False }
                     try:
                         pv = psp.Pv.Pv(l['base'] + ":HEARTBEAT")
-                        pv.connect(0.5)
+                        pv.connect(1.0)
                         pv.disconnect()
                         s['status'] = utils.STATUS_RUNNING
                     except:
