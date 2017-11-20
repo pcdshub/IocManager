@@ -145,7 +145,7 @@ def getBaseName(ioc):
             if pv[-10:] == ":HEARTBEAT":
                 return pv[:-10]
     except:
-        print "Error parsing % for base PV name!" % PVFILE
+        print "Error parsing %s for base PV name!" % PVFILE
     return None
 
 #
@@ -850,7 +850,7 @@ def getHardIOCDir(host):
     try:
         lines = [l.strip() for l in open(HIOC_STARTUP % host).readlines()]
     except:
-        print "Error while trying to read HIOC startup file for %!" % host
+        print "Error while trying to read HIOC startup file for %s!" % host
     for l in lines:
         if l[:5] == "chdir":
             try:
@@ -868,12 +868,12 @@ def restartHIOC(host):
             if l[:7] == 'cn=digi':
                 host = l[3:]
     except:
-        print "Error parsing netconfig for HIOC % console info!" % host
+        print "Error parsing netconfig for HIOC %s console info!" % host
         return
     try:
         tn = telnetlib.Telnet(host, port, 1)
     except:
-        print "Error making telnet connection to HIOC %!" % host
+        print "Error making telnet connection to HIOC %s!" % host
         return
     tn.write("\x0a")
     tn.read_until("> ", 2)
@@ -890,7 +890,7 @@ def rebootHIOC(host):
         p = subprocess.Popen([HIOC_POWER, host, 'cycle'], env=env, stdout=subprocess.PIPE)
         print p.communicate()[0]
     except:
-        print "Error while trying to power cycle HIOC %!" % host
+        print "Error while trying to power cycle HIOC %s!" % host
 
 def findPV(regexp, ioc):
     try:
