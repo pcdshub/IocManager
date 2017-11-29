@@ -1,5 +1,6 @@
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
 import os
 import MyModel
 import hostname_ui
@@ -24,7 +25,7 @@ class MyDelegate(QStyledItemDelegate):
         if col == MyModel.HOST or col == MyModel.VERSION:
             editor = QComboBox(parent)
             editor.setAutoFillBackground(True)
-            self.connect(editor, SIGNAL("currentIndexChanged(int)"), lambda n: self.do_commit(n, editor))
+            editor.currentIndexChanged.connect(lambda n: self.do_commit(n, editor))
             if col == MyModel.HOST:
                 items = index.model().hosts
             else:
@@ -45,7 +46,7 @@ class MyDelegate(QStyledItemDelegate):
     def setEditorData(self, editor, index):
         col = index.column()
         if col == MyModel.HOST:
-            value = index.model().data(index, Qt.EditRole).toString()
+            value = index.model().data(index, Qt.EditRole).value()
             try:
                 idx = index.model().hosts.index(value)
                 editor.setCurrentIndex(idx)
@@ -112,8 +113,8 @@ class MyDelegate(QStyledItemDelegate):
                 l.addWidget(parentgui, 4, 1)
 
                 fn = lambda dir : self.setParent(parentgui, id, dir)
-                self.connect(d, SIGNAL("directoryEntered(const QString &)"), fn)
-                self.connect(d, SIGNAL("currentChanged(const QString &)"), fn)
+                d.directoryEntered.connect(fn)
+                d.currentChanged.connect(fn)
                 
                 if d.exec_() == QDialog.Rejected:
                     editor.setCurrentIndex(0)
@@ -144,5 +145,5 @@ class MyDelegate(QStyledItemDelegate):
         return result
 
     def do_commit(self, n, editor):
-        self.emit(SIGNAL("commitData(QWidget*)"), editor)
+        self.commitData.emit(editor)
     

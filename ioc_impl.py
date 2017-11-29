@@ -1,4 +1,4 @@
-from PyQt4 import QtCore, QtGui, Qt
+from PyQt5 import QtCore, QtGui, Qt, QtWidgets
 import MyModel
 from MyDelegate import MyDelegate
 from ioc_ui import Ui_MainWindow
@@ -12,9 +12,9 @@ import pty
 import time
 import pwd
 
-class authdialog(QtGui.QDialog):
+class authdialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
-      QtGui.QWidget.__init__(self, parent)
+      QtWidgets.QDialog.__init__(self, parent)
       self.ui = auth_ui.Ui_Dialog()
       self.ui.setupUi(self)
 
@@ -32,9 +32,9 @@ def caput(pvname,value,timeout=1.0):
 
 ######################################################################
  
-class GraphicUserInterface(QtGui.QMainWindow):
+class GraphicUserInterface(QtWidgets.QMainWindow):
     def __init__(self, app, hutch):
-        QtGui.QMainWindow.__init__(self)
+        QtWidgets.QMainWindow.__init__(self)
         self.__app = app
         self.myuid = pwd.getpwuid(os.getuid())[0]
         self.ui = Ui_MainWindow()
@@ -60,20 +60,20 @@ class GraphicUserInterface(QtGui.QMainWindow):
         self.model = MyModel.MyModel(hutch)
         self.utimer = QtCore.QTimer()
         self.delegate = MyDelegate(None, hutch)
-        self.connect(self.ui.actionApply,    QtCore.SIGNAL("triggered()"), self.doApply)
-        self.connect(self.ui.actionSave,     QtCore.SIGNAL("triggered()"), self.doSave)
-        self.connect(self.ui.actionRevert,   QtCore.SIGNAL("triggered()"), self.model.doRevert)
-        self.connect(self.ui.actionReboot,   QtCore.SIGNAL("triggered()"), self.doReboot)
-        self.connect(self.ui.actionHard_Reboot, QtCore.SIGNAL("triggered()"), self.doHardReboot)
-        self.connect(self.ui.actionReboot_Server, QtCore.SIGNAL("triggered()"), self.doServerReboot)
-        self.connect(self.ui.actionLog,      QtCore.SIGNAL("triggered()"), self.doLog)
-        self.connect(self.ui.actionConsole,  QtCore.SIGNAL("triggered()"), self.doConsole)
-        self.connect(self.ui.actionRemember, QtCore.SIGNAL("triggered()"), self.model.doSaveVersions)
-        self.connect(self.ui.actionAuth,     QtCore.SIGNAL("triggered()"), self.doAuthenticate)
-        self.connect(self.ui.actionQuit,     QtCore.SIGNAL("triggered()"), self.doQuit)
-        self.connect(self.ui.actionHelp,     QtCore.SIGNAL("triggered()"), self.doHelp)
-        self.connect(self.ui.findpv,         QtCore.SIGNAL("returnPressed()"), self. doFindPV)
-        self.connect(self.utimer, QtCore.SIGNAL("timeout()"), self.unauthenticate)
+        self.ui.actionApply.triggered.connect(self.doApply)
+        self.ui.actionSave.triggered.connect(self.doSave)
+        self.ui.actionRevert.triggered.connect(self.model.doRevert)
+        self.ui.actionReboot.triggered.connect(self.doReboot)
+        self.ui.actionHard_Reboot.triggered.connect(self.doHardReboot)
+        self.ui.actionReboot_Server.triggered.connect(self.doServerReboot)
+        self.ui.actionLog.triggered.connect(self.doLog)
+        self.ui.actionConsole.triggered.connect(self.doConsole)
+        self.ui.actionRemember.triggered.connect(self.model.doSaveVersions)
+        self.ui.actionAuth.triggered.connect(self.doAuthenticate)
+        self.ui.actionQuit.triggered.connect(self.doQuit)
+        self.ui.actionHelp.triggered.connect(self.doHelp)
+        self.ui.findpv.returnPressed.connect(self. doFindPV)
+        self.utimer.timeout.connect(self.unauthenticate)
         self.ui.tableView.setModel(self.model)
         self.ui.tableView.setItemDelegate(self.delegate)
         self.ui.tableView.verticalHeader().setVisible(False)
@@ -83,12 +83,9 @@ class GraphicUserInterface(QtGui.QMainWindow):
         self.ui.tableView.setSortingEnabled(True)
         self.ui.tableView.sortByColumn(0, QtCore.Qt.AscendingOrder)
         self.ui.tableView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.ui.tableView.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-        self.connect(self.ui.tableView.selectionModel(),
-                     QtCore.SIGNAL("selectionChanged(const QItemSelection&, const QItemSelection&)"),
-                     self.getSelection)
-        self.connect(self.ui.tableView, QtCore.SIGNAL("customContextMenuRequested(const QPoint&)"),
-                     self.showContextMenu)
+        self.ui.tableView.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self.ui.tableView.selectionModel().selectionChanged.connect(self.getSelection)
+        self.ui.tableView.customContextMenuRequested.connect(self.showContextMenu)
         self.currentIOC = None
         self.currentBase = None
         self.pvlist = []
@@ -98,7 +95,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
     def closeEvent(self, event):
         self.disconnectPVs()
         self.model.cleanupChildren()
-        QtGui.QMainWindow.closeEvent(self, event)
+        QtWidgets.QMainWindow.closeEvent(self, event)
 
     def disconnectPVs(self):
         for pv in self.pvlist:
@@ -121,27 +118,27 @@ class GraphicUserInterface(QtGui.QMainWindow):
         self.model.doApply()
 
     def doHelp(self):
-        d = QtGui.QDialog();
+        d = QtWidgets.QDialog();
         d.setWindowTitle("IocManager Help")
-        d.layout = QtGui.QVBoxLayout(d)
-        d.label1 = QtGui.QLabel(d)
+        d.layout = QtWidgets.QVBoxLayout(d)
+        d.label1 = QtWidgets.QLabel(d)
         d.label1.setText("Documentation for the IocManager can be found on confluence:")
         d.layout.addWidget(d.label1)
-        d.label2 = QtGui.QLabel(d)
+        d.label2 = QtWidgets.QLabel(d)
         d.label2.setText("https://confluence.slac.stanford.edu/display/PCDS/IOC+Manager+User+Guide")
         d.layout.addWidget(d.label2)
-        d.buttonBox = QtGui.QDialogButtonBox(d)
+        d.buttonBox = QtWidgets.QDialogButtonBox(d)
         d.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        d.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Ok)
+        d.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Ok)
         d.layout.addWidget(d.buttonBox)
-        d.connect(d.buttonBox, QtCore.SIGNAL("accepted()"), d.accept)
+        d.buttonBox.accepted.connect(d.accept)
         d.exec_()
 
     def doFindPV(self):
-        d = QtGui.QDialog();
+        d = QtWidgets.QDialog();
         d.setWindowTitle("Find PV: %s" % self.ui.findpv.text())
-        d.layout = QtGui.QVBoxLayout(d)
-        te = QtGui.QPlainTextEdit(d)
+        d.layout = QtWidgets.QVBoxLayout(d)
+        te = QtWidgets.QPlainTextEdit(d)
         te.setMinimumSize(QtCore.QSize(600, 200))
         font = QtGui.QFont()
         font.setFamily("Monospace")
@@ -151,22 +148,25 @@ class GraphicUserInterface(QtGui.QMainWindow):
         te.setMaximumBlockCount(500)
         te.setPlainText("")
         result = self.model.findPV(str(self.ui.findpv.text())) # Return list of (pv, ioc, alias)
-        for l in result:
-            if l[2] != "":
-                te.appendPlainText("%s --> %s (%s)" % l)
-            else:
-                te.appendPlainText("%s --> %s%s" % l)     # Since l[2] is empty!
-        if len(result) == 1:
-            sm = self.ui.tableView.selectionModel()
-            idx = self.model.createIndex(self.model.findid(l[1]), 0)
-            sm.select(idx, Qt.QItemSelectionModel.SelectCurrent)
-            self.ui.tableView.scrollTo(idx, Qt.QAbstractItemView.PositionAtCenter)
+        if type(result) == list:
+            for l in result:
+                if l[2] != "":
+                    te.appendPlainText("%s --> %s (%s)" % l)
+                else:
+                    te.appendPlainText("%s --> %s%s" % l)     # Since l[2] is empty!
+            if len(result) == 1:
+                sm = self.ui.tableView.selectionModel()
+                idx = self.model.createIndex(self.model.findid(l[1]), 0)
+                sm.select(idx, Qt.QItemSelectionModel.SelectCurrent)
+                self.ui.tableView.scrollTo(idx, Qt.QAbstractItemView.PositionAtCenter)
+        else:
+            te.appendPlainText(result)
         d.layout.addWidget(te)
-        d.buttonBox = QtGui.QDialogButtonBox(d)
+        d.buttonBox = QtWidgets.QDialogButtonBox(d)
         d.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        d.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Ok)
+        d.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Ok)
         d.layout.addWidget(d.buttonBox)
-        d.connect(d.buttonBox, QtCore.SIGNAL("accepted()"), d.accept)
+        d.buttonBox.accepted.connect(d.accept)
         d.exec_()
                              
     def doQuit(self):
@@ -216,8 +216,8 @@ class GraphicUserInterface(QtGui.QMainWindow):
     def getSelection(self, selected, deselected):
         try:
             row = selected.indexes()[0].row()
-            ioc = self.model.data(self.model.index(row, MyModel.IOCNAME), QtCore.Qt.EditRole).toString()
-            host = self.model.data(self.model.index(row, MyModel.HOST), QtCore.Qt.EditRole).toString()
+            ioc = self.model.data(self.model.index(row, MyModel.IOCNAME), QtCore.Qt.EditRole).value()
+            host = self.model.data(self.model.index(row, MyModel.HOST), QtCore.Qt.EditRole).value()
             if ioc == self.currentIOC:
                 return
             self.disconnectPVs()
@@ -244,7 +244,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
     
     def showContextMenu(self, pos):
         index = self.ui.tableView.indexAt(pos)
-        menu = QtGui.QMenu()
+        menu = QtWidgets.QMenu()
         menu.addAction("Add New IOC")
         if index.row() != -1:
             menu.addAction("Delete IOC")
@@ -285,7 +285,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
             gui.setText(utils.findParent(iocfn(), dir))
 
     def addIOC(self, index):
-        d=QtGui.QFileDialog(self, "Add New IOC", utils.EPICS_SITE_TOP + "ioc/" + self.hutch)
+        d=QtWidgets.QFileDialog(self, "Add New IOC", utils.EPICS_SITE_TOP + "ioc/" + self.hutch)
         d.setFileMode(Qt.QFileDialog.Directory)
         d.setOptions(Qt.QFileDialog.ShowDirsOnly|Qt.QFileDialog.DontUseNativeDialog)
         d.setSidebarUrls([QtCore.QUrl("file://" + os.getenv("HOME")),
@@ -294,49 +294,49 @@ class GraphicUserInterface(QtGui.QMainWindow):
                           QtCore.QUrl("file://" + utils.EPICS_DEV_TOP )])
         l=d.layout()
 
-        tmp=QtGui.QLabel()
+        tmp=QtWidgets.QLabel()
         tmp.setText("IOC Name *+")
         l.addWidget(tmp, 4, 0)
-        namegui=QtGui.QLineEdit()
+        namegui=QtWidgets.QLineEdit()
         l.addWidget(namegui, 4, 1)
 
-        tmp=QtGui.QLabel()
+        tmp=QtWidgets.QLabel()
         tmp.setText("Alias")
         l.addWidget(tmp, 5, 0)
-        aliasgui=QtGui.QLineEdit()
+        aliasgui=QtWidgets.QLineEdit()
         l.addWidget(aliasgui, 5, 1)
 
-        tmp=QtGui.QLabel()
+        tmp=QtWidgets.QLabel()
         tmp.setText("Host *")
         l.addWidget(tmp, 6, 0)
-        hostgui=QtGui.QLineEdit()
+        hostgui=QtWidgets.QLineEdit()
         l.addWidget(hostgui, 6, 1)
 
-        tmp=QtGui.QLabel()
+        tmp=QtWidgets.QLabel()
         tmp.setText("Port (-1 = HARD IOC) *+")
         l.addWidget(tmp, 7, 0)
-        portgui=QtGui.QLineEdit()
+        portgui=QtWidgets.QLineEdit()
         l.addWidget(portgui, 7, 1)
 
-        tmp=QtGui.QLabel()
+        tmp=QtWidgets.QLabel()
         tmp.setText("Parent")
         l.addWidget(tmp, 8, 0)
-        parentgui=QtGui.QLineEdit()
+        parentgui=QtWidgets.QLineEdit()
         parentgui.setReadOnly(True)
         l.addWidget(parentgui, 8, 1)
 
-        tmp=QtGui.QLabel()
+        tmp=QtWidgets.QLabel()
         tmp.setText("* = Required Fields for Soft IOCs.")
         l.addWidget(tmp, 9, 0)
 
-        tmp=QtGui.QLabel()
+        tmp=QtWidgets.QLabel()
         tmp.setText("+ = Required Fields for Hard IOCs.")
         l.addWidget(tmp, 10, 0)
 
 
         fn = lambda dir : self.setParent(parentgui, namegui.text, dir)
-        self.connect(d, QtCore.SIGNAL("directoryEntered(const QString &)"), fn)
-        self.connect(d, QtCore.SIGNAL("currentChanged(const QString &)"), fn)
+        d.directoryEntered.connect(fn)
+        d.currentChanged.connect(fn)
 
         while True:
             if d.exec_() == Qt.QDialog.Rejected:
@@ -352,16 +352,16 @@ class GraphicUserInterface(QtGui.QMainWindow):
             try:
                 n = int(port)
             except:
-                QtGui.QMessageBox.critical(None,
+                QtWidgets.QMessageBox.critical(None,
                                            "Error",
                                            "Port is not an integer!",
-                                           QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
+                                           QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
                 continue
             if name == "" or (n != -1 and (host == "" or port == "" or dir == "")):
-                QtGui.QMessageBox.critical(None,
+                QtWidgets.QMessageBox.critical(None,
                                            "Error",
                                            "Failed to set required parameters for new IOC!",
-                                           QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
+                                           QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
                 continue
             self.model.addIOC(name, alias, host, port, dir)
             return
@@ -421,7 +421,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
         user = self.authdialog.ui.nameEdit.text()
         password = str(self.authdialog.ui.passEdit.text())
         self.authdialog.ui.passEdit.setText("")
-        if result == QtGui.QDialog.Accepted:
+        if result == QtWidgets.QDialog.Accepted:
             try:
                 self.authenticate_user(user, password)
             except:
@@ -443,7 +443,7 @@ class GraphicUserInterface(QtGui.QMainWindow):
         if (utils.check_auth(self.model.user, self.hutch) and
             (not file_action or utils.check_ssh(self.model.user, self.hutch) == file_action)):
             return True
-        QtGui.QMessageBox.critical(None,
+        QtWidgets.QMessageBox.critical(None,
                                    "Error", "Action not authorized for user %s" % self.model.user,
-                                   QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
+                                   QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
         return False

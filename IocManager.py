@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from PyQt4 import QtGui
+from PyQt5 import QtGui, QtWidgets
 from psp.options import Options
 from ioc_impl import GraphicUserInterface
 import sys
@@ -11,7 +11,7 @@ if __name__ == "__main__":
     except Exception, msg:
         options.usage(str(msg))
         sys.exit(1)
-    app = QtGui.QApplication([''])
+    app = QtWidgets.QApplication([''])
     gui = GraphicUserInterface(app, options.hutch.lower())
     try:
         gui.show()

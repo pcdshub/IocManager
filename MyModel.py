@@ -1,5 +1,6 @@
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
 import utils
 import details_ui
 import commit_ui
@@ -286,21 +287,17 @@ class MyModel(QAbstractTableModel):
             return False
         c = index.column()
         if c == ENABLE:
-            (val, ok) = value.toInt()
-            if not ok:
-                return False
+            val = value
             entry['disable'] = (val == Qt.Unchecked)
             self.dataChanged.emit(index, index)
             return True
         elif c == PORT:
-            (val, ok) = value.toInt()
-            if not ok:
-                return False
+            val = value
             entry['newport'] = val
             self.dataChanged.emit(index, index)
             return True
         else:
-            val = value.toString()
+            val = value.value()
             entry[self.newfield[c]] = val
             if entry[self.newfield[c]] == entry[self.field[c]]:
                 del entry[self.newfield[c]]
@@ -440,14 +437,14 @@ class MyModel(QAbstractTableModel):
 
     def sort(self, Ncol, order):
         self.lastsort = (Ncol, order)
-        self.emit(SIGNAL("layoutAboutToBeChanged()"))
+        self.layoutAboutToBeChanged.emit()
         if Ncol == PORT:
             self.cfglist = sorted(self.cfglist, key=lambda d: self._portkey(d, Ncol))
         else:
             self.cfglist = sorted(self.cfglist, key=lambda d: self.value(d, Ncol))
         if order == Qt.DescendingOrder:
             self.cfglist.reverse()
-        self.emit(SIGNAL("layoutChanged()"))
+        self.layoutChanged.emit()
 
     def applyAddList(self, i, config, current, pfix, d, lst, verb):
         for l in lst:
@@ -494,10 +491,10 @@ class MyModel(QAbstractTableModel):
         clear_button = d.buttonBox.addButton("Clear All", QDialogButtonBox.ActionRole)
         set_button = d.buttonBox.addButton("Set All", QDialogButtonBox.ActionRole)
         d.layout.addWidget(d.buttonBox)
-        d.connect(d.buttonBox, SIGNAL("accepted()"), d.accept)
-        d.connect(d.buttonBox, SIGNAL("rejected()"), d.reject)
-        d.connect(clear_button, SIGNAL("clicked()"), lambda : self.setDialogState(d, False))
-        d.connect(set_button, SIGNAL("clicked()"), lambda : self.setDialogState(d, True))
+        d.buttonBox.accepted.connect(d.accept)
+        d.buttonBox.rejected.connect(d.reject)
+        clear_button.clicked.connect(lambda : self.setDialogState(d, False))
+        set_button.clicked.connect(lambda : self.setDialogState(d, True))
 
         if d.exec_() == QDialog.Accepted:
             checks =  [c.isChecked() for c in d.checks]
@@ -562,7 +559,7 @@ class MyModel(QAbstractTableModel):
             try:
                 os.unlink(file.name)
             except:
-                print "Error removing temporary file %!" % file.name
+                print "Error removing temporary file %s!" % file.name
         except:
             QMessageBox.critical(None,
                                  "Error", "Failed to write configuration for %s" % self.hutch,
@@ -577,11 +574,11 @@ class MyModel(QAbstractTableModel):
                 entry['id'] = entry['newid'].strip()
                 del entry['newid']
             except:
-                print "Error while renaming IOC % -> %!" % entry['id'],entry['newid']
+                pass
             try:
                 del entry['details']
             except:
-                print "Error deleting IOC details!"
+                pass
         if comment != None:
             try:
                 utils.commit_config(self.hutch, comment, self.userIO)
@@ -616,7 +613,7 @@ class MyModel(QAbstractTableModel):
             if entry['cfgstat'] == utils.CONFIG_DELETED:
                 return True
         except:
-            print "Error looking for 'cfgstat' key in: %" % entry
+            pass
         return 'newhost' in keys or 'newport' in keys or 'newdir' in keys or 'newid' in keys
 
     def isHard(self, index):
@@ -826,7 +823,7 @@ class MyModel(QAbstractTableModel):
                                  "unsetenv LD_LIBRARY_PATH ; telnet %s %s" % (host, port)])
             self.children.append(x)
         except KeyError:
-            print "Dict key error while setting up telnet interface for: %" % entry
+            print "Dict key error while setting up telnet interface for: %s" % entry
         except:
             print "Unspecified error while setting up telnet interface"
 
@@ -890,7 +887,7 @@ class MyModel(QAbstractTableModel):
             d.buttonBox.setOrientation(Qt.Horizontal)
             d.buttonBox.setStandardButtons(QDialogButtonBox.Ok)
             d.layout.addWidget(d.buttonBox)
-            d.connect(d.buttonBox, SIGNAL("accepted()"), d.accept)
+            d.buttonBox.accepted.connect(d.accept)
             d.exec_()
             return
         llist = []
@@ -915,8 +912,8 @@ class MyModel(QAbstractTableModel):
         d.buttonBox.setOrientation(Qt.Horizontal)
         d.buttonBox.setStandardButtons(QDialogButtonBox.Cancel|QDialogButtonBox.Ok)
         d.layout.addWidget(d.buttonBox)
-        d.connect(d.buttonBox, SIGNAL("accepted()"), d.accept)
-        d.connect(d.buttonBox, SIGNAL("rejected()"), d.reject)
+        d.buttonBox.accepted.connect(d.accept)
+        d.buttonBox.rejected.connect(d.reject)
         if d.exec_() == QDialog.Accepted:
             utils.rebootServer(ihost)
 
@@ -1006,7 +1003,10 @@ class MyModel(QAbstractTableModel):
 
     def findPV(self, name):
         l = []
-        regexp = re.compile(name)
+        try:
+            regexp = re.compile(name)
+        except:
+            return "Bad regular expression!"
         row = 0
         for entry in self.cfglist:
             ll = utils.findPV(regexp, entry['id'])
