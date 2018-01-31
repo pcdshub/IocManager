@@ -159,6 +159,8 @@ class GraphicUserInterface(QtWidgets.QMainWindow):
                 idx = self.model.createIndex(self.model.findid(l[1]), 0)
                 sm.select(idx, Qt.QItemSelectionModel.SelectCurrent)
                 self.ui.tableView.scrollTo(idx, Qt.QAbstractItemView.PositionAtCenter)
+            elif len(result) == 0:
+                te.appendPlainText("Searching for '%s' produced no matches!\n" % self.ui.findpv.text())
         else:
             te.appendPlainText(result)
         d.layout.addWidget(te)
