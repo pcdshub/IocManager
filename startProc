@@ -35,11 +35,11 @@ if test $dir == NO_DIRECTORY; then
 fi
 cd $IOC_ROOT/..
 if test -d $dir; then cd $dir; fi
-if test -f env.sh; then source env.sh; fi
+if test -f env.sh; then source ./env.sh; fi
 if test -d children/build/iocBoot/$ioc; then cd children/build/iocBoot/$ioc; fi
 if test -d build/iocBoot/$ioc; then cd build/iocBoot/$ioc; fi
 if test -d iocBoot/$ioc; then cd iocBoot/$ioc; fi
-if test -f env.sh; then source env.sh; fi
+if test -f env.sh; then source ./env.sh; fi
 umask 2
 echo $$ `hostname -s` $port $dir >$PYPS_ROOT/config/.status/$cfg/$ioc
 chmod g+rw $PYPS_ROOT/config/.status/$cfg/$ioc
