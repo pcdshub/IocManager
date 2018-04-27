@@ -13,6 +13,7 @@ import tempfile
 import stat
 import psp
 import re
+import pwd
 
 #
 # Column definitions.
@@ -138,6 +139,8 @@ class commitdialog(QDialog):
 class MyModel(QAbstractTableModel): 
     def __init__(self, hutch, parent=None):
         QAbstractTableModel.__init__(self, parent)
+        self.myuid = "%s.x%d.x%%d" % (pwd.getpwuid(os.getuid())[0], os.getpid())
+        self.nextid = 0
         self.detailsdialog = detailsdialog(parent)
         self.commitdialog = commitdialog(parent)
         self.hutch = hutch
@@ -155,6 +158,21 @@ class MyModel(QAbstractTableModel):
         self.field      = ['id', None, None, 'host', 'port', 'dir', 'pdir', None]
         self.newfield   = ['newid', None, None, 'newhost', 'newport', 'newdir', None, None]
         self.lastsort   = (0, Qt.DescendingOrder)
+
+    def runCommand(self, geo, id, cmd):
+        if os.path.exists("/usr/libexec/gnome-terminal-server"):
+            appid = self.myuid % self.nextid
+            self.nextid += 1
+            x = subprocess.Popen(["/usr/libexec/gnome-terminal-server", "--app-id", appid])
+            self.children.append(x)
+            cmdlist = ["gnome-terminal", "--app-id", appid]
+        else:
+            cmdlist = ["gnome-terminal", "--disable-factory"]
+        if not (geo is None):
+            cmdlist.append("--geometry=%s" % geo)
+        cmdlist += ["-t", id, "-x", "/bin/csh", "-c", cmd]
+        x = subprocess.Popen(cmdlist)
+        self.children.append(x)
 
     def addUsedHosts(self):
         hosts = [l['host'] for l in self.cfglist]
@@ -818,10 +836,7 @@ class MyModel(QAbstractTableModel):
             else:
                 host = entry['host']
                 port = entry['port']
-            x = subprocess.Popen(["gnome-terminal", "--disable-factory", "-t", entry['id'], "-x",
-                                 "/bin/csh", "-c",
-                                 "unsetenv LD_LIBRARY_PATH ; telnet %s %s" % (host, port)])
-            self.children.append(x)
+            self.runCommand(None, entry['id'], "unsetenv LD_LIBRARY_PATH ; telnet %s %s" % (host, port))
         except KeyError:
             print "Dict key error while setting up telnet interface for: %s" % entry
         except:
@@ -833,10 +848,7 @@ class MyModel(QAbstractTableModel):
         else:
             id = str(index)
         try:
-            x = subprocess.Popen(["gnome-terminal", "--disable-factory", "-t", id,
-                                  "--geometry=128x30", "-x", "/bin/csh", "-c",
-                                  "tail -1000lf `ls -t " + (utils.LOGBASE % id) + "* |head -1`"])
-            self.children.append(x)
+            self.runCommand("128x30", id, "tail -1000lf `ls -t " + (utils.LOGBASE % id) + "* |head -1`")
         except:
             print "Error while trying to view log file!"
 
