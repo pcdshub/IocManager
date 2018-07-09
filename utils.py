@@ -612,7 +612,8 @@ def readStatusDir(cfg, readfile=lambda fn, f: open(fn).readlines()):
                                                   'rport': int(stat[2]),
                                                   'rdir': stat[3],
                                                   'newstyle' : True,
-                                                  'mtime': mtime}
+                                                  'mtime': mtime,
+                                                  'hard': False}
             else:
                 try:
                     os.unlink(fn)
