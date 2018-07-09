@@ -259,31 +259,49 @@ def fixTelnetShell(host, port):
     
 def killProc(host, port):
     print "Killing IOC on host %s, port %s..." % (host, port)
-    tn = openTelnet(host, port)
 
+    # First, turn off autorestart!
+    tn = openTelnet(host, port)
     if tn:
         statd = readLogPortBanner(tn)
-
+        try:
+            if statd['autorestart']:
+                # send ^T to toggle off auto restart.
+                tn.write("\x14")
+                # wait for toggled message
+                r = tn.read_until(MSG_AUTORESTART_TO_OFF, 1)
+                time.sleep(0.25)
+        except:
+            print 'ERROR: killProc() failed to turn off autorestart on %s port %s' % (host, port)
+            tn.close()
+            return
+        tn.close()
+    else:
+        print 'ERROR: killProc() telnet to %s port %s failed' % (host, port)
+        return
+    
+    # Now, reconnect to actually kill it!
+    tn = openTelnet(host, port)
+    if tn:
+        statd = readLogPortBanner(tn)
         if statd['status'] == STATUS_RUNNING:
             try:
-                if statd['autorestart']:
-                    # send ^T to toggle off auto restart.
-                    tn.write("\x14")
-                    # wait for toggled message
-                    r = tn.read_until(MSG_AUTORESTART_TO_OFF, 1)
-                    time.sleep(0.25)
-                    
                 # send ^X to kill child process
                 tn.write("\x18");
                 # wait for killed message
                 r = tn.read_until(MSG_KILLED, 1)
                 time.sleep(0.25)
-                
-                # send ^Q to kill procServ
-                tn.write("\x11");
             except:
-                pass # What to do???
-
+                print 'ERROR: killProc() failed to kill process on %s port %s' % (host, port)
+                tn.close()
+                return
+        try:
+            # send ^Q to kill procServ
+            tn.write("\x11");
+        except:
+            print 'ERROR: killProc() failed to kill procServ on %s port %s' % (host, port)
+            tn.close()
+            return
         tn.close()
     else:
         print 'ERROR: killProc() telnet to %s port %s failed' % (host, port)
