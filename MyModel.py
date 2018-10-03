@@ -359,7 +359,7 @@ class MyModel(QAbstractTableModel):
                 v = entry['newdir']
             except:
                 v = entry['dir']
-            if v[:4] == 'ioc/':
+            if v[:4] == 'ioc/' or v == '/reg/g/pcds/controls/camrecord':
                 return "Prod"
             else:
                 return "Dev"
