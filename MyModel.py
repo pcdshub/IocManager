@@ -19,13 +19,15 @@ import pwd
 # Column definitions.
 #
 IOCNAME = 0
-ENABLE  = 1
+STATE   = 1
 STATUS  = 2
 HOST    = 3
 PORT    = 4
 VERSION = 5
 PARENT  = 6
 EXTRA   = 7
+statelist      = ["Off", "Dev", "Prod"]
+statecombolist = ["Off", "Dev/Prod"]
 
 class StatusPoll(threading.Thread):
     def __init__(self, model, interval):
@@ -154,9 +156,9 @@ class MyModel(QAbstractTableModel):
         for l in self.cfglist:
             l['status'] = utils.STATUS_INIT
             l['stattime'] = 0
-        self.headerdata = ["IOC Name", "En", "Status", "Host", "Port", "Version", "Parent", "Information"]
-        self.field      = ['id', None, None, 'host', 'port', 'dir', 'pdir', None]
-        self.newfield   = ['newid', None, None, 'newhost', 'newport', 'newdir', None, None]
+        self.headerdata = ["IOC Name", "State", "Status", "Host", "Port", "Version", "Parent", "Information"]
+        self.field      = ['id', 'disable', None, 'host', 'port', 'dir', 'pdir', None]
+        self.newfield   = ['newid', 'newdisable', None, 'newhost', 'newport', 'newdir', None, None]
         self.lastsort   = (0, Qt.DescendingOrder)
 
     def runCommand(self, geo, id, cmd):
@@ -274,7 +276,7 @@ class MyModel(QAbstractTableModel):
 
     #
     # IOCNAME can be selected.
-    # ENABLE can be selected.  If not hard, it can also be checked.
+    # STATE can be selected.  If not hard, it can also be checked.
     # HOST, PORT, and VERSION can be edited if not hard.
     # STATUS and EXTRA are only enabled.
     #
@@ -291,8 +293,8 @@ class MyModel(QAbstractTableModel):
             return Qt.NoItemFlags
         if c == IOCNAME:
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable
-        elif c == ENABLE:
-            return Qt.ItemIsEnabled | Qt.ItemIsSelectable | checkable
+        elif c == STATE:
+            return Qt.ItemIsEnabled | Qt.ItemIsSelectable | editable
         elif c == STATUS or c == EXTRA:
             return Qt.ItemIsEnabled
         else:
@@ -304,14 +306,18 @@ class MyModel(QAbstractTableModel):
         except:
             return False
         c = index.column()
-        if c == ENABLE:
+        if c == STATE:
             val = value
-            entry['disable'] = (val == Qt.Unchecked)
+            entry['newdisable'] = (val == 0)
+            if entry['newdisable'] == entry['disable']:
+                del entry['newdisable']
             self.dataChanged.emit(index, index)
             return True
         elif c == PORT:
             val = value
             entry['newport'] = val
+            if entry['newport'] == entry['port']:
+                del entry['newport']
             self.dataChanged.emit(index, index)
             return True
         else:
@@ -342,8 +348,21 @@ class MyModel(QAbstractTableModel):
             if entry['id'] != entry['rid']:
                 v += "as " + entry['rid']
             return v
-        elif c == ENABLE:
-            return ""
+        elif c == STATE:
+            try:
+                v = entry['newdisable']
+            except:
+                v = entry['disable']
+            if v:
+                return "Off"
+            try:
+                v = entry['newdir']
+            except:
+                v = entry['dir']
+            if v[:4] == 'ioc/':
+                return "Prod"
+            else:
+                return "Dev"
         if c == IOCNAME and display == True:
             # First try to find an alias!
             try:
@@ -377,6 +396,11 @@ class MyModel(QAbstractTableModel):
                 return QVariant(QBrush(Qt.red))
             try:
                 if c == IOCNAME and entry['newalias'] != entry['alias']:
+                    return QVariant(QBrush(Qt.blue))
+            except:
+                pass
+            try:
+                if c == STATE and entry['newdisable'] != entry['disable']:
                     return QVariant(QBrush(Qt.blue))
             except:
                 pass
@@ -427,17 +451,17 @@ class MyModel(QAbstractTableModel):
                     if (h == h2 and p == p2):
                         return QVariant(QBrush(Qt.red))
                 return QVariant()
+            elif c == STATE:
+                v = self.value(self.cfglist[index.row()], index.column(), role == Qt.DisplayRole)
+                if v == 'Dev':
+                    # MCB - Add a check and make this red if a hutch is in production!
+                    return QVariant(QBrush(Qt.yellow))
+                else:
+                    return QVariant()
             else:
                 return QVariant()
         elif role == Qt.CheckStateRole:
-            if index.column() == ENABLE:
-                entry = self.cfglist[index.row()]
-                if entry['disable']:
-                    return QVariant(Qt.Unchecked)
-                else:
-                    return QVariant(Qt.Checked)
-            else:
-                return QVariant()
+            return QVariant()
         else:
             return QVariant()
 
@@ -488,6 +512,11 @@ class MyModel(QAbstractTableModel):
             c.setChecked(v)
 
     def applyVerify(self, current, config, kill, start, restart):
+        if kill == [] and start == [] and restart == []:
+            QMessageBox.critical(None,
+                                 "Warning", "Nothing to apply!",
+                                 QMessageBox.Ok, QMessageBox.Ok)
+            return ([], [], [])
         d = QDialog();
         d.setWindowTitle("Apply Confirmation")
         d.layout = QVBoxLayout(d)
@@ -632,7 +661,9 @@ class MyModel(QAbstractTableModel):
                 return True
         except:
             pass
-        return 'newhost' in keys or 'newport' in keys or 'newdir' in keys or 'newid' in keys
+        return ('newhost' in keys or 'newport' in keys or
+                'newdir' in keys or 'newid' in keys or
+                'newdisable' in keys)
 
     def isHard(self, index):
         entry = self.cfglist[index.row()]
@@ -640,6 +671,11 @@ class MyModel(QAbstractTableModel):
 
     def needsApply(self, index):
         entry = self.cfglist[index.row()]
+        try:
+            if entry['disable'] != entry['newdisable']:
+                return True
+        except:
+            pass
         if entry['disable']:
             return entry['status'] == utils.STATUS_RUNNING
         else:
@@ -660,7 +696,7 @@ class MyModel(QAbstractTableModel):
         for f in self.newfield:
             try:
                 if f != None:
-                    del cfg[f]
+                    del entry[f]
             except:
                 pass
         self.dataChanged.emit(self.index(index.row(),0),

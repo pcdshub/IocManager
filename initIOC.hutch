@@ -25,7 +25,7 @@ source $IOC_COMMON/All/${cfg}_env.sh
 
 # Find the procmgrd bin directory via ${cfg}_env PROCSERV variable
 PROCSERV_WORDS=($PROCSERV)
-PROCSERV_EXE=${PROCSERV_WORDS[0]}
+export PROCSERV_EXE=${PROCSERV_WORDS[0]}
 PROCMGRD_DIR=$(dirname $PROCSERV_EXE)
 
 # Make sure we have a procmgrd log directory

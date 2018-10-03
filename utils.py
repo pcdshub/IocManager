@@ -81,11 +81,6 @@ import telnetlib, string, datetime, os, time, fcntl, re, glob, subprocess, copy
 # Defines
 #
 CAMRECORDER  = os.getenv("CAMRECORD_ROOT")
-PROCSERV     = os.getenv("PROCSERV")
-if PROCSERV is None:
-    PROCSERV = "procServ"
-else:
-    PROCSERV = PROCSERV.split()[0]
 TMP_DIR      = "%s/config/.status/tmp" % os.getenv("PYPS_ROOT")
 STARTUP_DIR  = "%s/config/%%s/iocmanager/" % os.getenv("PYPS_ROOT")
 CONFIG_FILE = "%s/config/%%s/iocmanager.cfg" % os.getenv("PYPS_ROOT")
@@ -376,8 +371,14 @@ def startProc(cfg, entry, local=False):
     log = LOGBASE % name
     ctrlport = BASEPORT + 2 * (int(platform) - 1)
     print "Starting %s on port %s of host %s, platform %s..." % (name, port, host, platform)
-    cmd = '%s --logfile %s --name %s --allow --coresize 0 --savelog %d %s' % \
-          (PROCSERV, log, name, port, cmd)
+    #
+    # Sigh.  /reg/d/iocCommon/All/*.sh sets $PROCSERV which is procServ plus a desired common set
+    # of options.  We don't want those options, so we use magic to erase them.  initIOC.hutch
+    # has been changed to export PROCSERV_EXE, but that might not have been done in the currently
+    # running process.
+    #
+    cmd = 'P=${PROCSERV%%%% *} eval \$P --logfile %s --name %s --allow --coresize 0 --savelog %d %s' % \
+          (log, name, port, cmd)
     try:
         tn = telnetlib.Telnet(host, ctrlport, 1)
     except:
@@ -517,7 +518,11 @@ def writeConfig(hutch, hostlist, cfglist, vars, f=None):
         except:
             dir = entry['dir']
         extra = ""
-        if entry['disable']:
+        try:
+            disable = entry['newdisable']
+        except:
+            disable = entry['disable']
+        if disable:
             extra += ", disable: True"
         if alias != "":
             extra += ", alias: '%s'" % alias
@@ -606,7 +611,8 @@ def readStatusDir(cfg, readfile=lambda fn, f: open(fn).readlines()):
                         except:
                             print "Error while trying to delete file %s!" % fn
                 except:
-                    d[(stat[1], int(stat[2]))] = {'rid' : f,
+                    try:
+                        d[(stat[1], int(stat[2]))] = {'rid' : f,
                                                   'pid': stat[0],
                                                   'rhost': stat[1],
                                                   'rport': int(stat[2]),
@@ -614,6 +620,10 @@ def readStatusDir(cfg, readfile=lambda fn, f: open(fn).readlines()):
                                                   'newstyle' : True,
                                                   'mtime': mtime,
                                                   'hard': False}
+                    except:
+                        print "Status dir failure!"
+                        print f
+                        print stat
             else:
                 try:
                     os.unlink(fn)
@@ -665,7 +675,21 @@ def applyConfig(cfg, verify=None, ioc=None):
               current[l] = result
 
   running = current.keys()
-  wanted = [l for l in wanted if not config[l]['disable'] and not config[l]['hard']]
+  nw = []
+  for l in wanted:
+      try:
+          if not config[l]['newdisable'] and not config[l]['hard']:
+              nw.append(l)
+      except:
+          if not config[l]['disable'] and not config[l]['hard']:
+              nw.append(l)
+  wanted = nw
+
+  #
+  # Note the hard IOC handling... we don't want to start them, but they 
+  # don't have entries in the running directory anyway so we don't think
+  # we need to!
+  #
 
   # Camera recorders always seem to be in the wrong directory, so cheat!
   for l in cfglist:
@@ -794,7 +818,9 @@ def read_until(fd, expr):
     exp = re.compile(expr)
     data = ""
     while True:
-        data += os.read(fd, 1024)
+        v = os.read(fd, 1024)
+        # print v
+        data += v
         m = exp.search(data)
         if m != None:
             return m
@@ -870,6 +896,7 @@ def getHardIOCDir(host):
         lines = [l.strip() for l in open(HIOC_STARTUP % host).readlines()]
     except:
         print "Error while trying to read HIOC startup file for %s!" % host
+        return "Unknown"
     for l in lines:
         if l[:5] == "chdir":
             try:

@@ -22,14 +22,16 @@ class MyDelegate(QStyledItemDelegate):
 
     def createEditor(self, parent, option, index):
         col = index.column()
-        if col == MyModel.HOST or col == MyModel.VERSION:
+        if col == MyModel.HOST or col == MyModel.VERSION or col == MyModel.STATE:
             editor = QComboBox(parent)
             editor.setAutoFillBackground(True)
             editor.currentIndexChanged.connect(lambda n: self.do_commit(n, editor))
             if col == MyModel.HOST:
                 items = index.model().hosts
-            else:
+            elif col == MyModel.VERSION:
                 items = index.model().history(index.row())
+            else:
+                items = MyModel.statecombolist
             for item in items:
                 editor.addItem(item)
             editor.lastitem = editor.count()
@@ -37,8 +39,9 @@ class MyDelegate(QStyledItemDelegate):
                 editor.addItem("New Host")
                 if self.boxsize == None:
                     self.boxsize = QSize(150, 25)
-            else:
+            elif col == MyModel.VERSION:
                 editor.addItem("New Version")
+            # STATE doesn't need another entry!
             return editor
         else:
             return QStyledItemDelegate.createEditor(self, parent, option, index)
@@ -56,6 +59,15 @@ class MyDelegate(QStyledItemDelegate):
             # We don't have anything to do here.  It is created pointing to 0 (the newest setting)
             # And after setModelData, it is pointing to what we just added.
             pass
+        elif col == MyModel.STATE:
+            value = index.model().data(index, Qt.EditRole).value()
+            try:
+                idx = MyModel.statelist.index(value)
+                if idx >= len(MyModel.statecombolist):
+                    idx = len(MyModel.statecombolist) - 1
+                editor.setCurrentIndex(idx)
+            except:
+                editor.setCurrentIndex(editor.lastitem)
         else:
             QStyledItemDelegate.setEditorData(self, editor, index)
 
@@ -130,6 +142,9 @@ class MyDelegate(QStyledItemDelegate):
                 model.setData(index, QVariant(dir), Qt.EditRole)
             else:
                 model.setData(index, QVariant(str(editor.currentText())), Qt.EditRole)
+        elif col == MyModel.STATE:
+            idx = editor.currentIndex()
+            model.setData(index, QVariant(idx), Qt.EditRole)
         else:
             QStyledItemDelegate.setModelData(self, editor, model, index)
 
