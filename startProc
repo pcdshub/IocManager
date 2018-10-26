@@ -55,7 +55,7 @@ fi
 # Force an updated timestamp on the archive request file each time
 # so we know when they're stale
 if test -f ../../archive/$ioc.archive; then
-    cp -f -p ../../archive/$ioc.archive $IOC_DATA/$ioc/archive;
+    cp -f  ../../archive/$ioc.archive $IOC_DATA/$ioc/archive;
 fi
 cmd=$1
 shift
