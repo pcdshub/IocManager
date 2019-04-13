@@ -24,7 +24,7 @@ if test X$PROCSERVPID != X; then kill -HUP $PROCSERVPID; fi
 export IOC=$ioc
 source $IOC_COMMON/All/${cfg}_env.sh
 
-dir=`$SCRIPTROOT/getDirectory $ioc $cfg`
+dir=`python $SCRIPTROOT/getDirectory.py $ioc $cfg`
 if test $dir == NO_DIRECTORY; then
     if test X$PROCSERVPID != X; then 
         kill -9 $PROCSERVPID;
@@ -43,15 +43,7 @@ if test -f env.sh; then source ./env.sh; fi
 umask 2
 echo $$ `hostname -s` $port $dir >$PYPS_ROOT/config/.status/$cfg/$ioc
 chmod g+rw $PYPS_ROOT/config/.status/$cfg/$ioc
-if ! test -d $IOC_DATA/$ioc; then
-    mkdir $IOC_DATA/$ioc
-    mkdir $IOC_DATA/$ioc/autosave
-    mkdir $IOC_DATA/$ioc/archive
-    mkdir $IOC_DATA/$ioc/iocInfo
-    mkdir $IOC_DATA/$ioc/logs
-    chgrp ps-ioc -R $IOC_DATA/$ioc
-    chmod g+rws -R $IOC_DATA/$ioc
-fi
+
 # Force an updated timestamp on the archive request file each time
 # so we know when they're stale
 if test -f ../../archive/$ioc.archive; then
