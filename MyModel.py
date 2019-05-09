@@ -38,6 +38,7 @@ class StatusPoll(threading.Thread):
         self.interval = interval
         self.rmtime = {}
         self.daemon = True
+        self.dialog = None
 
     def run(self):
         last = 0
@@ -502,7 +503,7 @@ class MyModel(QAbstractTableModel):
             check.setChecked(True)
             check.setText("%s %s on %s:%d" % (verb, a, current[l][pfix + 'host'],
                                               current[l][pfix + 'port']))
-            d.layout.addWidget(check)
+            d.clayout.addWidget(check)
             i = i + 1
             d.checks.append(check)
         return i
@@ -511,6 +512,13 @@ class MyModel(QAbstractTableModel):
         for c in d.checks:
             c.setChecked(v)
 
+    # This is called when we are acting as an eventFilter for a dialog from applyVerify.
+    def eventFilter(self, o, e):
+        if self.dialog is not None and o == self.dialog.sw and e.type() == QEvent.Resize:
+            self.dialog.setMinimumWidth(self.dialog.sw.minimumSizeHint().width() +
+                                        self.dialog.sa.verticalScrollBar().width())
+        return False
+
     def applyVerify(self, current, config, kill, start, restart):
         if kill == [] and start == [] and restart == []:
             QMessageBox.critical(None,
@@ -518,11 +526,31 @@ class MyModel(QAbstractTableModel):
                                  QMessageBox.Ok, QMessageBox.Ok)
             return ([], [], [])
         d = QDialog();
+        self.dialog = d
         d.setWindowTitle("Apply Confirmation")
         d.layout = QVBoxLayout(d)
         d.mlabel = QLabel(d)
         d.mlabel.setText("Apply will take the following actions:")
         d.layout.addWidget(d.mlabel)
+
+        # Create a scroll area with no frame and no horizontal scrollbar
+        d.sa = QScrollArea(d)
+        d.sa.setFrameStyle(QFrame.NoFrame)
+        d.sa.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        d.sa.setWidgetResizable(True)
+
+        # Create a widget for the scroll area and limit its size.
+        # Resize events for this widget will be sent to us.
+        d.sw = QWidget(d.sa)
+        d.sw.setMaximumHeight(1000)
+        d.sw.installEventFilter(self)
+        d.sa.setWidget(d.sw)
+
+        # Create a layout for the widget in the scroll area.
+        d.clayout = QVBoxLayout(d.sw)
+
+        d.layout.addWidget(d.sa)
+
         d.checks = []
         kill_only    = [k for k in kill if not k in start]
         kill_restart = [k for k in kill if k in start]
@@ -551,9 +579,12 @@ class MyModel(QAbstractTableModel):
             restart      = [restart[i]      for i in range(len(restart))      if checks[s+i]]
             kill = kill_only + kill_restart
             start = start_only + kill_restart
-            return (kill, start, restart)
+            r = (kill, start, restart)
         else:
-            return ([], [], [])
+            r = ([], [], [])
+        d.sw.removeEventFilter(self)
+        self.dialog = None
+        return r
 
     def applyOne(self, index):
         id = self.cfglist[index.row()]['id']
