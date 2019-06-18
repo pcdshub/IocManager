@@ -1,6 +1,9 @@
 BASEPORT=39050
 PROCMGRD_ROOT=procmgrd
 
+if [ -z "$IOC_COMMON" ]; then
+	IOC_COMMON=/reg/d/iocCommon
+fi
 if [ -z "$IOC_DATA" ]; then
 	IOC_DATA=/reg/d/iocData
 fi

@@ -1,7 +1,15 @@
 #!/bin/sh
 
 # Find our standard configuration.
-export PYPS_ROOT=/reg/g/pcds/pyps
+if [ -z "$PYPS_ROOT" ]; then
+	PYPS_ROOT=/reg/g/pcds/pyps
+fi
+if [ -z "$PSPKG_ROOT" ]; then
+	PSPKG_ROOT=/reg/g/pcds/pkg_mgr
+fi
+export PSPKG_ROOT
+export PYPS_ROOT
+
 host=`hostname -s`
 cfg=`awk /$host/'{print $2;}'  $PYPS_ROOT/config/hosts.special`
 if [ "${cfg}X" == "X" ]; then
