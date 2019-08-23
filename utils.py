@@ -81,6 +81,11 @@ import telnetlib, string, datetime, os, time, fcntl, re, glob, subprocess, copy
 # Defines
 #
 CAMRECORDER  = os.getenv("CAMRECORD_ROOT")
+PROCSERV_EXE = os.getenv("PROCSERV_EXE")
+if PROCSERV_EXE is None:
+    PROCSERV_EXE = "procServ"
+else:
+    PROCSERV_EXE = PROCSERV_EXE.split()[0]
 TMP_DIR      = "%s/config/.status/tmp" % os.getenv("PYPS_ROOT")
 STARTUP_DIR  = "%s/config/%%s/iocmanager/" % os.getenv("PYPS_ROOT")
 CONFIG_FILE = "%s/config/%%s/iocmanager.cfg" % os.getenv("PYPS_ROOT")
@@ -371,14 +376,8 @@ def startProc(cfg, entry, local=False):
     log = LOGBASE % name
     ctrlport = BASEPORT + 2 * (int(platform) - 1)
     print "Starting %s on port %s of host %s, platform %s..." % (name, port, host, platform)
-    #
-    # Sigh.  /reg/d/iocCommon/All/*.sh sets $PROCSERV which is procServ plus a desired common set
-    # of options.  We don't want those options, so we use magic to erase them.  initIOC.hutch
-    # has been changed to export PROCSERV_EXE, but that might not have been done in the currently
-    # running process.
-    #
-    cmd = 'P=${PROCSERV%%%% *} eval \$P --logfile %s --name %s --allow --coresize 0 --savelog %d %s' % \
-          (log, name, port, cmd)
+    cmd = '%s --logfile %s --name %s --allow --coresize 0 --savelog %d %s' % \
+          (PROCSERV_EXE, log, name, port, cmd)
     try:
         tn = telnetlib.Telnet(host, ctrlport, 1)
     except:
