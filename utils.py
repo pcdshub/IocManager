@@ -139,14 +139,17 @@ EPICS_SITE_TOP   = "/reg/g/pcds/epics/"
 # Given an IOC name, find the base PV name.
 #
 def getBaseName(ioc):
+    pvInfoPath = PVFILE % ioc
+    if not os.path.isfile( pvInfoPath ):
+        return None
     try:
-        lines = open(PVFILE % ioc).readlines()
+        lines = open(pvInfoPath).readlines()
         for l in lines:
             pv = l.split(",")[0]
             if pv[-10:] == ":HEARTBEAT":
                 return pv[:-10]
     except:
-        print "Error parsing %s for base PV name!" % (PVFILE % ioc)
+        print "Error parsing %s for base PV name!" % (pvInfoPath)
     return None
 
 #
