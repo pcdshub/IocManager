@@ -152,6 +152,10 @@ class MyModel(QAbstractTableModel):
         self.poll = StatusPoll(self, 5)
         self.children = []
         (self.poll.mtime, self.cfglist, self.hosts, self.vdict) = utils.readConfig(hutch)
+        try:
+            utils.COMMITHOST = self.vdict["COMMITHOST"]
+        except:
+            pass
         self.addUsedHosts()
         
         for l in self.cfglist:
@@ -204,6 +208,10 @@ class MyModel(QAbstractTableModel):
     def configuration(self, cfglist, hostlist, vdict):
         # Process a new configuration file!
         self.vdict = vdict
+        try:
+            utils.COMMITHOST = self.vdict["COMMITHOST"]
+        except:
+            pass
         cfgonly = []
         ouronly = []
         both    = []
