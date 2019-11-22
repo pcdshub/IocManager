@@ -107,6 +107,7 @@ STATUS_INIT      = "INITIALIZE WAIT"
 STATUS_NOCONNECT = "NOCONNECT"
 STATUS_RUNNING   = "RUNNING"
 STATUS_SHUTDOWN  = "SHUTDOWN"
+STATUS_DOWN      = "HOST DOWN"
 STATUS_ERROR     = "ERROR"
 
 CONFIG_NORMAL    = 0
@@ -221,6 +222,14 @@ def readLogPortBanner(tn):
 # Returns a dictionary with status information for a given host/port.
 #
 def check_status(host, port, id):
+    # Ping the host to see if it is up!
+    pingrc = os.system("ping -c 1 -w 1 -W 0.002 %s >/dev/null 2>/dev/null" % host)
+    if pingrc != 0:
+        return {'status'      : STATUS_DOWN,
+                'rid'         : id,
+                'pid'         : "-",
+                'autorestart' : False,
+                'rdir'        : "/tmp" }
     try:
         tn = telnetlib.Telnet(host, port, 1)
     except:

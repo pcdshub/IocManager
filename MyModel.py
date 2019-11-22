@@ -401,6 +401,22 @@ class MyModel(QAbstractTableModel):
         elif role == Qt.ForegroundRole:
             c = index.column()
             entry = self.cfglist[index.row()]
+            if c == STATUS:
+                entry = self.cfglist[index.row()]
+                if entry['disable']:
+                    if (entry['status'] != utils.STATUS_RUNNING or
+                        entry['host'] != entry['rhost'] or
+                        entry['port'] != entry['rport'] or
+                        entry['dir'] != entry['rdir'] or
+                        entry['id'] != entry['rid']):
+                        return QVariant(QBrush(Qt.black))
+                    else:
+                        return QVariant(QBrush(Qt.white))
+                else:
+                    if entry['status'] != utils.STATUS_RUNNING:
+                        return QVariant(QBrush(Qt.white))
+                    else:
+                        return QVariant(QBrush(Qt.black))
             if entry['cfgstat'] == utils.CONFIG_DELETED:
                 return QVariant(QBrush(Qt.red))
             try:
@@ -438,7 +454,10 @@ class MyModel(QAbstractTableModel):
                         return QVariant(QBrush(Qt.green))
                 else:
                     if entry['status'] != utils.STATUS_RUNNING:
-                        return QVariant(QBrush(Qt.red))
+                        if entry['status'] == utils.STATUS_DOWN:
+                            return QVariant(QBrush(Qt.blue))
+                        else:
+                            return QVariant(QBrush(Qt.red))
                     if (entry['host'] != entry['rhost'] or
                         entry['port'] != entry['rport'] or
                         entry['dir'] != entry['rdir'] or
