@@ -11,6 +11,7 @@ import sys
 import pty
 import time
 import pwd
+import socket
 
 class authdialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
@@ -391,9 +392,17 @@ class GraphicUserInterface(QtWidgets.QMainWindow):
         if pid == 0:
             try:
                 if need_su:
-                    os.execv("/usr/bin/ssh", ["ssh", user + "@" + utils.COMMITHOST, "/bin/tcsh", "-if"])
+                    if utils.COMMITHOST == socket.gethostname().split(".")[0]:
+                        os.execv("/usr/bin/su", ["su", user, "-c", "/bin/tcsh -if"])
+                    else:
+                        os.execv("/usr/bin/ssh", ["ssh", user + "@" + utils.COMMITHOST, "/bin/tcsh", "-if"])
                 else:
-                    os.execv("/usr/bin/ssh", ["ssh", utils.COMMITHOST, "/bin/tcsh", "-if"])
+                    if utils.COMMITHOST == socket.gethostname().split(".")[0]:
+                        print "C"
+                        os.execv("/bin/tcsh", ["tcsh", "-if"])
+                    else:
+                        print "D"
+                        os.execv("/usr/bin/ssh", ["ssh", utils.COMMITHOST, "/bin/tcsh", "-if"])
             except:
                 pass
             print "Say what?  execv failed?"
