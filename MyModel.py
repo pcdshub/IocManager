@@ -500,7 +500,7 @@ class MyModel(QAbstractTableModel):
             except:
                 a = config[l]['id']
             check = QCheckBox(d)
-            check.setChecked(True)
+            check.setChecked(False)
             check.setText("%s %s on %s:%d" % (verb, a, current[l][pfix + 'host'],
                                               current[l][pfix + 'port']))
             d.clayout.addWidget(check)
