@@ -498,6 +498,8 @@ def writeConfig(hutch, hostlist, cfglist, vars, f=None):
     f.write("]\n\n");
     f.write("procmgr_config = [\n")
     for entry in cfglist:
+        if entry['cfgstat'] == CONFIG_DELETED:
+            continue
         try:
             id = entry['newid'].strip()  # Bah.  Sometimes we add a space so this becomes blue!
         except:
@@ -562,6 +564,7 @@ def installConfig(hutch, file, fd=None):
     mtime = os.stat(CONFIG_FILE % hutch).st_mtime
     if fd != None:
         flush_input(fd)
+        #print ">>> %s %s %s" % (INSTALL, hutch, file)
         do_write(fd, "%s %s %s\n" % (INSTALL, hutch, file))
         read_until(fd, "> ")
     else:
@@ -827,7 +830,7 @@ def read_until(fd, expr):
     data = ""
     while True:
         v = os.read(fd, 1024)
-        # print v
+        #print "<<< %s" % v
         data += v
         m = exp.search(data)
         if m != None:

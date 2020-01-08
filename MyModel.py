@@ -518,14 +518,18 @@ class MyModel(QAbstractTableModel):
 
     def applyAddList(self, i, config, current, pfix, d, lst, verb):
         for l in lst:
-            try:
-                a = config[l]['alias']
-                if a == "":
+            print l, verb
+            if l in config.keys():
+                try:
+                    a = config[l]['alias']
+                    if a == "":
+                        a = config[l]['id']
+                    else:
+                        a += ' (%s)' % config[l]['id']
+                except:
                     a = config[l]['id']
-                else:
-                    a += ' (%s)' % config[l]['id']
-            except:
-                a = config[l]['id']
+            else:
+                a = current[l]['rid']
             check = QCheckBox(d)
             check.setChecked(False)
             check.setText("%s %s on %s:%d" % (verb, a, current[l][pfix + 'host'],
