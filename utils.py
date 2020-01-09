@@ -146,7 +146,7 @@ def getBaseName(ioc):
             if pv[-10:] == ":HEARTBEAT":
                 return pv[:-10]
     except:
-        print "Error parsing %s for base PV name!" % PVFILE
+        print "Error parsing %s for base PV name!" % (PVFILE % ioc)
     return None
 
 #
