@@ -12,7 +12,7 @@
 #
 # check_status(host, port, id)
 #     Check the health of an IOC, returning a dictionary with status,
-#     pid, id, autorestart, and rdir.
+#     pid, id, autorestart, autorestartmode, and rdir.
 #
 # killProc(host, port)
 #     Kill the IOC at the given location.
@@ -123,9 +123,12 @@ MSG_RESTART = "new child"
 MSG_PROMPT_OLD = "\x0d\x0a[$>] "
 MSG_PROMPT = "\x0d\x0a> "
 MSG_SPAWN = "procServ: spawning daemon"
-MSG_AUTORESTART_IS_ON = "auto restart is ON"
+MSG_AUTORESTART_MODE = "auto restart mode"
+MSG_AUTORESTART_IS_ON = "auto restart( mode)? is ON,"
 MSG_AUTORESTART_TO_ON = "auto restart to ON"
 MSG_AUTORESTART_TO_OFF = "auto restart to OFF"
+MSG_AUTORESTART_MODE_TO_ON = "auto restart mode to ON"
+MSG_AUTORESTART_MODE_TO_OFF = "auto restart mode to OFF"
 
 EPICS_DEV_TOP	 = "/reg/g/pcds/package/epics/3.14-dev"
 EPICS_SITE_TOP   = "/reg/g/pcds/epics/"
@@ -139,14 +142,17 @@ EPICS_SITE_TOP   = "/reg/g/pcds/epics/"
 # Given an IOC name, find the base PV name.
 #
 def getBaseName(ioc):
+    pvInfoPath = PVFILE % ioc
+    if not os.path.isfile( pvInfoPath ):
+        return None
     try:
-        lines = open(PVFILE % ioc).readlines()
+        lines = open(pvInfoPath).readlines()
         for l in lines:
             pv = l.split(",")[0]
             if pv[-10:] == ":HEARTBEAT":
                 return pv[:-10]
     except:
-        print "Error parsing %s for base PV name!" % (PVFILE % ioc)
+        print "Error parsing %s for base PV name!" % (pvInfoPath)
     return None
 
 #
@@ -183,7 +189,7 @@ def fixdir(dir, id):
 #
 
 #
-# Read and parse the connection information from a new telnet connection.
+# Read and parse the connection information from a new procServ telnet connection.
 # Returns a dictionary of information.
 #
 def readLogPortBanner(tn):
@@ -191,11 +197,12 @@ def readLogPortBanner(tn):
         response = tn.read_until(MSG_BANNER_END, 1)
     except:
         response = ""
-    if not string.count(response, MSG_BANNER_END):
+    if not response.count(MSG_BANNER_END):
         return {'status'      : STATUS_ERROR,
                 'pid'         : "-",
                 'rid'          : "-",
                 'autorestart' : False,
+                'autorestartmode' : False,
                 'rdir'        : "/tmp" }
     if re.search('SHUT DOWN', response):
         tmpstatus = STATUS_SHUTDOWN
@@ -211,11 +218,17 @@ def readLogPortBanner(tn):
         arst = True
     else:
         arst = False
+    # procServ 2.8 changed "auto restart" to "auto restart mode"
+    if re.search(MSG_AUTORESTART_MODE, response):
+        arstm = True
+    else:
+        arstm = False
 
     return {'status'      : tmpstatus,
             'pid'         : pid,
             'rid'         : getid,
             'autorestart' : arst,
+            'autorestartmode' : arstm,
             'rdir'        : fixdir(dir, getid) }
 
 #
@@ -237,6 +250,7 @@ def check_status(host, port, id):
                 'rid'         : id,
                 'pid'         : "-",
                 'autorestart' : False,
+                'autorestartmode' : False,
                 'rdir'        : "/tmp" }
     result = readLogPortBanner(tn)
     tn.close()
@@ -266,19 +280,31 @@ def fixTelnetShell(host, port):
     statd = tn.read_until(MSG_PROMPT, 2)
     tn.close()
     
-def killProc(host, port):
+def killProc(host, port, verbose=False):
     print "Killing IOC on host %s, port %s..." % (host, port)
 
     # First, turn off autorestart!
     tn = openTelnet(host, port)
     if tn:
-        statd = readLogPortBanner(tn)
         try:
+            statd = readLogPortBanner(tn)
+        except:
+            print 'ERROR: killProc() failed to readLogPortBanner on %s port %s' % (host, port)
+            tn.close()
+            return
+        try:
+            if verbose:
+                print 'killProc: %s port %s status is %s' % (host, port, statd['status'])
             if statd['autorestart']:
+                if verbose:
+                    print 'killProc: turning off autorestart on %s port %s' % (host, port)
                 # send ^T to toggle off auto restart.
                 tn.write("\x14")
                 # wait for toggled message
-                r = tn.read_until(MSG_AUTORESTART_TO_OFF, 1)
+                if statd['autorestartmode']:
+                    r = tn.read_until(MSG_AUTORESTART_MODE_TO_OFF, 1)
+                else:
+                    r = tn.read_until(MSG_AUTORESTART_TO_OFF, 1)
                 time.sleep(0.25)
         except:
             print 'ERROR: killProc() failed to turn off autorestart on %s port %s' % (host, port)
@@ -288,13 +314,15 @@ def killProc(host, port):
     else:
         print 'ERROR: killProc() telnet to %s port %s failed' % (host, port)
         return
-    
+
     # Now, reconnect to actually kill it!
     tn = openTelnet(host, port)
     if tn:
         statd = readLogPortBanner(tn)
         if statd['status'] == STATUS_RUNNING:
             try:
+                if verbose:
+                    print 'killProc: Sending Ctrl-X to %s port %s' % (host, port)
                 # send ^X to kill child process
                 tn.write("\x18");
                 # wait for killed message
@@ -305,6 +333,8 @@ def killProc(host, port):
                 tn.close()
                 return
         try:
+            if verbose:
+                print 'killProc: Sending Ctrl-Q to %s port %s' % (host, port)
             # send ^Q to kill procServ
             tn.write("\x11");
         except:
@@ -319,10 +349,8 @@ def restartProc(host, port):
     print "Restarting IOC on host %s, port %s..." % (host, port)
     tn = openTelnet(host, port)
     started = False
-
     if tn:
         statd = readLogPortBanner(tn)
-
         if statd['status'] == STATUS_RUNNING:
             try:
                 # send ^X to kill child process
@@ -340,7 +368,7 @@ def restartProc(host, port):
 
         # wait for restart message
         r = tn.read_until(MSG_RESTART, 1)
-        if not string.count(r, MSG_RESTART):
+        if not r.count(MSG_RESTART):
             print 'ERROR: no restart message... '
         else:
             started = True
