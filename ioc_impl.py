@@ -416,6 +416,12 @@ class GraphicUserInterface(QtWidgets.QMainWindow):
             l = utils.read_until(fd, ": ")
             os.write(fd, password + "\n")
             l = utils.read_until(fd, "> ")
+        #
+        # Sigh.  Someone once had a file named time.py in their home 
+        # directory.  So let's go somewhere where we know the files.
+        #
+        os.write(fd, "cd %s\n" % utils.TMP_DIR)
+        l = utils.read_until(fd, "> ")
         self.model.user = user
         if self.model.userIO != None:
             try:
