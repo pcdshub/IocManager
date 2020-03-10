@@ -519,7 +519,12 @@ def writeConfig(hutch, hostlist, cfglist, vars, f=None):
     fcntl.lockf(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
     f.truncate()
     for (k, v) in vars.items():
-        f.write("%s = %s\n" % (k, str(v)))
+        try:
+            if not v in ["True", "False"]:
+                n = int(v)
+            f.write("%s = %s\n" % (k, str(v)))
+        except:
+            f.write('%s = "%s"\n' % (k, str(v)))
     f.write("\nhosts = [\n")
     for h in hostlist:
         f.write("   '%s',\n" % h)
