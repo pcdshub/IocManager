@@ -210,10 +210,16 @@ def readLogPortBanner(tn):
     else:
         tmpstatus = STATUS_RUNNING
         pid = re.search('@@@ Child \"(.*)\" PID: ([0-9]*)', response).group(2)
-    getid = re.search('@@@ Child \"(.*)\" start', response).group(1)
-    dir   = re.search('@@@ Server startup directory: (.*)', response).group(1)
-    if dir[-1] == '\r':
-        dir = dir[:-1]
+    match = re.search('@@@ Child \"(.*)\" start', response)
+    getid = "-"
+    if match:
+        getid = match.group(1)
+    match = re.search('@@@ Server startup directory: (.*)', response)
+    dir = "/tmp"
+    if match:
+        dir = match.group(1)
+        if dir[-1] == '\r':
+            dir = dir[:-1]
     if re.search(MSG_AUTORESTART_IS_ON, response):
         arst = True
     else:
