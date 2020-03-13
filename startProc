@@ -52,7 +52,7 @@ fi
 cmd=$1
 shift
 file=`echo $cmd | awk '{print $1;}' -`
-if test `head -c 2 $file` == '#!'; then
+if test `head -c 2 $file | cat -v` == '#!'; then
 	prog=$(head -1 $file | sed -e 's/#!//' -e "s/[a-z0-9]\+-x86_64/$EPICS_HOST_ARCH/")
 	exec $prog $cmd $@
 else
