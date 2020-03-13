@@ -24,6 +24,10 @@ fi
 # Setup the cfg environment.
 export IOC=${host}
 export IOC_USER=${cfguser}
+if [ ! -f $IOC_COMMON/All/${cfg}_env.sh ]; then
+	echo $IOC_COMMON/All/${cfg}_env.sh  not found!
+	exit 1
+fi
 source $IOC_COMMON/All/${cfg}_env.sh
 
 # Find the procmgrd bin directory via ${cfg}_env PROCSERV variable
