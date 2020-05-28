@@ -468,7 +468,12 @@ def readConfig(cfg, time = None):
         cfgfn = cfg
     else: # cfg is name of hutch
         cfgfn = CONFIG_FILE % cfg
-    f = open(cfgfn, "r")
+    try:
+        f = open(cfgfn, "r")
+    except Exception, msg:
+        print "readConfig file error: %s" % str(msg)
+        return None
+
     fcntl.lockf(f, fcntl.LOCK_SH)    # Wait for the lock!!!!
     try:
         mtime = os.stat(cfgfn).st_mtime
@@ -480,7 +485,8 @@ def readConfig(cfg, time = None):
         for v in newvars:
             vdict[v] = config[v]
         res = (mtime, config['procmgr_config'], config['hosts'], vdict)
-    except:
+    except Exception, msg:
+        print "readConfig error: %s" % str(msg)
         res = None
     fcntl.lockf(f, fcntl.LOCK_UN)
     f.close()
