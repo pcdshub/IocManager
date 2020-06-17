@@ -478,13 +478,14 @@ def readConfig(cfg, time = None):
     try:
         mtime = os.stat(cfgfn).st_mtime
         if time != None and time == mtime:
-            raise Exception
-        execfile(cfgfn, {}, config)
-        newvars = set(config.keys()).difference(vars)
-        vdict = {}
-        for v in newvars:
-            vdict[v] = config[v]
-        res = (mtime, config['procmgr_config'], config['hosts'], vdict)
+            res = None
+        else:
+            execfile(cfgfn, {}, config)
+            newvars = set(config.keys()).difference(vars)
+            vdict = {}
+            for v in newvars:
+                vdict[v] = config[v]
+            res = (mtime, config['procmgr_config'], config['hosts'], vdict)
     except Exception, msg:
         print "readConfig error: %s" % str(msg)
         res = None
@@ -658,7 +659,7 @@ def readStatusDir(cfg, readfile=lambda fn, f: open(fn).readlines()):
                         except:
                             print "Error while trying to delete file %s!" % (STATUS_DIR % cfg) + "/" + d[(stat[1], int(stat[2]))]['rid']
                         # Leave this here to make sure file is updated.
-                        raise Exception
+                        raise Exception( "Need to update cfg file." )
                     else:
                         # Duplicate, but older, so ignore!
                         try:
