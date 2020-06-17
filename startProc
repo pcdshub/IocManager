@@ -47,14 +47,20 @@ chmod g+rw $PYPS_ROOT/config/.status/$cfg/$ioc
 # Force an updated timestamp on the archive request file each time
 # so we know when they're stale
 if test -f ../../archive/$ioc.archive; then
-    cp -f  ../../archive/$ioc.archive $IOC_DATA/$ioc/archive;
+    mkdir -p $IOC_DATA/$ioc/archive
+    cp -f  ../../archive/$ioc.archive $IOC_DATA/$ioc/archive/$ioc.archive;
 fi
 cmd=$1
 shift
-file=`echo $cmd | awk '{print $1;}' -`
-if test `head -c 2 $file | cat -v` == '#!'; then
-	prog=$(head -1 $file | sed -e 's/#!//' -e "s/[a-z0-9]\+-x86_64/$EPICS_HOST_ARCH/")
-	exec $prog $cmd $@
-else
+if [ "$EPICS_HOST_ARCH" == "linux-arm-apalis" ]; then
 	exec $cmd $@
+else
+	# Fix T_A if needed in #!/path/to/bin/T_A/iocApp
+	file=`echo $cmd | awk '{print $1;}' -`
+	if test `head -c 2 $file | cat -v` == '#!'; then
+		prog=$(head -1 $file | sed -e 's/#!//' -e "s/[a-z0-9]\+-x86_64/$EPICS_HOST_ARCH/")
+		exec $prog $cmd $@
+	else
+		exec $cmd $@
+	fi
 fi
