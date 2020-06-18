@@ -130,7 +130,7 @@ MSG_AUTORESTART_TO_OFF = "auto restart to OFF"
 MSG_AUTORESTART_MODE_TO_ON = "auto restart mode to ON"
 MSG_AUTORESTART_MODE_TO_OFF = "auto restart mode to OFF"
 
-EPICS_DEV_TOP	 = "/reg/g/pcds/package/epics/3.14-dev"
+EPICS_DEV_TOP	 = "/reg/g/pcds/epics-dev"
 EPICS_SITE_TOP   = "/reg/g/pcds/epics/"
 
 ######################################################################
