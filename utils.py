@@ -130,7 +130,7 @@ MSG_AUTORESTART_TO_OFF = "auto restart to OFF"
 MSG_AUTORESTART_MODE_TO_ON = "auto restart mode to ON"
 MSG_AUTORESTART_MODE_TO_OFF = "auto restart mode to OFF"
 
-EPICS_DEV_TOP	 = "/reg/g/pcds/package/epics/3.14-dev"
+EPICS_DEV_TOP	 = "/reg/g/pcds/epics-dev"
 EPICS_SITE_TOP   = "/reg/g/pcds/epics/"
 
 ######################################################################
@@ -210,10 +210,16 @@ def readLogPortBanner(tn):
     else:
         tmpstatus = STATUS_RUNNING
         pid = re.search('@@@ Child \"(.*)\" PID: ([0-9]*)', response).group(2)
-    getid = re.search('@@@ Child \"(.*)\" start', response).group(1)
-    dir   = re.search('@@@ Server startup directory: (.*)', response).group(1)
-    if dir[-1] == '\r':
-        dir = dir[:-1]
+    match = re.search('@@@ Child \"(.*)\" start', response)
+    getid = "-"
+    if match:
+        getid = match.group(1)
+    match = re.search('@@@ Server startup directory: (.*)', response)
+    dir = "/tmp"
+    if match:
+        dir = match.group(1)
+        if dir[-1] == '\r':
+            dir = dir[:-1]
     if re.search(MSG_AUTORESTART_IS_ON, response):
         arst = True
     else:
@@ -462,19 +468,26 @@ def readConfig(cfg, time = None):
         cfgfn = cfg
     else: # cfg is name of hutch
         cfgfn = CONFIG_FILE % cfg
-    f = open(cfgfn, "r")
+    try:
+        f = open(cfgfn, "r")
+    except Exception, msg:
+        print "readConfig file error: %s" % str(msg)
+        return None
+
     fcntl.lockf(f, fcntl.LOCK_SH)    # Wait for the lock!!!!
     try:
         mtime = os.stat(cfgfn).st_mtime
         if time != None and time == mtime:
-            raise Exception
-        execfile(cfgfn, {}, config)
-        newvars = set(config.keys()).difference(vars)
-        vdict = {}
-        for v in newvars:
-            vdict[v] = config[v]
-        res = (mtime, config['procmgr_config'], config['hosts'], vdict)
-    except:
+            res = None
+        else:
+            execfile(cfgfn, {}, config)
+            newvars = set(config.keys()).difference(vars)
+            vdict = {}
+            for v in newvars:
+                vdict[v] = config[v]
+            res = (mtime, config['procmgr_config'], config['hosts'], vdict)
+    except Exception, msg:
+        print "readConfig error: %s" % str(msg)
         res = None
     fcntl.lockf(f, fcntl.LOCK_UN)
     f.close()
@@ -646,7 +659,7 @@ def readStatusDir(cfg, readfile=lambda fn, f: open(fn).readlines()):
                         except:
                             print "Error while trying to delete file %s!" % (STATUS_DIR % cfg) + "/" + d[(stat[1], int(stat[2]))]['rid']
                         # Leave this here to make sure file is updated.
-                        raise Exception
+                        raise Exception( "Need to update cfg file." )
                     else:
                         # Duplicate, but older, so ignore!
                         try:

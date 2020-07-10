@@ -151,7 +151,11 @@ class MyModel(QAbstractTableModel):
         self.userIO = None
         self.poll = StatusPoll(self, 5)
         self.children = []
-        (self.poll.mtime, self.cfglist, self.hosts, self.vdict) = utils.readConfig(hutch)
+        config = utils.readConfig(hutch)
+        if config == None:
+            print "Cannot read configuration for %s!" % hutch
+            sys.exit(-1)
+        (self.poll.mtime, self.cfglist, self.hosts, self.vdict) = config
         try:
             utils.COMMITHOST = self.vdict["COMMITHOST"]
         except:
