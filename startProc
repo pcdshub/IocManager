@@ -58,7 +58,7 @@ else
 	# Fix T_A if needed in #!/path/to/bin/T_A/iocApp
 	file=`echo $cmd | awk '{print $1;}' -`
 	if test `head -c 2 $file | cat -v` == '#!'; then
-		prog=$(head -1 $file | sed -e 's/#!//' -e "s/[a-z0-9]\+-x86_64/$EPICS_HOST_ARCH/")
+		prog=$(head -1 $file | sed -e 's/#!//' -e "s/[-a-z0-9]\+-x86_64/$EPICS_HOST_ARCH/")
 		exec $prog $cmd $@
 	else
 		exec $cmd $@
