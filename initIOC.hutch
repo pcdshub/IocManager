@@ -103,7 +103,7 @@ fi
 export IOC=$host
 
 # Start caRepeater.
-su ${cfguser} -s /bin/sh -c "$PROCSERV --logfile $IOC_DATA/$IOC_HOST/iocInfo/caRepeater.log --name caRepeater 30000 $CA_BIN/caRepeater"
+su ${cfguser} -s /bin/sh -c "$PROCSERV --logfile $IOC_DATA/$IOC_HOST/iocInfo/caRepeater.log --name caRepeater 30000 $SCRIPTROOT/runRepeater"
 sleep 5
 
 # Start all of our processes.
