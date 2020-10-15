@@ -75,7 +75,7 @@
 ######################################################################
 
 
-import telnetlib, string, datetime, os, time, fcntl, re, glob, subprocess, copy
+import telnetlib, string, datetime, os, time, fcntl, re, glob, subprocess, copy, sys
 
 #
 # Defines
