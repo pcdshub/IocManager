@@ -459,7 +459,7 @@ def startProc(cfg, entry, local=False):
 #
 # cfg can be a path to config file or name of a hutch
 #
-def readConfig(cfg, time = None):
+def readConfig(cfg, time=None, silent=False):
     config = {'procmgr_config': None, 'hosts': None, 'dir':'dir',
               'id':'id', 'cmd':'cmd', 'flags':'flags', 'port':'port', 'host':'host',
               'disable':'disable', 'history':'history', 'delay':'delay', 'alias':'alias', 'hard':'hard' }
@@ -471,7 +471,8 @@ def readConfig(cfg, time = None):
     try:
         f = open(cfgfn, "r")
     except Exception, msg:
-        print "readConfig file error: %s" % str(msg)
+        if not silent:
+            print "readConfig file error: %s" % str(msg)
         return None
 
     fcntl.lockf(f, fcntl.LOCK_SH)    # Wait for the lock!!!!
@@ -487,7 +488,8 @@ def readConfig(cfg, time = None):
                 vdict[v] = config[v]
             res = (mtime, config['procmgr_config'], config['hosts'], vdict)
     except Exception, msg:
-        print "readConfig error: %s" % str(msg)
+        if not silent:
+            print "readConfig error: %s" % str(msg)
         res = None
     fcntl.lockf(f, fcntl.LOCK_UN)
     f.close()
@@ -506,7 +508,7 @@ def readConfig(cfg, time = None):
         l['cfgstat'] = CONFIG_NORMAL
         if l['hard']:
             l['base'] = getBaseName(l['id'])
-            l['dir'] = getHardIOCDir(l['id'])
+            l['dir'] = getHardIOCDir(l['id'], silent)
             l['host'] = l['id']
             l['port'] = -1
             l['rhost'] = l['id']
@@ -947,12 +949,13 @@ def netconfig(host):
 def rebootServer(host):
     os.system("/usr/bin/ipmitool -I lanplus -U ADMIN -Pipmia8min -H %s power cycle &" % host)
 
-def getHardIOCDir(host):
+def getHardIOCDir(host, silent=False):
     dir = "Unknown"
     try:
         lines = [l.strip() for l in open(HIOC_STARTUP % host).readlines()]
     except:
-        print "Error while trying to read HIOC startup file for %s!" % host
+        if not silent:
+            print "Error while trying to read HIOC startup file for %s!" % host
         return "Unknown"
     for l in lines:
         if l[:5] == "chdir":
