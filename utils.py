@@ -72,6 +72,9 @@
 # rebootServer(host)
 #     Attempt to reboot the specified host.
 #
+# getHutchList()
+#     Return the list of all supported hutches.
+#
 ######################################################################
 
 
@@ -88,6 +91,7 @@ else:
     PROCSERV_EXE = PROCSERV_EXE.split()[0]
 TMP_DIR      = "%s/config/.status/tmp" % os.getenv("PYPS_ROOT")
 STARTUP_DIR  = "%s/config/%%s/iocmanager/" % os.getenv("PYPS_ROOT")
+CONFIG_DIR  = "%s/config/" % os.getenv("PYPS_ROOT")
 CONFIG_FILE = "%s/config/%%s/iocmanager.cfg" % os.getenv("PYPS_ROOT")
 NOSSH_FILE = "%s/config/%%s/iocmanager.nossh" % os.getenv("PYPS_ROOT")
 HIOC_STARTUP = "/reg/d/iocCommon/hioc/%s/startup.cmd"
@@ -132,6 +136,8 @@ MSG_AUTORESTART_MODE_TO_OFF = "auto restart mode to OFF"
 
 EPICS_DEV_TOP	 = "/reg/g/pcds/epics-dev"
 EPICS_SITE_TOP   = "/reg/g/pcds/epics/"
+
+stpaths = ["%s/children/build/iocBoot/%s/st.cmd", "%s/build/iocBoot/%s/st.cmd", "%s/iocBoot/%s/st.cmd"]
 
 ######################################################################
 #
@@ -455,7 +461,7 @@ def startProc(cfg, entry, local=False):
 
 #
 # Reads a hutch configuration file and returns a tuple:
-#     (filetime, configlist, hostlist).
+#     (filetime, configlist, hostlist, varlist).
 #
 # cfg can be a path to config file or name of a hutch
 #
@@ -1004,3 +1010,54 @@ def findPV(regexp, ioc):
     except:
         return []
     return filter(regexp.search, lines)
+
+def getHutchList():
+    try:
+        p = subprocess.Popen(["csh", "-c", "cd %s; echo */iocmanager.cfg" % CONFIG_DIR], stdout=subprocess.PIPE)
+        return [l.split('/')[0] for l in p.communicate()[0].strip().split()]
+    except:
+        return []
+
+#
+# Does this configuration list look valid?  Currently, just check if there
+# is a duplicate host/port combination.
+#
+def validateConfig(cl):
+    for i in range(len(cl)):
+        try:
+            h = cl[i]['newhost']
+        except:
+            h = cl[i]['host']
+        try:
+            p = cl[i]['newport']
+        except:
+            p = cl[i]['port']
+        for j in range(i+1, len(cl)):
+            try:
+                h2 = cl[j]['newhost']
+            except:
+                h2 = cl[j]['host']
+            try:
+                p2 = cl[j]['newport']
+            except:
+                p2 = cl[j]['port']
+            if (h == h2 and p == p2):
+                return False
+    #
+    # Anything else we want to check here?!?
+    #
+    return True
+
+#
+# Will we find an st.cmd file along this path?
+#
+def validateDir(dir, ioc):
+    if dir[0] != '/':
+        dir = EPICS_SITE_TOP + dir
+    for p in stpaths:
+        if os.path.exists(p % (dir, ioc)):
+            return True
+    if os.path.exists(dir + "/st.cmd"):
+        return True
+    return False
+
