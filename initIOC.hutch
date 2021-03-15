@@ -20,6 +20,9 @@ cfguser=${cfg}ioc
 if [ "$cfg" == "xrt" ]; then
     cfguser=feeioc
 fi
+if [ "$cfg" == "ued" ]; then
+    cfguser=feeioc
+fi
 
 # Setup the cfg environment.
 export IOC=${host}
