@@ -24,7 +24,7 @@
 #     entry is a configuration dictionary entry that should be started
 #     for a particular hutch.
 #
-# readConfig(hutch, time=None)
+# readConfig(hutch, time=None, do_os=False)
 #     Read the configuration file for a given hutch if newer than time.
 #     Return None on failure or no change, otherwise a tuple: (filetime,
 #     configlist, hostlist, vars).  filetime is the modification time of
@@ -32,6 +32,9 @@
 #     an IOC configuration, hostlist is a (hint) list of hosts in this
 #     hutch, and vars is an additional list of variables defined in the
 #     config file.
+#
+#     If do_os is True, also scan the .hosts directory to build a host type
+#     lookup table.
 #
 # writeConfig(hutch, hostlist, configlist, vars, f=None)
 #     Write the configuration file for a given hutch.  Deals with the
@@ -99,6 +102,7 @@ HIOC_POWER   = "/reg/common/tools/bin/power"
 HIOC_CONSOLE = "/reg/common/tools/bin/console"
 AUTH_FILE    = "%s/config/%%s/iocmanager.auth" % os.getenv("PYPS_ROOT")
 STATUS_DIR   = "%s/config/.status/%%s" % os.getenv("PYPS_ROOT")
+HOST_DIR     = "%s/config/.host" % os.getenv("PYPS_ROOT")
 LOGBASE      = "%s/%%s/iocInfo/ioc.log" % os.getenv("IOC_DATA")
 PVFILE       = "%s/%%s/iocInfo/IOC.pvlist" % os.getenv("IOC_DATA")
 INSTALL      = __file__[:__file__.rfind('/')] + "/installConfig"
@@ -138,6 +142,8 @@ EPICS_DEV_TOP	 = "/reg/g/pcds/epics-dev"
 EPICS_SITE_TOP   = "/reg/g/pcds/epics/"
 
 stpaths = ["%s/children/build/iocBoot/%s/st.cmd", "%s/build/iocBoot/%s/st.cmd", "%s/iocBoot/%s/st.cmd"]
+
+hosttype = {}
 
 ######################################################################
 #
@@ -465,7 +471,7 @@ def startProc(cfg, entry, local=False):
 #
 # cfg can be a path to config file or name of a hutch
 #
-def readConfig(cfg, time=None, silent=False):
+def readConfig(cfg, time=None, silent=False, do_os=False):
     config = {'procmgr_config': None, 'hosts': None, 'dir':'dir',
               'id':'id', 'cmd':'cmd', 'flags':'flags', 'port':'port', 'host':'host',
               'disable':'disable', 'history':'history', 'delay':'delay', 'alias':'alias', 'hard':'hard' }
@@ -529,6 +535,14 @@ def readConfig(cfg, time=None, silent=False):
             l['rport'] = l['port']
             l['newstyle'] = False
             l['pdir'] = findParent(l['id'], l['dir'])
+    if do_os:
+        global hosttype
+        hosttype = {}
+        for fn in config['hosts']:
+            try:
+                hosttype[fn] = open("%s/%s" % (HOST_DIR, fn)).readlines()[0].strip()
+            except:
+                pass
     return res
 
 #

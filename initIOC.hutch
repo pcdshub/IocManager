@@ -10,6 +10,9 @@ fi
 host=`hostname -s`
 PROCMGRD_LOG_DIR=$IOC_DATA/$host/logs
 
+# Save our OS for later!
+echo $PSPKG_OS >$PYPS_ROOT/config/.host/$host
+
 # Figure out the hutch configuration: fee, amo, sxr, xpp, ...
 cfg=`awk /$host/'{print $2;}'  $PYPS_ROOT/config/hosts.special`
 if [ "${cfg}X" == "X" ]; then

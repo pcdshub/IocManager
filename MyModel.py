@@ -22,10 +22,11 @@ IOCNAME = 0
 STATE   = 1
 STATUS  = 2
 HOST    = 3
-PORT    = 4
-VERSION = 5
-PARENT  = 6
-EXTRA   = 7
+OSVER   = 4
+PORT    = 5
+VERSION = 6
+PARENT  = 7
+EXTRA   = 8
 statelist      = ["Off", "Dev", "Prod"]
 statecombolist = ["Off", "Dev/Prod"]
 
@@ -51,7 +52,7 @@ class StatusPoll(threading.Thread):
             else:
                 last = now
 
-            result = utils.readConfig(self.hutch, self.mtime)
+            result = utils.readConfig(self.hutch, self.mtime, do_os=True)
             if result != None:
                 (self.mtime, cfglist, hosts, vdict) = result
                 self.rmtime = {}      # Force a re-read!
@@ -151,7 +152,7 @@ class MyModel(QAbstractTableModel):
         self.userIO = None
         self.poll = StatusPoll(self, 5)
         self.children = []
-        config = utils.readConfig(hutch)
+        config = utils.readConfig(hutch, do_os=True)
         if config == None:
             print "Cannot read configuration for %s!" % hutch
             sys.exit(-1)
@@ -165,9 +166,9 @@ class MyModel(QAbstractTableModel):
         for l in self.cfglist:
             l['status'] = utils.STATUS_INIT
             l['stattime'] = 0
-        self.headerdata = ["IOC Name", "State", "Status", "Host", "Port", "Version", "Parent", "Information"]
-        self.field      = ['id', 'disable', None, 'host', 'port', 'dir', 'pdir', None]
-        self.newfield   = ['newid', 'newdisable', None, 'newhost', 'newport', 'newdir', None, None]
+        self.headerdata = ["IOC Name", "State", "Status", "Host", "OS", "Port", "Version", "Parent", "Information"]
+        self.field      = ['id', 'disable', None, 'host', None, 'port', 'dir', 'pdir', None]
+        self.newfield   = ['newid', 'newdisable', None, 'newhost', None, 'newport', 'newdir', None, None]
         self.lastsort   = (0, Qt.DescendingOrder)
 
     def runCommand(self, geo, id, cmd):
@@ -291,7 +292,7 @@ class MyModel(QAbstractTableModel):
     # IOCNAME can be selected.
     # STATE can be selected.  If not hard, it can also be checked.
     # HOST, PORT, and VERSION can be edited if not hard.
-    # STATUS and EXTRA are only enabled.
+    # STATUS, OSVER, and EXTRA are only enabled.
     #
     def flags(self, index):
         c = index.column()
@@ -308,7 +309,7 @@ class MyModel(QAbstractTableModel):
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable
         elif c == STATE:
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable | editable
-        elif c == STATUS or c == EXTRA:
+        elif c == STATUS or c == EXTRA or c == OSVER:
             return Qt.ItemIsEnabled
         else:
             return Qt.ItemIsEnabled | editable
@@ -350,6 +351,11 @@ class MyModel(QAbstractTableModel):
     def value(self, entry, c, display=True):
         if c == STATUS:
             return entry['status']
+        if c == OSVER:
+            try:
+                return utils.hosttype[entry['host']]
+            except:
+                return ""
         elif c == EXTRA:
             if entry['hard']:
                 return "HARD IOC"
