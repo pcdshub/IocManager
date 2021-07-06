@@ -73,7 +73,7 @@
 #     Return a dictionary with the netconfig information for this host.
 #
 # rebootServer(host)
-#     Attempt to reboot the specified host.
+#     Attempt to reboot the specified host.  Return True if successful.
 #
 # getHutchList()
 #     Return the list of all supported hutches.
@@ -108,7 +108,7 @@ PVFILE       = "%s/%%s/iocInfo/IOC.pvlist" % os.getenv("IOC_DATA")
 INSTALL      = __file__[:__file__.rfind('/')] + "/installConfig"
 BASEPORT     = 39050
 COMMITHOST   = "psbuild-rhel7"
-KINIT        = "/afs/slac.stanford.edu/package/heimdal/bin/kinit"
+KINIT        = "/usr/bin/kinit;/usr/bin/aklog"
 NETCONFIG    = "/reg/common/tools/bin/netconfig"
 
 STATUS_INIT      = "INITIALIZE WAIT"
@@ -967,7 +967,7 @@ def netconfig(host):
         return {}
 
 def rebootServer(host):
-    os.system("/usr/bin/ipmitool -I lanplus -U ADMIN -Pipmia8min -H %s power cycle &" % host)
+    return os.system("/reg/common/tools/bin/psipmi %s power cycle" % host) == 0
 
 def getHardIOCDir(host, silent=False):
     dir = "Unknown"
@@ -995,18 +995,19 @@ def restartHIOC(host):
                 host = l[3:]
     except:
         print "Error parsing netconfig for HIOC %s console info!" % host
-        return
+        return False
     try:
         tn = telnetlib.Telnet(host, port, 1)
     except:
         print "Error making telnet connection to HIOC %s!" % host
-        return
+        return False
     tn.write("\x0a")
     tn.read_until("> ", 2)
     tn.write("exit\x0a")
     tn.read_until("> ", 2)
     tn.write("rtemsReboot()\x0a")
     tn.close()
+    return True
 
 def rebootHIOC(host):
     """ Attempts to power cycle a HIOC via the PDU entry in netconfig. """
@@ -1015,8 +1016,10 @@ def rebootHIOC(host):
         del env['LD_LIBRARY_PATH']
         p = subprocess.Popen([HIOC_POWER, host, 'cycle'], env=env, stdout=subprocess.PIPE)
         print p.communicate()[0]
+        return True
     except:
         print "Error while trying to power cycle HIOC %s!" % host
+        return False
 
 def findPV(regexp, ioc):
     try:

@@ -973,9 +973,15 @@ class MyModel(QAbstractTableModel):
             if entry == None:
                 return
         if entry['hard']:
-            utils.restartHIOC(entry['id'])
+            if not utils.restartHIOC(entry['id']):
+                QMessageBox.critical(None,
+                                     "Error", "Failed to restart hard IOC %s!" % entry['id'],
+                                     QMessageBox.Ok, QMessageBox.Ok)
         else:
-            utils.restartProc(entry['host'], entry['port'])
+            if not utils.restartProc(entry['host'], entry['port']):
+                QMessageBox.critical(None,
+                                     "Error", "Failed to restart IOC %s!" % entry['id'],
+                                     QMessageBox.Ok, QMessageBox.Ok)
 
     def rebootServer(self, index):
         if isinstance(index, QModelIndex):
@@ -989,7 +995,10 @@ class MyModel(QAbstractTableModel):
             if entry == None:
                 return
         if entry['hard']:
-            utils.rebootHIOC(entry['id'])
+            if not utils.rebootHIOC(entry['id']):
+                QMessageBox.critical(None,
+                                     "Error", "Failed to reboot hard IOC %s!" % entry['id'],
+                                     QMessageBox.Ok, QMessageBox.Ok)
             return
         host = entry['host']
         d = QDialog();
@@ -1035,7 +1044,10 @@ class MyModel(QAbstractTableModel):
         d.buttonBox.accepted.connect(d.accept)
         d.buttonBox.rejected.connect(d.reject)
         if d.exec_() == QDialog.Accepted:
-            utils.rebootServer(ihost)
+            if not utils.rebootServer(ihost):
+                QMessageBox.critical(None,
+                                     "Error", "Failed to reboot host %s!" % ihost,
+                                     QMessageBox.Ok, QMessageBox.Ok)
 
     def cleanupChildren(self):
         for p in self.children:

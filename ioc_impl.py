@@ -369,7 +369,7 @@ class GraphicUserInterface(QtWidgets.QMainWindow):
             self.model.addIOC(name, alias, host, port, dir)
             return
 
-    def authenticate_user(self, user, password):
+    def authenticate_user(self, user):
         if user == "":
             user = self.myuid
         need_su = self.myuid != user
@@ -398,20 +398,32 @@ class GraphicUserInterface(QtWidgets.QMainWindow):
                         os.execv("/usr/bin/ssh", ["ssh", user + "@" + utils.COMMITHOST, "/bin/tcsh", "-if"])
                 else:
                     if utils.COMMITHOST == socket.gethostname().split(".")[0]:
-                        print "C"
                         os.execv("/bin/tcsh", ["tcsh", "-if"])
                     else:
-                        print "D"
                         os.execv("/usr/bin/ssh", ["ssh", utils.COMMITHOST, "/bin/tcsh", "-if"])
             except:
                 pass
             print "Say what?  execv failed?"
             sys.exit(0)
-        l = utils.read_until(fd, "(assword:|> )").group(1)
-        if l != "> ":
+        l = utils.read_until(fd, "(assphrase for key '[a-zA-Z0-9._/]*':|assword:|> )").group(1)
+        password = None
+        if l == "assword:":
+            password = self.getAuthField("Password:")
+            if password is None:
+                return
             os.write(fd, password + "\n")
             l = utils.read_until(fd, "> ")
-        if utils.KINIT != None and password != "":
+        elif l != "> ":
+            passphrase = self.getAuthField("Key for '%s':" % l[19:-2])
+            if passphrase is None:
+                return
+            os.write(fd, passphrase + "\n")
+            l = utils.read_until(fd, "> ")
+        if utils.KINIT != None:
+            if password is None:
+                password = self.getAuthField("Password:")
+                if password is None:
+                    return
             os.write(fd, utils.KINIT + "\n")
             l = utils.read_until(fd, ": ")
             os.write(fd, password + "\n")
@@ -433,21 +445,27 @@ class GraphicUserInterface(QtWidgets.QMainWindow):
             self.utimer.start(10 * 60000)  # Let's go for 10 minutes.
         self.ui.userLabel.setText("User: " + user)
 
-    def doAuthenticate(self):
+    def getAuthField(self, prompt):
+        self.authdialog.ui.label.setText(prompt)
+        self.authdialog.ui.nameEdit.setText("")
         result = self.authdialog.exec_()
-        user = self.authdialog.ui.nameEdit.text()
-        password = str(self.authdialog.ui.passEdit.text())
-        self.authdialog.ui.passEdit.setText("")
         if result == QtWidgets.QDialog.Accepted:
+            return self.authdialog.ui.nameEdit.text()
+        else:
+            return None
+
+    def doAuthenticate(self):
+        user = self.getAuthField("User:")
+        if user is not None:
             try:
-                self.authenticate_user(user, password)
+                self.authenticate_user(user)
             except:
                 print "Authentication as %s failed!" % user
                 self.unauthenticate()
 
     def unauthenticate(self):
         self.utimer.stop()
-        self.authenticate_user(self.myuid, "")
+        self.authenticate_user(self.myuid)
 
     def authorize_action(self, file_action):
         # The user might be OK.
