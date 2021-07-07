@@ -108,6 +108,7 @@ PVFILE       = "%s/%%s/iocInfo/IOC.pvlist" % os.getenv("IOC_DATA")
 INSTALL      = __file__[:__file__.rfind('/')] + "/installConfig"
 BASEPORT     = 39050
 COMMITHOST   = "psbuild-rhel7"
+KLIST        = "/usr/bin/klist; echo XX\X $? XX\X"
 KINIT        = "/usr/bin/kinit;/usr/bin/aklog"
 NETCONFIG    = "/reg/common/tools/bin/netconfig"
 
@@ -894,11 +895,11 @@ def findParent(ioc, dir):
     return ""
 
 def read_until(fd, expr):
-    exp = re.compile(expr)
+    exp = re.compile(expr, re.S)
     data = ""
     while True:
         v = os.read(fd, 1024)
-        #print "<<< %s" % v
+        #print "<<< %s" % v.encode("string-escape")
         data += v
         m = exp.search(data)
         if m != None:
