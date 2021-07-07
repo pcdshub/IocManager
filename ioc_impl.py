@@ -407,21 +407,25 @@ class GraphicUserInterface(QtWidgets.QMainWindow):
             sys.exit(0)
         l = utils.read_until(fd, "(assphrase for key '[a-zA-Z0-9._/]*':|assword:|> )").group(1)
         password = None
-        if l == "assword:":
-            password = self.getAuthField("Password:")
-            if password is None:
-                return
-            os.write(fd, password + "\n")
-            l = utils.read_until(fd, "> ")
-        elif l != "> ":
-            passphrase = self.getAuthField("Key for '%s':" % l[19:-2])
+        if l[:5] == "assph":
+            passphrase = self.getAuthField("Key for '%s':" % l[19:-2], True)
             if passphrase is None:
                 return
             os.write(fd, passphrase + "\n")
-            l = utils.read_until(fd, "> ")
-        if utils.KINIT != None:
+            l = utils.read_until(fd, "(> |assword:|assphrase)").group(1)
+            if l != "assword:":
+                raise Exception("Passphrase not accepted")
+        if l == "assword:":
+            password = self.getAuthField("Password:", True)
             if password is None:
-                password = self.getAuthField("Password:")
+                return
+            os.write(fd, password + "\n")
+            l = utils.read_until(fd, "(> |assword:|assphrase)").group(1)
+            if l != "> ":
+                raise Exception("Password not accepted")
+        if self.myuid[-3:] != "opr" and utils.KINIT != None:
+            if password is None:
+                password = self.getAuthField("Password:", True)
                 if password is None:
                     return
             os.write(fd, utils.KINIT + "\n")
@@ -445,9 +449,10 @@ class GraphicUserInterface(QtWidgets.QMainWindow):
             self.utimer.start(10 * 60000)  # Let's go for 10 minutes.
         self.ui.userLabel.setText("User: " + user)
 
-    def getAuthField(self, prompt):
+    def getAuthField(self, prompt, password):
         self.authdialog.ui.label.setText(prompt)
         self.authdialog.ui.nameEdit.setText("")
+        self.authdialog.ui.nameEdit.setEchoMode(QtWidgets.QLineEdit.Password if password else QtWidgets.QLineEdit.Normal)
         result = self.authdialog.exec_()
         if result == QtWidgets.QDialog.Accepted:
             return self.authdialog.ui.nameEdit.text()
@@ -455,7 +460,7 @@ class GraphicUserInterface(QtWidgets.QMainWindow):
             return None
 
     def doAuthenticate(self):
-        user = self.getAuthField("User:")
+        user = self.getAuthField("User:", False)
         if user is not None:
             try:
                 self.authenticate_user(user)
@@ -465,7 +470,10 @@ class GraphicUserInterface(QtWidgets.QMainWindow):
 
     def unauthenticate(self):
         self.utimer.stop()
-        self.authenticate_user(self.myuid)
+        try:
+            self.authenticate_user(self.myuid)
+        except:
+            print "Authentication as self failed?!?"
 
     def authorize_action(self, file_action):
         # The user might be OK.
