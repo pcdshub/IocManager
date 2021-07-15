@@ -2,10 +2,10 @@ BASEPORT=39050
 PROCMGRD_ROOT=procmgrd
 
 if [ -z "$IOC_COMMON" ]; then
-	IOC_COMMON=/reg/d/iocCommon
+	IOC_COMMON=/cds/data/iocCommon
 fi
 if [ -z "$IOC_DATA" ]; then
-	IOC_DATA=/reg/d/iocData
+	IOC_DATA=/cds/data/iocData
 fi
 host=`hostname -s`
 PROCMGRD_LOG_DIR=$IOC_DATA/$host/logs
