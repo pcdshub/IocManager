@@ -97,7 +97,7 @@ STARTUP_DIR  = "%s/config/%%s/iocmanager/" % os.getenv("PYPS_ROOT")
 CONFIG_DIR  = "%s/config/" % os.getenv("PYPS_ROOT")
 CONFIG_FILE = "%s/config/%%s/iocmanager.cfg" % os.getenv("PYPS_ROOT")
 NOSSH_FILE = "%s/config/%%s/iocmanager.nossh" % os.getenv("PYPS_ROOT")
-HIOC_STARTUP = "/cds/data/iocCommon/hioc/%s/startup.cmd"
+HIOC_STARTUP = "/reg/d/iocCommon/hioc/%s/startup.cmd"
 HIOC_POWER   = "/reg/common/tools/bin/power"
 HIOC_CONSOLE = "/reg/common/tools/bin/console"
 AUTH_FILE    = "%s/config/%%s/iocmanager.auth" % os.getenv("PYPS_ROOT")
@@ -139,8 +139,8 @@ MSG_AUTORESTART_TO_OFF = "auto restart to OFF"
 MSG_AUTORESTART_MODE_TO_ON = "auto restart mode to ON"
 MSG_AUTORESTART_MODE_TO_OFF = "auto restart mode to OFF"
 
-EPICS_DEV_TOP	 = "/cds/group/pcds/epics-dev"
-EPICS_SITE_TOP   = "/cds/group/pcds/epics/"
+EPICS_DEV_TOP	 = "/reg/g/pcds/epics-dev"
+EPICS_SITE_TOP   = "/reg/g/pcds/epics/"
 
 stpaths = ["%s/children/build/iocBoot/%s/st.cmd", "%s/build/iocBoot/%s/st.cmd", "%s/iocBoot/%s/st.cmd"]
 

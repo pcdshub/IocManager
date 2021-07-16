@@ -4,11 +4,11 @@ if [ -x /etc/pathinit ]; then
     source /etc/pathinit
 else
     export PSPKG_ROOT=/reg/common/package
-    export PYPS_ROOT=/cds/group/pcds/pyps
-    export IOC_ROOT=/cds/group/pcds/package/epics/3.14/ioc
-    export CAMRECORD_ROOT=/cds/group/pcds/controls/camrecord
-    export IOC_DATA=/cds/data/iocData
-    export IOC_COMMON=/cds/data/iocCommon
+    export PYPS_ROOT=/reg/g/pcds/pyps
+    export IOC_ROOT=/reg/g/pcds/package/epics/3.14/ioc
+    export CAMRECORD_ROOT=/reg/g/pcds/controls/camrecord
+    export IOC_DATA=/reg/d/iocData
+    export IOC_COMMON=/reg/d/iocCommon
 fi
 
 host=`hostname -s`

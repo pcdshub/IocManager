@@ -2,10 +2,10 @@
 
 # Find our standard configuration.
 if [ -z "$PYPS_ROOT" ]; then
-	PYPS_ROOT=/cds/group/pcds/pyps
+	PYPS_ROOT=/reg/g/pcds/pyps
 fi
 if [ -z "$PSPKG_ROOT" ]; then
-	PSPKG_ROOT=/cds/group/pcds/pkg_mgr
+	PSPKG_ROOT=/reg/g/pcds/pkg_mgr
 fi
 export PSPKG_ROOT
 export PYPS_ROOT
