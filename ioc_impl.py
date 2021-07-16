@@ -287,6 +287,23 @@ class GraphicUserInterface(QtWidgets.QMainWindow):
         if dir != "":
             gui.setText(utils.findParent(iocfn(), dir))
 
+    def selectPort(self, hostgui, portgui, lowport, highport):
+        host = hostgui.text()
+        if host == "":
+            QtWidgets.QMessageBox.critical(None,
+                                           "Error",
+                                           "Need to select a host before automatic port selection!",
+                                           QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+            return
+        port = self.model.selectPort(host, lowport, highport)
+        if port is None:
+            QtWidgets.QMessageBox.critical(None,
+                                           "Error",
+                                           "No port available in range!",
+                                           QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+            return
+        portgui.setText(str(port))
+
     def addIOC(self, index):
         d=QtWidgets.QFileDialog(self, "Add New IOC", utils.EPICS_SITE_TOP + "ioc/" + self.hutch)
         d.setFileMode(Qt.QFileDialog.Directory)
@@ -318,8 +335,18 @@ class GraphicUserInterface(QtWidgets.QMainWindow):
         tmp=QtWidgets.QLabel()
         tmp.setText("Port (-1 = HARD IOC) *+")
         l.addWidget(tmp, 7, 0)
+        layout=QtWidgets.QHBoxLayout()
         portgui=QtWidgets.QLineEdit()
-        l.addWidget(portgui, 7, 1)
+        layout.addWidget(portgui)
+        autoClosed=QtWidgets.QPushButton()
+        autoClosed.setText("Select CLOSED")
+        autoClosed.clicked.connect(lambda : self.selectPort(hostgui, portgui, 30001, 39000))
+        layout.addWidget(autoClosed)
+        autoOpen=QtWidgets.QPushButton()
+        autoOpen.setText("Select OPEN")
+        autoOpen.clicked.connect(lambda : self.selectPort(hostgui, portgui, 39100, 39200))
+        layout.addWidget(autoOpen)
+        l.addLayout(layout, 7, 1)
 
         tmp=QtWidgets.QLabel()
         tmp.setText("Parent")

@@ -1149,3 +1149,15 @@ class MyModel(QAbstractTableModel):
                     l.append((r, entry['id'], entry['alias']))
             row += 1
         return l
+
+    def selectPort(self, host, lowport, highport):
+        for port in range(lowport, highport):
+            hit = False
+            for entry in self.cfglist:
+                if self.value(entry, HOST) == host and self.value(entry, PORT) == port:
+                    hit = True
+                    break
+            if not hit:
+                return port
+        return None
+
