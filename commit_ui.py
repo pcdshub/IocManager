@@ -35,6 +35,6 @@ class Ui_Dialog(object):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
         self.label.setText(_translate("Dialog", "File Saved.\n"
-"Would you like to commit your change in SVN?\n"
+"Would you like to commit your change in GIT?\n"
 "Please enter a comment for check-in:"))
 

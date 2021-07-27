@@ -18,7 +18,7 @@
     <widget class="QLabel" name="label">
      <property name="text">
       <string>File Saved.
-Would you like to commit your change in SVN?
+Would you like to commit your change in GIT?
 Please enter a comment for check-in:</string>
      </property>
     </widget>

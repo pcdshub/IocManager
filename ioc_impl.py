@@ -459,24 +459,6 @@ class GraphicUserInterface(QtWidgets.QMainWindow):
             l = utils.read_until(fd, "(> |assword:|assphrase)").group(1)
             if l != "> ":
                 raise Exception("Password not accepted")
-        if utils.KINIT != None and utils.KLIST != None:
-            #
-            # OK, we're logged in, but we might not have afs rights.
-            # Let's check and possibly try to acquire them.
-            #
-            os.write(fd, utils.KLIST + "\n")
-            l = utils.read_until(fd, "XXX ([0-9]*) XXX.*> ").group(1)
-            if l == '1':
-                if password is None:
-                    # If we used a passphrase, get a password.
-                    password = self.getAuthField("Password:", True)
-                    if password is None:
-                        return
-                os.write(fd, utils.KINIT + "\n")
-                l = utils.read_until(fd, ": ")
-                os.write(fd, password + "\n")
-                l = utils.read_until(fd, "> ")
-                # We should check if this worked.  But later...
         #
         # Sigh.  Someone once had a file named time.py in their home 
         # directory.  So let's go somewhere where we know the files.

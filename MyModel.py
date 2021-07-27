@@ -652,9 +652,9 @@ class MyModel(QAbstractTableModel):
                                  "Error", "Configuration has errors, not saved!",
                                  QMessageBox.Ok, QMessageBox.Ok)
             return False
-        # Do we want to SVN it?!?
+        # Do we want to check it in!?
         d = self.commitdialog
-        d.setWindowTitle("SVN Commit %s" % self.hutch)
+        d.setWindowTitle("Commit %s" % self.hutch)
         d.ui.commentEdit.setPlainText("")
         while True:
             d.exec_()
@@ -667,7 +667,7 @@ class MyModel(QAbstractTableModel):
             if comment != "":
                 break
             QMessageBox.critical(None,
-                                 "Error", "Must have a comment for SVN commit for %s" % self.hutch,
+                                 "Error", "Must have a comment for commit for %s" % self.hutch,
                                  QMessageBox.Ok, QMessageBox.Ok)
         try:
             file = tempfile.NamedTemporaryFile(dir=utils.TMP_DIR, delete=False)

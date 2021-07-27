@@ -108,8 +108,6 @@ PVFILE       = "%s/%%s/iocInfo/IOC.pvlist" % os.getenv("IOC_DATA")
 INSTALL      = __file__[:__file__.rfind('/')] + "/installConfig"
 BASEPORT     = 39050
 COMMITHOST   = "psbuild-rhel7"
-KLIST        = "/usr/bin/klist; echo XX\X $? XX\X"
-KINIT        = "/usr/bin/kinit;/usr/bin/aklog"
 NETCONFIG    = "/reg/common/tools/bin/netconfig"
 
 STATUS_INIT      = "INITIALIZE WAIT"
@@ -925,11 +923,13 @@ def commit_config(hutch, comment, fd):
     do_write(fd, "\nEOFEOFEOF\n");
     read_until(fd, "> ")
     # Sigh.  This does nothing but read the file, which makes NFS get the latest.
-    do_write(fd, "cp " + config + " /tmp/foo\n")
+    do_write(fd, "set xx=`mktemp`\n")
     read_until(fd, "> ")
-    do_write(fd, "rm -f /tmp/foo\n")
+    do_write(fd, "cp " + config + " $xx\n")
     read_until(fd, "> ")
-    do_write(fd, "umask 2; svn commit -F " + config + ".comment " + config + "\n")
+    do_write(fd, "rm -f $xx\n")
+    read_until(fd, "> ")
+    do_write(fd, "umask 2; git commit -F " + config + ".comment " + config + "\n")
     read_until(fd, "> ")
     do_write(fd, "rm -f " + config + ".comment\n")
     read_until(fd, "> ")
