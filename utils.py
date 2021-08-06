@@ -812,7 +812,7 @@ def applyConfig(cfg, verify=None, ioc=None):
         # This is dead, so get rid of the status file!
         os.unlink((STATUS_DIR % cfg) + "/" + l)
     except:
-        print "Error while trying to delete file %s!" % (STATUS_DIR % cfg) + "/" + l
+        print "Error while trying to delete file %s" % (STATUS_DIR % cfg) + "/" + l + "!"
 
   for l in start_list:
     startProc(cfg, config[l])
