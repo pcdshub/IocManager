@@ -101,6 +101,7 @@ HIOC_STARTUP = "/reg/d/iocCommon/hioc/%s/startup.cmd"
 HIOC_POWER   = "/reg/common/tools/bin/power"
 HIOC_CONSOLE = "/reg/common/tools/bin/console"
 AUTH_FILE    = "%s/config/%%s/iocmanager.auth" % os.getenv("PYPS_ROOT")
+SPECIAL_FILE = "%s/config/%%s/iocmanager.special" % os.getenv("PYPS_ROOT")
 STATUS_DIR   = "%s/config/.status/%%s" % os.getenv("PYPS_ROOT")
 HOST_DIR     = "%s/config/.host" % os.getenv("PYPS_ROOT")
 LOGBASE      = "%s/%%s/iocInfo/ioc.log" % os.getenv("IOC_DATA")
@@ -678,7 +679,7 @@ def readStatusDir(cfg, readfile=lambda fn, f: open(fn).readlines()):
                             print "Deleting obsolete %s in favor of %s" % (d[(stat[1], int(stat[2]))]['rid'], f)
                             os.unlink((STATUS_DIR % cfg) + "/" + d[(stat[1], int(stat[2]))]['rid'])
                         except:
-                            print "Error while trying to delete file %s!" % (STATUS_DIR % cfg) + "/" + d[(stat[1], int(stat[2]))]['rid']
+                            print "Error while trying to delete file %s" % (STATUS_DIR % cfg) + "/" + d[(stat[1], int(stat[2]))]['rid'] + "!"
                         # Leave this here to make sure file is updated.
                         raise Exception( "Need to update cfg file." )
                     else:
@@ -832,6 +833,14 @@ def check_auth(user, hutch):
     lines = [l.strip() for l in lines]
     for l in lines:
         if l == user:
+            return True
+    return False
+
+def check_special(ioc, hutch):
+    lines = open(SPECIAL_FILE % hutch).readlines()
+    lines = [l.strip() for l in lines]
+    for l in lines:
+        if l == ioc:
             return True
     return False
 

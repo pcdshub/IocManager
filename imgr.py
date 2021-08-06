@@ -65,7 +65,7 @@ def do_commit(hutch, cl, hl, vs):
         print "Error removing temporary file %s!" % file.name
 
 def set_state(hutch, ioc, enable):
-    if not utils.check_auth(pwd.getpwuid(os.getuid())[0], hutch):
+    if not utils.check_special(ioc, hutch) and not utils.check_auth(pwd.getpwuid(os.getuid())[0], hutch):
         print "Not authorized!"
         sys.exit(1)
     (ft, cl, hl, vs) = utils.readConfig(hutch)
