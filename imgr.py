@@ -33,7 +33,7 @@ def usage():
     print "       imgr IOCNAME [--hutch HUTCH] --upgrade RELEASE_DIR"
     print "       imgr IOCNAME [--hutch HUTCH] --move HOST"
     print "       imgr IOCNAME [--hutch HUTCH] --move HOST:PORT"
-    print "       imgr [--hutch HUTCH] --list"
+    print "       imgr [--hutch HUTCH] --list [--host HOST] [--enabled_only|--disabled_only]"
     sys.exit(1)
 
 def soft_reboot(hutch, ioc):
@@ -127,9 +127,16 @@ def move(hutch, ioc, hostport):
     print "IOC %s not found in hutch %s!" % (ioc, hutch)
     sys.exit(1)
 
-def do_list(hutch):
+def do_list(hutch, ns):
     (ft, cl, hl, vs) = utils.readConfig(hutch)
+    h = ns.host
+    show_disabled = not ns.enabled_only
+    show_enabled = not ns.disabled_only
     for c in cl:
+        if h is not None and c['host'] != h:
+            continue
+        if not (show_disabled if c['disable'] else show_enabled):
+            continue
         if c['alias'] != "":
             print("%s (%s)" % (c['id'], c['alias']))
         else:
@@ -147,6 +154,9 @@ if __name__ == "__main__":
         parser.add_argument("--move")
         parser.add_argument("--hutch")
         parser.add_argument("--list", action='store_true')
+        parser.add_argument("--disabled_only", action='store_true')
+        parser.add_argument("--enabled_only", action='store_true')
+        parser.add_argument("--host")
         ns = parser.parse_args(sys.argv[1:])
     except:
         usage()
@@ -154,7 +164,7 @@ if __name__ == "__main__":
     if hutch is None:
         usage()
     if ns.list:
-        do_list(hutch)
+        do_list(hutch, ns)
     if ns.ioc is None:
         usage()
     if ns.reboot is not None:
