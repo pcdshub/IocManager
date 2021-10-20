@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import sys, argparse, socket, tempfile, stat, pwd, os
+import sys, argparse, socket, tempfile, pwd, os
 import utils
 from psp.caput import caput
 
@@ -54,15 +54,16 @@ def hard_reboot(hutch, ioc):
     sys.exit(1)
 
 def do_commit(hutch, cl, hl, vs):
-    file = tempfile.NamedTemporaryFile(dir=utils.TMP_DIR, delete=False)
-    utils.writeConfig(hutch, hl, cl, vs, file)
-    file.close()
-    os.chmod(file.name, stat.S_IRUSR | stat.S_IRGRP |stat.S_IROTH)
-    os.system("ssh %s %s %s %s" % (utils.COMMITHOST, utils.INSTALL, hutch, file.name))
     try:
-        os.unlink(file.name)
+        file = tempfile.NamedTemporaryFile(dir=utils.TMP_DIR, delete=False)
+        utils.writeConfig(hutch, hl, cl, vs, file)
+        utils.installConfig(hutch, file.name)
     except:
-        print "Error removing temporary file %s!" % file.name
+        try:
+            os.unlink(file.name) # Clean up!
+        except:
+            pass
+        raise
 
 def set_state(hutch, ioc, enable):
     if not utils.check_special(ioc, hutch) and not utils.check_auth(pwd.getpwuid(os.getuid())[0], hutch):

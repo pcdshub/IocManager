@@ -81,7 +81,7 @@
 ######################################################################
 
 
-import telnetlib, string, datetime, os, time, fcntl, re, glob, subprocess, copy, sys
+import telnetlib, string, datetime, os, time, fcntl, re, glob, subprocess, copy, sys, stat
 
 #
 # Defines
@@ -92,7 +92,8 @@ if PROCSERV_EXE is None:
     PROCSERV_EXE = "procServ"
 else:
     PROCSERV_EXE = PROCSERV_EXE.split()[0]
-TMP_DIR      = "%s/config/.status/tmp" % os.getenv("PYPS_ROOT")
+# Note: TMP_DIR and CONFIG_FILE should be on the same file system so os.rename works!!
+TMP_DIR      = "%s/config/.status/tmp" % os.getenv("PYPS_ROOT")   
 STARTUP_DIR  = "%s/config/%%s/iocmanager/" % os.getenv("PYPS_ROOT")
 CONFIG_DIR  = "%s/config/" % os.getenv("PYPS_ROOT")
 CONFIG_FILE = "%s/config/%%s/iocmanager.cfg" % os.getenv("PYPS_ROOT")
@@ -487,7 +488,6 @@ def readConfig(cfg, time=None, silent=False, do_os=False):
             print "readConfig file error: %s" % str(msg)
         return None
 
-    fcntl.lockf(f, fcntl.LOCK_SH)    # Wait for the lock!!!!
     try:
         mtime = os.stat(cfgfn).st_mtime
         if time != None and time == mtime:
@@ -503,7 +503,6 @@ def readConfig(cfg, time=None, silent=False, do_os=False):
         if not silent:
             print "readConfig error: %s" % str(msg)
         res = None
-    fcntl.lockf(f, fcntl.LOCK_UN)
     f.close()
     if res == None:
         return None
@@ -550,8 +549,7 @@ def readConfig(cfg, time=None, silent=False, do_os=False):
 #
 def writeConfig(hutch, hostlist, cfglist, vars, f=None):
     if f == None:
-        f = open(CONFIG_FILE % hutch, "r+")
-    fcntl.lockf(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        raise Exception("Must specify output file!")
     f.truncate()
     for (k, v) in vars.items():
         try:
@@ -621,38 +619,16 @@ def writeConfig(hutch, hostlist, cfglist, vars, f=None):
         f.write(" {id:'%s', host: '%s', port: %s, dir: '%s'%s},\n" %
                 (id, host, port, dir, extra))
     f.write("]\n");
-    fcntl.lockf(f, fcntl.LOCK_UN)
     f.close()
+    os.chmod(f.name, stat.S_IRUSR | stat.S_IRGRP |stat.S_IROTH)
 
 #
 # Install an existing file as the hutch configuration file.
 #
+# Much simpler, and this should be atomic!
+#
 def installConfig(hutch, file, fd=None):
-    open(CONFIG_FILE % hutch, "r").close()  # Sigh... NFS.
-    mtime = os.stat(CONFIG_FILE % hutch).st_mtime
-    if fd != None:
-        flush_input(fd)
-        #print ">>> %s %s %s" % (INSTALL, hutch, file)
-        do_write(fd, "%s %s %s\n" % (INSTALL, hutch, file))
-        read_until(fd, "> ")
-    else:
-        l = open(file).readlines()
-        f = open(CONFIG_FILE % hutch, "r+")
-        fcntl.lockf(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        f.truncate()
-        f.writelines(l)
-        fcntl.lockf(f, fcntl.LOCK_UN)
-        f.close()
-    open(CONFIG_FILE % hutch, "r").close()  # Sigh... NFS.
-    mtime2 = os.stat(CONFIG_FILE % hutch).st_mtime
-    i = 0
-    while mtime == mtime2 and i < 40:
-        if mtime == mtime2:
-            time.sleep(0.25)
-        i += 1
-        mtime2 = os.stat(CONFIG_FILE % hutch).st_mtime
-    if mtime == mtime2:
-        raise Exception("No change?!?")
+    os.rename(file, CONFIG_FILE % hutch)
 
 #
 # Reads the status directory for a hutch, looking for changes.  The newer

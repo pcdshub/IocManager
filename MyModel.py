@@ -10,7 +10,6 @@ import fcntl
 import threading
 import subprocess
 import tempfile
-import stat
 import psp
 import re
 import pwd
@@ -528,7 +527,6 @@ class MyModel(QAbstractTableModel):
 
     def applyAddList(self, i, config, current, pfix, d, lst, verb):
         for l in lst:
-            print l, verb
             if l in config.keys():
                 try:
                     a = config[l]['alias']
@@ -672,17 +670,15 @@ class MyModel(QAbstractTableModel):
         try:
             file = tempfile.NamedTemporaryFile(dir=utils.TMP_DIR, delete=False)
             utils.writeConfig(self.hutch, self.hosts, self.cfglist, self.vdict, file)
-            file.close()
-            os.chmod(file.name, stat.S_IRUSR | stat.S_IRGRP |stat.S_IROTH)
-            utils.installConfig(self.hutch, file.name, self.userIO)
-            try:
-                os.unlink(file.name)
-            except:
-                print "Error removing temporary file %s!" % file.name
+            utils.installConfig(self.hutch, file.name)
         except:
             QMessageBox.critical(None,
                                  "Error", "Failed to write configuration for %s" % self.hutch,
                                  QMessageBox.Ok, QMessageBox.Ok)
+            try:
+                os.unlink(file.name)  # Clean up!
+            except:
+                pass
             return False
         for entry in self.cfglist:
             #
