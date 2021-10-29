@@ -620,7 +620,7 @@ def writeConfig(hutch, hostlist, cfglist, vars, f=None):
                 (id, host, port, dir, extra))
     f.write("]\n");
     f.close()
-    os.chmod(f.name, stat.S_IRUSR | stat.S_IRGRP |stat.S_IROTH)
+    os.chmod(f.name, stat.S_IRUSR | stat.S_IRGRP | stat.S_IWUSR | stat.S_IWGRP | stat.S_IROTH)
 
 #
 # Install an existing file as the hutch configuration file.
