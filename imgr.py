@@ -5,10 +5,9 @@ from psp.caput import caput
 
 def match_hutch(h, hlist):
     h = h.split('-')
-    if h[0] in hlist:
-        return h[0]
-    if h[1] in hlist:
-        return h[1]
+    for i in range(min(2,len(h))):
+        if h[i] in hlist:
+            return h[i]
     return None
 
 def get_hutch(ns):
