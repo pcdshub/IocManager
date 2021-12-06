@@ -18,14 +18,15 @@ import pwd
 # Column definitions.
 #
 IOCNAME = 0
-STATE   = 1
-STATUS  = 2
-HOST    = 3
-OSVER   = 4
-PORT    = 5
-VERSION = 6
-PARENT  = 7
-EXTRA   = 8
+ID      = 1
+STATE   = 2
+STATUS  = 3
+HOST    = 4
+OSVER   = 5
+PORT    = 6
+VERSION = 7
+PARENT  = 8
+EXTRA   = 9
 statelist      = ["Off", "Dev", "Prod"]
 statecombolist = ["Off", "Dev/Prod"]
 
@@ -165,9 +166,9 @@ class MyModel(QAbstractTableModel):
         for l in self.cfglist:
             l['status'] = utils.STATUS_INIT
             l['stattime'] = 0
-        self.headerdata = ["IOC Name", "State", "Status", "Host", "OS", "Port", "Version", "Parent", "Information"]
-        self.field      = ['id', 'disable', None, 'host', None, 'port', 'dir', 'pdir', None]
-        self.newfield   = ['newid', 'newdisable', None, 'newhost', None, 'newport', 'newdir', None, None]
+        self.headerdata = ["IOC Name", "IOC ID", "State", "Status", "Host", "OS", "Port", "Version", "Parent", "Information"]
+        self.field      = ['id', 'id', 'disable', None, 'host', None, 'port', 'dir', 'pdir', None]
+        self.newfield   = ['newid', 'newid', 'newdisable', None, 'newhost', None, 'newport', 'newdir', None, None]
         self.lastsort   = (0, Qt.DescendingOrder)
 
     def runCommand(self, geo, id, cmd):
@@ -304,7 +305,7 @@ class MyModel(QAbstractTableModel):
                 checkable = Qt.ItemIsUserCheckable
         except:
             return Qt.NoItemFlags
-        if c == IOCNAME:
+        if c == IOCNAME or c == ID:
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable
         elif c == STATE:
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable | editable
@@ -334,11 +335,15 @@ class MyModel(QAbstractTableModel):
             self.dataChanged.emit(index, index)
             return True
         else:
-            val = value.value()
+            val = value
             entry[self.newfield[c]] = val
             if entry[self.newfield[c]] == entry[self.field[c]]:
                 del entry[self.newfield[c]]
             self.dataChanged.emit(index, index)
+            if c == IOCNAME or c == ID:
+                # Two columns might have the same information!
+                idx2 = self.index(index.row(), ID if c == IOCNAME else IOCNAME)
+                self.dataChanged.emit(index, index)
             return True
  
     def rowCount(self, parent): 
