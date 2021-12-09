@@ -177,13 +177,14 @@ class MyModel(QAbstractTableModel):
             appid = self.myuid % self.nextid
             self.nextid += 1
             x = subprocess.Popen(["/usr/libexec/gnome-terminal-server", "--app-id", appid])
+            time.sleep(1)
             self.children.append(x)
             cmdlist = ["gnome-terminal", "--app-id", appid]
         else:
             cmdlist = ["gnome-terminal", "--disable-factory"]
         if not (geo is None):
             cmdlist.append("--geometry=%s" % geo)
-        cmdlist += ["-t", id, "-x", "/bin/csh", "-c", cmd]
+        cmdlist += ["-t", id, "--", "/bin/csh", "-c", cmd]
         x = subprocess.Popen(cmdlist)
         self.children.append(x)
 
