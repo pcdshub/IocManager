@@ -13,6 +13,7 @@ import tempfile
 import psp
 import re
 import pwd
+import sys
 
 #
 # Column definitions.

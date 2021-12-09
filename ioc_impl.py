@@ -363,7 +363,6 @@ class GraphicUserInterface(QtWidgets.QMainWindow):
         tmp.setText("+ = Required Fields for Hard IOCs.")
         l.addWidget(tmp, 10, 0)
 
-
         fn = lambda dir : self.setParent(parentgui, namegui.text, dir)
         d.directoryEntered.connect(fn)
         d.currentChanged.connect(fn)
@@ -371,12 +370,12 @@ class GraphicUserInterface(QtWidgets.QMainWindow):
         while True:
             if d.exec_() == Qt.QDialog.Rejected:
                 return
-            name  = str(namegui.text())
-            alias = str(aliasgui.text())
-            host  = str(hostgui.text())
-            port  = str(portgui.text())
+            name  = str(namegui.text()).strip()
+            alias = str(aliasgui.text()).strip()
+            host  = str(hostgui.text()).strip()
+            port  = str(portgui.text()).strip()
             try:
-                dir = str(d.selectedFiles()[0])
+                dir = str(d.selectedFiles()[0]).strip()
             except:
                 dir = ""
             try:
