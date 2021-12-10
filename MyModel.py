@@ -316,28 +316,27 @@ class MyModel(QAbstractTableModel):
         else:
             return Qt.ItemIsEnabled | editable
 
-    def setData(self, index, value, role=Qt.EditRole):
+    def setData(self, index, val, role=Qt.EditRole):
+        if isinstance(val, QVariant):
+            val = val.value()
         try:
             entry = self.cfglist[index.row()]
         except:
             return False
         c = index.column()
         if c == STATE:
-            val = value
             entry['newdisable'] = (val == 0)
             if entry['newdisable'] == entry['disable']:
                 del entry['newdisable']
             self.dataChanged.emit(index, index)
             return True
         elif c == PORT:
-            val = value
             entry['newport'] = val
             if entry['newport'] == entry['port']:
                 del entry['newport']
             self.dataChanged.emit(index, index)
             return True
         else:
-            val = value
             entry[self.newfield[c]] = val
             if entry[self.newfield[c]] == entry[self.field[c]]:
                 del entry[self.newfield[c]]
