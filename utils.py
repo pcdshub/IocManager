@@ -17,7 +17,7 @@
 # killProc(host, port)
 #     Kill the IOC at the given location.
 #
-# restartProc(host, port)
+# restartProc(host, port)`
 #     Restart the IOC at the given location.
 #
 # startProc(hutch, entry)
@@ -132,12 +132,11 @@ MSG_RESTART = "new child"
 MSG_PROMPT_OLD = "\x0d\x0a[$>] "
 MSG_PROMPT = "\x0d\x0a> "
 MSG_SPAWN = "procServ: spawning daemon"
-MSG_AUTORESTART_MODE = "auto restart mode"
-MSG_AUTORESTART_IS_ON = "auto restart( mode)? is ON,"
-MSG_AUTORESTART_TO_ON = "auto restart to ON"
-MSG_AUTORESTART_TO_OFF = "auto restart to OFF"
-MSG_AUTORESTART_MODE_TO_ON = "auto restart mode to ON"
-MSG_AUTORESTART_MODE_TO_OFF = "auto restart mode to OFF"
+MSG_AUTORESTART_MODE            = "auto restart mode"
+MSG_AUTORESTART_IS_ON           = "auto restart( mode)? is ON,"
+MSG_AUTORESTART_IS_ONESHOT      = "auto restart( mode)? is ONESHOT,"
+MSG_AUTORESTART_CHANGE          = "auto restart to "
+MSG_AUTORESTART_MODE_CHANGE     = "auto restart mode to "
 
 EPICS_DEV_TOP	 = "/reg/g/pcds/epics-dev"
 EPICS_SITE_TOP   = "/reg/g/pcds/epics/"
@@ -213,8 +212,9 @@ def readLogPortBanner(tn):
     if not response.count(MSG_BANNER_END):
         return {'status'      : STATUS_ERROR,
                 'pid'         : "-",
-                'rid'          : "-",
+                'rid'         : "-",
                 'autorestart' : False,
+                'autooneshot' : False,
                 'autorestartmode' : False,
                 'rdir'        : "/tmp" }
     if re.search('SHUT DOWN', response):
@@ -233,10 +233,15 @@ def readLogPortBanner(tn):
         dir = match.group(1)
         if dir[-1] == '\r':
             dir = dir[:-1]
+    # Note: This means that ONESHOT counts as OFF!
     if re.search(MSG_AUTORESTART_IS_ON, response):
         arst = True
     else:
         arst = False
+    if re.search(MSG_AUTORESTART_IS_ONESHOT, response):
+        arst1 = True
+    else:
+        arst1 = False
     # procServ 2.8 changed "auto restart" to "auto restart mode"
     if re.search(MSG_AUTORESTART_MODE, response):
         arstm = True
@@ -247,6 +252,7 @@ def readLogPortBanner(tn):
             'pid'         : pid,
             'rid'         : getid,
             'autorestart' : arst,
+            'autooneshot' : arst1,
             'autorestartmode' : arstm,
             'rdir'        : fixdir(dir, getid) }
 
@@ -298,42 +304,60 @@ def fixTelnetShell(host, port):
     tn.write("export PS1='> '\n");
     statd = tn.read_until(MSG_PROMPT, 2)
     tn.close()
-    
-def killProc(host, port, verbose=False):
-    print "Killing IOC on host %s, port %s..." % (host, port)
 
-    # First, turn off autorestart!
-    tn = openTelnet(host, port)
-    if tn:
+#
+# See if the procServ is in an acceptible state: on, off, or oneshot.
+# If not, send ^T until it is.
+#
+# Return True if we're in a good state, False if there was some problem along the way.
+#    
+def checkTelnetMode(host, port, onOK=True, offOK=False, oneshotOK=False, verbose=False):
+    while True:
+        tn = openTelnet(host, port)
+        if not tn:
+            print 'ERROR: checkTelnetMode() telnet to %s port %s failed' % (host, port)
+            return False
         try:
             statd = readLogPortBanner(tn)
         except:
-            print 'ERROR: killProc() failed to readLogPortBanner on %s port %s' % (host, port)
+            print 'ERROR: checkTelnetMode() failed to readLogPortBanner on %s port %s' % (host, port)
             tn.close()
-            return
+            return False
         try:
             if verbose:
-                print 'killProc: %s port %s status is %s' % (host, port, statd['status'])
+                print 'checkTelnetMode: %s port %s status is %s' % (host, port, statd['status'])
             if statd['autorestart']:
-                if verbose:
-                    print 'killProc: turning off autorestart on %s port %s' % (host, port)
-                # send ^T to toggle off auto restart.
-                tn.write("\x14")
-                # wait for toggled message
-                if statd['autorestartmode']:
-                    r = tn.read_until(MSG_AUTORESTART_MODE_TO_OFF, 1)
-                else:
-                    r = tn.read_until(MSG_AUTORESTART_TO_OFF, 1)
-                time.sleep(0.25)
-        except:
-            print 'ERROR: killProc() failed to turn off autorestart on %s port %s' % (host, port)
+                if onOK:
+                    tn.close()
+                    return True
+            elif statd['autooneshot']:
+                if oneshotOK:
+                    tn.close()
+                    return True
+            else:
+                if offOK:
+                    tn.close()
+                    return True
+            if verbose:
+                print 'checkTelnetMode: turning off autorestart on %s port %s' % (host, port)
+            # send ^T to toggle off auto restart.
+            tn.write("\x14")
+            # wait for toggled message
+            if statd['autorestartmode']:
+                r = tn.read_until(MSG_AUTORESTART_MODE_CHANGE, 1)
+            else:
+                r = tn.read_until(MSG_AUTORESTART_CHANGE, 1)
+            time.sleep(0.25)
             tn.close()
-            return
-        tn.close()
-    else:
-        print 'ERROR: killProc() telnet to %s port %s failed' % (host, port)
-        return
+        except:
+            print 'ERROR: checkTelnetMode() failed to turn off autorestart on %s port %s' % (host, port)
+            tn.close()
+            return False
 
+def killProc(host, port, verbose=False):
+    print "Killing IOC on host %s, port %s..." % (host, port)
+    if not checkTelnetMode(host, port, onOK=False, offOK=True, oneshotOK=False, verbose=verbose):
+        return
     # Now, reconnect to actually kill it!
     tn = openTelnet(host, port)
     if tn:
@@ -366,6 +390,9 @@ def killProc(host, port, verbose=False):
 
 def restartProc(host, port):
     print "Restarting IOC on host %s, port %s..." % (host, port)
+    # Can't deal with ONESHOT mode!
+    if not checkTelnetMode(host, port, onOK=True, offOK=True, oneshotOK=False):
+        return
     tn = openTelnet(host, port)
     started = False
     if tn:
@@ -730,15 +757,22 @@ def applyConfig(cfg, verify=None, ioc=None):
               current[l] = result
 
   running = current.keys()
-  nw = []
+  neww = []
+  notw = []
   for l in wanted:
       try:
-          if not config[l]['newdisable'] and not config[l]['hard']:
-              nw.append(l)
+          if not config[l]['hard']:
+              if not config[l]['newdisable']:
+                  neww.append(l)
+              else:
+                  notw.append(l)
       except:
-          if not config[l]['disable'] and not config[l]['hard']:
-              nw.append(l)
-  wanted = nw
+          if not config[l]['hard']:
+              if not config[l]['disable']:
+                  neww.append(l)
+              else:
+                  notw.append(l)
+  wanted = neww
 
   #
   # Note the hard IOC handling... we don't want to start them, but they 
@@ -765,6 +799,18 @@ def applyConfig(cfg, verify=None, ioc=None):
                     current[l]['rport'] != config[l]['port'] or
                     (	(not current[l]['newstyle']) and
                         current[l]['rdir'] != config[l]['dir']	)]
+
+  #
+  # Now there is a problem if an IOC is bad and repeatedly crashing.  The running state may
+  # not be accurate, as it is oscillating between RUNNING and SHUTDOWN.  If it's enabled, not
+  # much we can do but let it spin... but if it's disabled, we need to be certain to kill it.
+  # 
+  # Which is a long winded way of saying that we should add anything that is explicitly disabled
+  # to the kill_list, running or not.
+  #
+  for l in notw:
+      if not l in running:
+          kill_list.append(l)
                   
   # Start anyone who wasn't running, or was running on the wrong host or port, or is oldstyle and needs
   # an upgrade.
@@ -783,7 +829,10 @@ def applyConfig(cfg, verify=None, ioc=None):
       (kill_list, start_list, restart_list) = verify(current, config, kill_list, start_list, restart_list)
   
   for l in kill_list:
-    killProc(current[l]['rhost'], int(current[l]['rport']))
+    try:
+        killProc(current[l]['rhost'], int(current[l]['rport']))
+    except:
+        killProc(config[l]['host'], int(config[l]['port']))
     try:
         # This is dead, so get rid of the status file!
         os.unlink((STATUS_DIR % cfg) + "/" + l)

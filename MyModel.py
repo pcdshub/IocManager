@@ -546,8 +546,19 @@ class MyModel(QAbstractTableModel):
                 a = current[l]['rid']
             check = QCheckBox(d)
             check.setChecked(False)
-            check.setText("%s %s on %s:%d" % (verb, a, current[l][pfix + 'host'],
-                                              current[l][pfix + 'port']))
+            #
+            # We are presenting dead things as options to kill.
+            # Make sure we can have something there!
+            #
+            try:
+                h = current[l][pfix + 'host']
+            except:
+                h = config[l]['host']
+            try:
+                p = current[l][pfix + 'port']
+            except:
+                p = config[l]['port']
+            check.setText("%s %s on %s:%d" % (verb, a, h, p))
             d.clayout.addWidget(check)
             i = i + 1
             d.checks.append(check)
