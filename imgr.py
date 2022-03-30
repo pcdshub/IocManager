@@ -25,7 +25,9 @@ def get_hutch(ns):
     return v
 
 def usage():
-    print "Usage: imgr IOCNAME [--hutch HUTCH] --reboot soft"
+    print "Usage: imgr IOCNAME [--hutch HUTCH] --status"
+    print "       imgr IOCNAME [--hutch HUTCH] --info"
+    print "       imgr IOCNAME [--hutch HUTCH] --reboot soft"
     print "       imgr IOCNAME [--hutch HUTCH] --reboot hard"
     print "       imgr IOCNAME [--hutch HUTCH] --enable"
     print "       imgr IOCNAME [--hutch HUTCH] --disable"
@@ -33,6 +35,37 @@ def usage():
     print "       imgr IOCNAME [--hutch HUTCH] --move HOST"
     print "       imgr IOCNAME [--hutch HUTCH] --move HOST:PORT"
     print "       imgr [--hutch HUTCH] --list [--host HOST] [--enabled_only|--disabled_only]"
+    sys.exit(1)
+
+def info(hutch, ioc, verbose):
+    (ft, cl, hl, vs) = utils.readConfig(hutch)
+    for c in cl:
+        if c['id'] == ioc:
+            d = utils.check_status(c['host'], c['port'], ioc)
+            if verbose:
+                try:
+                    if c['disable']:
+                        if d['status'] == utils.STATUS_NOCONNECT:
+                            d['status'] = "DISABLED"
+                        elif d['status'] == utils.STATUS_RUNNING:
+                            d['status'] = "DISABLED, BUT RUNNING?!?"
+                except:
+                    pass
+                try:
+                    if c['alias'] != "":
+                        print "%s (%s):" % (ioc, c['alias'])
+                    else:
+                        print "%s:" % (ioc)
+                except:
+                    print "%s:" % (ioc)
+                print "    host  : %s" % c['host']
+                print "    port  : %s" % c['port']
+                print "    dir   : %s" % c['dir']
+                print "    status: %s" % d['status']
+            else:
+                print d['status']
+            sys.exit(0)
+    print "IOC %s not found in hutch %s!" % (ioc, hutch)
     sys.exit(1)
 
 def soft_reboot(hutch, ioc):
@@ -147,6 +180,8 @@ if __name__ == "__main__":
     try:
         parser = argparse.ArgumentParser(prog="imgr")
         parser.add_argument("ioc", nargs="?")
+        parser.add_argument("--status", action='store_true')
+        parser.add_argument("--info", action='store_true')
         parser.add_argument("--reboot")
         parser.add_argument("--disable", action='store_true')
         parser.add_argument("--enable", action='store_true')
@@ -167,7 +202,9 @@ if __name__ == "__main__":
         do_list(hutch, ns)
     if ns.ioc is None:
         usage()
-    if ns.reboot is not None:
+    if ns.status or ns.info:
+        info(hutch, ns.ioc, ns.info)
+    elif ns.reboot is not None:
         if ns.reboot == 'hard':
             hard_reboot(hutch, ns.ioc)
         elif ns.reboot == 'soft':
