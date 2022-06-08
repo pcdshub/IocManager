@@ -172,6 +172,12 @@ def getBaseName(ioc):
 # to EPICS_SITE_TOP without the final "iocBoot".
 #
 def fixdir(dir, id):
+    # Handle ".."
+    l = dir.split('/')
+    while ".." in l:
+        idx = l.index("..")
+        l = l[:idx-1]+l[idx+1:]
+    dir = "/".join(l)
     if dir[0:len(EPICS_SITE_TOP)] == EPICS_SITE_TOP:
         dir = dir[len(EPICS_SITE_TOP):]
     try:
@@ -920,10 +926,8 @@ def findParent(ioc, dir):
             var = m.group(1)
             val = m.group(2)
             if var == "RELEASE":
-                if val == '$$PATH/..' or val == '$$UP(PATH)':
-                    return fixdir(dir, ioc)
-                else:
-                    return fixdir(val, ioc)
+                val = val.replace("$$PATH/", dir + "/" + ioc + ".cfg").replace("$$UP(PATH)", dir)
+                return fixdir(val, ioc)
     return ""
 
 def read_until(fd, expr):
