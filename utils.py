@@ -596,7 +596,8 @@ def writeConfig(hutch, hostlist, cfglist, vars, f=None):
         f.write("   '%s',\n" % h)
     f.write("]\n\n");
     f.write("procmgr_config = [\n")
-    for entry in cfglist:
+    cl = sorted(cfglist, key=lambda x: x['id'])
+    for entry in cl:
         if entry['cfgstat'] == CONFIG_DELETED:
             continue
         try:
