@@ -598,7 +598,7 @@ class MyModel(QAbstractTableModel):
         # Create a widget for the scroll area and limit its size.
         # Resize events for this widget will be sent to us.
         d.sw = QWidget(d.sa)
-        d.sw.setMaximumHeight(1000)
+        d.sw.setMaximumHeight(5000)
         d.sw.installEventFilter(self)
         d.sa.setWidget(d.sw)
 

@@ -738,17 +738,20 @@ def applyConfig(cfg, verify=None, ioc=None):
   runninglist = readStatusDir(cfg)
 
   current = {}
+  notrunning = {}
   for l in runninglist:
       if ioc == None or ioc == l['rid']:
           result = check_status(l['rhost'], l['rport'], l['rid'])
+          rdir = l['rdir']
+          l.update(result);
+          if l['rdir'] == '/tmp':
+              l['rdir'] = rdir
+          else:
+              l['newstyle'] = False
           if result['status'] == STATUS_RUNNING:
-              rdir = l['rdir']
-              l.update(result);
-              if l['rdir'] == '/tmp':
-                  l['rdir'] = rdir
-              else:
-                  l['newstyle'] = False
               current[l['rid']] = l
+          else:
+              notrunning[l['rid']] = l
 
   running = current.keys()
   wanted  = config.keys()
@@ -812,12 +815,19 @@ def applyConfig(cfg, verify=None, ioc=None):
   # not be accurate, as it is oscillating between RUNNING and SHUTDOWN.  If it's enabled, not
   # much we can do but let it spin... but if it's disabled, we need to be certain to kill it.
   # 
-  # Which is a long winded way of saying that we should add anything that is explicitly disabled
-  # to the kill_list, running or not.
+  # We don't want to just add *everything* though... this makes the screen too verbose!  So, we
+  # compromise... if the status file is *new*, then maybe it's crashing and needs to be killed
+  # again.  If it's old though, let's assume that it's dead and we can leave it alone...
   #
+  # If it's dead, it might not *have* a status file, hence the try.
+  #
+  now = time.time()
   for l in notw:
-      if not l in running:
-          kill_list.append(l)
+      try:
+          if not l in running and now - notrunning[l]['mtime'] < 600:
+              kill_list.append(l)
+      except:
+          pass
                   
   # Start anyone who wasn't running, or was running on the wrong host or port, or is oldstyle and needs
   # an upgrade.
