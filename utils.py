@@ -262,12 +262,22 @@ def readLogPortBanner(tn):
             'autorestartmode' : arstm,
             'rdir'        : fixdir(dir, getid) }
 
+pdict = {}
 #
 # Returns a dictionary with status information for a given host/port.
 #
 def check_status(host, port, id):
-    # Ping the host to see if it is up!
-    pingrc = os.system("ping -c 1 -w 1 -W 0.002 %s >/dev/null 2>/dev/null" % host)
+    global pdict
+    now = time.time()
+    try:
+        (last, pingrc) = pdict[host]
+        havestat = now - last > 120
+    except:
+        havestat = False
+    if not havestat:
+        # Ping the host to see if it is up!
+        pingrc = os.system("ping -c 1 -w 1 -W 0.002 %s >/dev/null 2>/dev/null" % host)
+        pdict[host] = (now, pingrc)
     if pingrc != 0:
         return {'status'      : STATUS_DOWN,
                 'rid'         : id,

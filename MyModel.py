@@ -766,13 +766,31 @@ class MyModel(QAbstractTableModel):
         else:
             if entry['status'] != utils.STATUS_RUNNING:
                 return True
-            if (entry['host'] != entry['rhost'] or
-                entry['port'] != entry['rport'] or
-                entry['dir'] != entry['rdir'] or
-                entry['id'] != entry['rid']):
-                return True
-            else:
-                return False
+            try:
+                if entry['newhost'] != entry['rhost']:
+                    return True
+            except:
+                if entry['host'] != entry['rhost']:
+                    return True
+            try:
+                if entry['newport'] != entry['rport']:
+                    return True
+            except:
+                if entry['port'] != entry['rport']:
+                    return True
+            try:
+                if entry['newdir'] != entry['rdir']:
+                    return True
+            except:
+                if entry['dir'] != entry['rdir']:
+                    return True
+            try:
+                if entry['newid'] != entry['rid']:
+                    return True
+            except:
+                if entry['id'] != entry['rid']:
+                    return True
+            return False
 
     def revertIOC(self, index):
         entry = self.cfglist[index.row()]
