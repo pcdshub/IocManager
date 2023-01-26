@@ -101,6 +101,16 @@ if [ ! -e /dev/era0 -a -e $IOC_ROOT/../modules/ev2_driver/latest/driver/evr_load
         fi
 fi
 
+# TPR driver
+export TPR_DRIVER=/reg/g/pcds/package/slaclab/pcieTprDriver/latest/
+if [ ! -e /dev/tpra -a -e $TPR_DRIVER/`uname -r`/tpr.ko ]; then
+       (cd $TPR_DRIVER/`uname -r`; $TPR_DRIVER/src/load_module.sh)
+       if [ ! -e /dev/tpra ]
+       then
+           /sbin/rmmod tpr
+       fi
+fi
+
 if [ ! -e /dev/edt0 -a -e /opt/EDTpdv/edtinit ]; then
         # Install EDT driver on startup
         # Must be run as root
