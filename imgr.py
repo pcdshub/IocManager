@@ -31,10 +31,14 @@ def usage():
     print "       imgr IOCNAME [--hutch HUTCH] --reboot hard"
     print "       imgr IOCNAME [--hutch HUTCH] --enable"
     print "       imgr IOCNAME [--hutch HUTCH] --disable"
-    print "       imgr IOCNAME [--hutch HUTCH] --upgrade RELEASE_DIR"
-    print "       imgr IOCNAME [--hutch HUTCH] --move HOST"
-    print "       imgr IOCNAME [--hutch HUTCH] --move HOST:PORT"
+    print "       imgr IOCNAME [--hutch HUTCH] --upgrade/dir RELEASE_DIR"
+    print "       imgr IOCNAME [--hutch HUTCH] --move/loc HOST"
+    print "       imgr IOCNAME [--hutch HUTCH] --move/loc HOST:PORT"
+    print "       imgr IOCNAME [--hutch HUTCH] --add --loc HOST:PORT --dir RELEASE_DIR --enable/disable"
     print "       imgr [--hutch HUTCH] --list [--host HOST] [--enabled_only|--disabled_only]"
+    print ""
+    print "Note that '/' denotes a choice between two possible command names."
+    print "Also, --add, PORT may also be specified as 'open' or 'closed'."
     sys.exit(1)
 
 def info(hutch, ioc, verbose):
@@ -93,6 +97,7 @@ def do_commit(hutch, cl, hl, vs):
     except:
         try:
             os.unlink(file.name) # Clean up!
+            pass
         except:
             pass
         raise
@@ -114,6 +119,57 @@ def set_state(hutch, ioc, enable):
             sys.exit(0)
     print "IOC %s not found in hutch %s!" % (ioc, hutch)
     sys.exit(1)
+
+def add(hutch, ioc, version, hostport, disable):
+    if disable is None:
+        disable = False
+    if not utils.check_auth(pwd.getpwuid(os.getuid())[0], hutch):
+        print "Not authorized!"
+        sys.exit(1)
+    if not utils.validateDir(version, ioc):
+        print "%s does not have an st.cmd for %s!" % (version, ioc)
+        sys.exit(1)
+    (ft, cl, hl, vs) = utils.readConfig(hutch)
+    try:
+        utils.COMMITHOST = vs["COMMITHOST"]
+    except:
+        pass
+    plist = []
+    hp = hostport.split(":")
+    host = hp[0].lower()
+    port = hp[1].lower()
+    if len(hp) != 2:
+        print "Must specify host and port!"
+        sys.exit(1)
+    for c in cl:
+        if c['id'] == ioc:
+            print "IOC %s already exists in hutch %s!" % (ioc, hutch)
+            sys.exit(1)
+        if c['host'] == host:
+            plist.append(int(c['port']))
+    if port == 'closed':
+        for i in range(30001, 39000):
+            if i not in plist:
+                print "Choosing closed port %d" % i
+                port = i
+                break
+    elif port == 'open':
+        for i in range(39100, 39200):
+            if i not in plist:
+                print "Choosing open port %d" % i
+                port = i
+                break
+    else:
+        port = int(port)
+    d = {'id': ioc, 'host': host, 'port': port, 'dir': version,
+         'cfgstat': utils.CONFIG_ADDED, 'alias': "", 
+         'hard': False, 'disable': disable}
+    cl.append(d)
+    if host not in hl:
+        hl.append(host)
+    do_commit(hutch, cl, hl, vs)
+    utils.applyConfig(hutch, None, ioc)
+    sys.exit(0)
 
 def upgrade(hutch, ioc, version):
     if not utils.check_auth(pwd.getpwuid(os.getuid())[0], hutch):
@@ -186,11 +242,14 @@ if __name__ == "__main__":
         parser.add_argument("--disable", action='store_true')
         parser.add_argument("--enable", action='store_true')
         parser.add_argument("--upgrade")
+        parser.add_argument("--dir")
         parser.add_argument("--move")
+        parser.add_argument("--loc")
         parser.add_argument("--hutch")
         parser.add_argument("--list", action='store_true')
         parser.add_argument("--disabled_only", action='store_true')
         parser.add_argument("--enabled_only", action='store_true')
+        parser.add_argument("--add", action='store_true')
         parser.add_argument("--host")
         ns = parser.parse_args(sys.argv[1:])
     except:
@@ -211,14 +270,18 @@ if __name__ == "__main__":
             soft_reboot(hutch, ns.ioc)
         else:
             usage()
+    elif ns.add is not None:
+        if ns.dir is None or ns.loc is None or (ns.disable and ns.enable):
+            usage()
+        add(hutch, ns.ioc, ns.dir, ns.loc, ns.disable)
     elif ns.disable and ns.enable:
         usage()
     elif ns.disable or ns.enable:
         set_state(hutch, ns.ioc, ns.enable)
-    elif ns.upgrade is not None:
-        upgrade(hutch, ns.ioc, ns.upgrade)
-    elif ns.move is not None:
-        move(hutch, ns.ioc, ns.move)
+    elif ns.upgrade is not None or ns.dir is not None:
+        upgrade(hutch, ns.ioc, ns.dir if ns.upgrade is None else ns.dir)
+    elif ns.move is not None or ns.loc is not None:
+        move(hutch, ns.ioc, ns.loc if ns.move is None else ns.move)
     else:
         usage()
     sys.exit(0)
