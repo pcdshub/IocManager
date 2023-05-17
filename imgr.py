@@ -121,8 +121,6 @@ def set_state(hutch, ioc, enable):
     sys.exit(1)
 
 def add(hutch, ioc, version, hostport, disable):
-    if disable is None:
-        disable = False
     if not utils.check_auth(pwd.getpwuid(os.getuid())[0], hutch):
         print "Not authorized!"
         sys.exit(1)
@@ -270,7 +268,7 @@ if __name__ == "__main__":
             soft_reboot(hutch, ns.ioc)
         else:
             usage()
-    elif ns.add is not None:
+    elif ns.add:
         if ns.dir is None or ns.loc is None or (ns.disable and ns.enable):
             usage()
         add(hutch, ns.ioc, ns.dir, ns.loc, ns.disable)
@@ -279,7 +277,7 @@ if __name__ == "__main__":
     elif ns.disable or ns.enable:
         set_state(hutch, ns.ioc, ns.enable)
     elif ns.upgrade is not None or ns.dir is not None:
-        upgrade(hutch, ns.ioc, ns.dir if ns.upgrade is None else ns.dir)
+        upgrade(hutch, ns.ioc, ns.dir if ns.upgrade is None else ns.upgrade)
     elif ns.move is not None or ns.loc is not None:
         move(hutch, ns.ioc, ns.loc if ns.move is None else ns.move)
     else:
