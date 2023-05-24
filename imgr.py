@@ -27,6 +27,7 @@ def get_hutch(ns):
 def usage():
     print "Usage: imgr IOCNAME [--hutch HUTCH] --status"
     print "       imgr IOCNAME [--hutch HUTCH] --info"
+    print "       imgr IOCNAME [--hutch HUTCH] --connect"
     print "       imgr IOCNAME [--hutch HUTCH] --reboot soft"
     print "       imgr IOCNAME [--hutch HUTCH] --reboot hard"
     print "       imgr IOCNAME [--hutch HUTCH] --enable"
@@ -86,6 +87,16 @@ def hard_reboot(hutch, ioc):
         if c['id'] == ioc:
             utils.restartProc(c['host'], c['port'])
             sys.exit(0)
+    print "IOC %s not found in hutch %s!" % (ioc, hutch)
+    sys.exit(1)
+
+def do_connect(hutch, ioc):
+    (ft, cl, hl, vs) = utils.readConfig(hutch)
+    for c in cl:
+        if c['id'] == ioc:
+            os.execvp("telnet", ["telnet", c['host'], str(c['port'])])
+            print "Exec failed?!?"
+            sys.exit(1)
     print "IOC %s not found in hutch %s!" % (ioc, hutch)
     sys.exit(1)
 
@@ -236,6 +247,7 @@ if __name__ == "__main__":
         parser.add_argument("ioc", nargs="?")
         parser.add_argument("--status", action='store_true')
         parser.add_argument("--info", action='store_true')
+        parser.add_argument("--connect", action='store_true')
         parser.add_argument("--reboot")
         parser.add_argument("--disable", action='store_true')
         parser.add_argument("--enable", action='store_true')
@@ -261,6 +273,8 @@ if __name__ == "__main__":
         usage()
     if ns.status or ns.info:
         info(hutch, ns.ioc, ns.info)
+    elif ns.connect:
+        do_connect(hutch, ns.ioc)
     elif ns.reboot is not None:
         if ns.reboot == 'hard':
             hard_reboot(hutch, ns.ioc)
