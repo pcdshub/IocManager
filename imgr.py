@@ -181,7 +181,13 @@ def add(hutch, ioc, version, hostport, disable):
     sys.exit(0)
 
 def upgrade(hutch, ioc, version):
-    if not utils.check_auth(pwd.getpwuid(os.getuid())[0], hutch):
+    # check if the version change is permissible 
+    allow_toggle = utils.check_special(hutch, ioc, version)
+
+    # check if user is authed to do any upgrade
+    allow_upgrade = utils.check_auth(pwd.getpwuid(os.getuid())[0], hutch)
+
+    if not (allow_upgrade or allow_toggle):
         print "Not authorized!"
         sys.exit(1)
     if not utils.validateDir(version, ioc):
