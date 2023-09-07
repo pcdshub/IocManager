@@ -888,13 +888,32 @@ def check_auth(user, hutch):
             return True
     return False
 
-def check_special(ioc, hutch):
-    lines = open(SPECIAL_FILE % hutch).readlines()
-    lines = [l.strip() for l in lines]
-    for l in lines:
-        if l == ioc:
-            return True
-    return False
+# checks if ioc is marked as toggleable between defined versions of IOCs
+# schema will be ioc_name:permittedversion1,permittedversion2,etc
+def check_special(req_ioc, req_hutch, req_version = "no_upgrade"):
+    with open(SPECIAL_FILE % req_hutch) as fp:
+        lines = fp.readlines()
+        lines = [l.strip()for l in lines]
+        for entry in lines:
+            ioc_vers_list = entry.split(":")
+            ioc_name = ioc_vers_list[0]
+
+            #check that the ioc is in permissioned list before moving forward
+            if (ioc_name != req_ioc):
+                continue # not the ioc we are looking for
+            
+            if req_version == "no_upgrade": 
+                return True # NOTE(josh): this does assume that the only place check_special is invoked without overloading the default argument is in the raw enable / disable case
+
+            # if there is information after the colon, parse it
+            if len(ioc_vers_list) > 1:
+                perm_version = ioc_vers_list[-1].split(",")
+                for vers in perm_version:
+                    if vers == req_version:
+                      return True # return True if the requested version is in the list
+            # if the entry has no colon, assumed just ioc name
+
+        return False
 
 def check_ssh(user, hutch):
     try:
