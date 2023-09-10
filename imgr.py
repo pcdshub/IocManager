@@ -182,7 +182,7 @@ def add(hutch, ioc, version, hostport, disable):
 
 def upgrade(hutch, ioc, version):
     # check if the version change is permissible 
-    allow_toggle = utils.check_special(hutch, ioc, version)
+    allow_toggle = utils.check_special(ioc, hutch, version)
 
     # check if user is authed to do any upgrade
     allow_upgrade = utils.check_auth(pwd.getpwuid(os.getuid())[0], hutch)
