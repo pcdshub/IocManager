@@ -1,3 +1,6 @@
+#!/bin/bash
+export PSPKG_RELEASE=controls-0.1.9
+source $PSPKG_ROOT/etc/set_env.sh
 pyuic5 -o ioc_ui.py ioc.ui
 pyuic5 -o hostname_ui.py hostname.ui
 pyuic5 -o auth_ui.py auth.ui
