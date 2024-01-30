@@ -42,6 +42,25 @@ def usage():
     print "Also, --add, PORT may also be specified as 'open' or 'closed'."
     sys.exit(1)
 
+# Convert the port string to an integer.
+# We need the host and the config list in case of 'open' or 'closed'.
+def port_to_int(port, host, cl):
+    if port != 'closed' and port != 'open':
+        return int(port)
+    plist = []
+    for c in cl:
+        if c['host'] == host:
+            plist.append(int(c['port']))
+    if port == 'closed':
+        r = range(30001, 39000)
+    else:
+        r = range(39100, 39200)
+    for i in r:
+        if i not in plist:
+            print "Choosing %s port %d" % (port, i)
+            return i
+    raise ValueError('No available %s port?!?' % port)
+
 def info(hutch, ioc, verbose):
     (ft, cl, hl, vs) = utils.readConfig(hutch)
     for c in cl:
@@ -143,7 +162,6 @@ def add(hutch, ioc, version, hostport, disable):
         utils.COMMITHOST = vs["COMMITHOST"]
     except:
         pass
-    plist = []
     hp = hostport.split(":")
     host = hp[0].lower()
     port = hp[1].lower()
@@ -154,22 +172,7 @@ def add(hutch, ioc, version, hostport, disable):
         if c['id'] == ioc:
             print "IOC %s already exists in hutch %s!" % (ioc, hutch)
             sys.exit(1)
-        if c['host'] == host:
-            plist.append(int(c['port']))
-    if port == 'closed':
-        for i in range(30001, 39000):
-            if i not in plist:
-                print "Choosing closed port %d" % i
-                port = i
-                break
-    elif port == 'open':
-        for i in range(39100, 39200):
-            if i not in plist:
-                print "Choosing open port %d" % i
-                port = i
-                break
-    else:
-        port = int(port)
+    port = port_to_int(port, host, cl)
     d = {'id': ioc, 'host': host, 'port': port, 'dir': version,
          'cfgstat': utils.CONFIG_ADDED, 'alias': "", 
          'hard': False, 'disable': disable}
@@ -221,7 +224,7 @@ def move(hutch, ioc, hostport):
             hp = hostport.split(":")
             c['newhost'] = hp[0]
             if len(hp) > 1:
-                c['newport'] = int(hp[1])
+                c['newport'] = port_to_int(hp[1], hp[0], cl)
             if not utils.validateConfig(cl):
                 print "Port conflict when moving %s to %s, not moved!" % (ioc, hostport)
                 sys.exit(1)
