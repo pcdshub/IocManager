@@ -59,8 +59,7 @@ def port_to_int(port, host, cl):
         if i not in plist:
             print "Choosing %s port %d" % (port, i)
             return i
-    return None  # We should never really get here.
-
+    raise ValueError('No available %s port?!?' % port)
 
 def info(hutch, ioc, verbose):
     (ft, cl, hl, vs) = utils.readConfig(hutch)
