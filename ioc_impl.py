@@ -392,6 +392,12 @@ class GraphicUserInterface(QtWidgets.QMainWindow):
                                            "Failed to set required parameters for new IOC!",
                                            QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
                 continue
+            if self.model.findid(name) is not None:
+                QtWidgets.QMessageBox.critical(None,
+                                           "Error",
+                                           "IOC %s already exists!" % name,
+                                           QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+                continue
             self.model.addIOC(name, alias, host, port, dir)
             return
 
