@@ -29,7 +29,9 @@ fi
 
 # Setup the cfg environment.
 export IOC=${host}
-export IOC_USER=${cfguser}
+if [ -z ${IOC_USER} ]; then
+   export IOC_USER=${cfguser}
+fi
 if [ ! -f $IOC_COMMON/All/${cfg}_env.sh ]; then
 	echo $IOC_COMMON/All/${cfg}_env.sh  not found!
 	exit 1
@@ -43,9 +45,9 @@ PROCMGRD_DIR=$(dirname $PROCSERV_EXE)
 
 # Make sure we have a procmgrd log directory
 if [ ! -d $PROCMGRD_LOG_DIR ]; then
-	su $cfguser -s /bin/sh -c "mkdir -p  $PROCMGRD_LOG_DIR"
+	su $IOC_USER -s /bin/sh -c "mkdir -p  $PROCMGRD_LOG_DIR"
 fi
-su $cfguser -s /bin/sh -c "chmod g+rwx $PROCMGRD_LOG_DIR"
+su $IOC_USER -s /bin/sh -c "chmod g+rwx $PROCMGRD_LOG_DIR"
 
 # Allow control connections from anywhere
 # ignore ^D so procmgrd doesn't terminate on ^D
@@ -67,9 +69,9 @@ launchProcMgrD()
     fixTelnet $ctrlport
 }
 
-# Start up the procmgrd for the hutch cfguser.
+# Start up the procmgrd for the hutch IOC_USER
 if [ "$cfg" != "xrt" -a "$cfg" != "las" ]; then
-	launchProcMgrD $cfguser ${PROCMGRD_ROOT}0 $(( BASEPORT ))
+	launchProcMgrD $IOC_USER ${PROCMGRD_ROOT}0 $(( BASEPORT ))
 fi
 
 # Start up the procmgrd for feeioc
@@ -126,7 +128,7 @@ fi
 export IOC=$host
 
 # Start caRepeater.
-su ${cfguser} -s /bin/sh -c "$PROCSERV --logfile $IOC_DATA/$IOC_HOST/iocInfo/caRepeater.log --name caRepeater 30000 $SCRIPTROOT/runRepeater"
+su $IOC_USER -s /bin/sh -c "$PROCSERV --logfile $IOC_DATA/$IOC_HOST/iocInfo/caRepeater.log --name caRepeater 30000 $SCRIPTROOT/runRepeater"
 sleep 5
 
 # Start all of our processes.
