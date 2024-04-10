@@ -29,7 +29,9 @@ fi
 
 # Setup the cfg environment.
 export IOC=${host}
-export IOC_USER=${cfguser}
+if [ -z ${IOC_USER} ]; then
+   export IOC_USER=${cfguser}
+fi
 if [ ! -f $IOC_COMMON/All/${cfg}_env.sh ]; then
 	echo $IOC_COMMON/All/${cfg}_env.sh  not found!
 	exit 1
